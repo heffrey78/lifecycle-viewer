@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.npm
+.yarn
+yarn-error.log*
+
+# Build outputs
+.svelte-kit/
+build/
+dist/
+.output
+
+# Development
+.env*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output
+
+# Test files
+test-db-switch.js
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
