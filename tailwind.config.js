@@ -12,23 +12,20 @@ export default {
 				implemented: '#059669', // emerald-600
 				validated: '#047857', // emerald-700
 				deprecated: '#6b7280', // gray-500
-				
+
 				// Task states
 				'not-started': '#ef4444', // red-500
 				'in-progress': '#f97316', // orange-500
 				blocked: '#991b1b', // red-800
 				complete: '#10b981', // emerald-500
 				abandoned: '#6b7280', // gray-500
-				
+
 				// Architecture states
 				proposed: '#f97316', // orange-500
 				accepted: '#10b981', // emerald-500
-				rejected: '#ef4444', // red-500
+				rejected: '#ef4444' // red-500
 			}
 		}
 	},
-plugins: [
-import('@tailwindcss/forms'),
-import('@tailwindcss/typography')
-]
+	plugins: [import('@tailwindcss/forms'), import('@tailwindcss/typography')]
 };
