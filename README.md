@@ -14,10 +14,12 @@ A modern Svelte/TypeScript web application for interacting with the [Lifecycle M
 ## 📋 Prerequisites
 
 ### Required
+
 - **Node.js** (v18+ recommended)
 - **Lifecycle MCP Server** - [Installation Guide](https://github.com/heffrey78/lifecycle-mcp)
 
 ### MCP Server Setup
+
 Before running the Lifecycle Viewer, you need to have the Lifecycle MCP server running:
 
 ```bash
@@ -39,23 +41,27 @@ The MCP server should be running on `ws://localhost:3000/mcp` (or configure the 
 ## 🛠️ Installation & Setup
 
 1. **Clone this repository** (if not already done)
+
    ```bash
    git clone <repository-url>
    cd lifecycle-viewer
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure MCP Connection** (optional)
    Edit `src/lib/services/mcp-client.ts` to modify the server URL:
+
    ```typescript
    constructor(private serverUrl: string = 'ws://localhost:3000/mcp')
    ```
 
 4. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -66,12 +72,15 @@ The MCP server should be running on `ws://localhost:3000/mcp` (or configure the 
 ## 🔌 Connecting to Real Data
 
 ### Current Status
+
 The application currently shows **mock/dummy data** when the MCP server is not connected. This is intentional to allow development and demonstration without requiring a running MCP server.
 
 ### Getting Real Data
+
 To see real project data:
 
 1. **Ensure MCP Server is Running**
+
    ```bash
    cd /path/to/lifecycle-mcp
    uv run server.py  # or lifecycle-mcp
@@ -84,6 +93,7 @@ To see real project data:
 
 3. **Create Real Data**
    Use the MCP server tools through Claude Code or directly via MCP protocol:
+
    ```bash
    # Add the server to Claude Code
    claude mcp add lifecycle lifecycle-mcp -e LIFECYCLE_DB=./lifecycle.db
@@ -96,6 +106,7 @@ To see real project data:
    - `create_architecture_decision` - Document architecture choices
 
 ### Mock vs Real Data
+
 - **Mock Data**: Used when MCP server is unavailable (development/demo)
 - **Real Data**: Loaded from your actual Lifecycle database when MCP server is connected
 - **Seamless Fallback**: Application automatically detects connection status
@@ -103,6 +114,7 @@ To see real project data:
 ## 🏗️ Architecture
 
 ### Project Structure
+
 ```
 lifecycle-viewer/
 ├── src/
@@ -122,17 +134,20 @@ lifecycle-viewer/
 ### Key Components
 
 #### MCP Client (`src/lib/services/mcp-client.ts`)
+
 - WebSocket-based communication with Lifecycle MCP server
 - Async/await API matching MCP tool signatures
 - Automatic fallback to mock data when server unavailable
 - Error handling and connection management
 
 #### Type Definitions (`src/lib/types/lifecycle.ts`)
+
 - Complete TypeScript interfaces matching database schema
 - Type-safe API responses and data structures
 - Enums for status, priority, and type values
 
 #### UI Components
+
 - **Dashboard**: Project overview with metrics and quick actions
 - **Requirements**: Filterable table with status tracking
 - **Tasks**: Implementation tracking with GitHub integration
@@ -141,13 +156,17 @@ lifecycle-viewer/
 ## 🎨 Customization
 
 ### Styling
+
 The application uses Tailwind CSS with custom color definitions for lifecycle states:
+
 - **Requirements**: Draft (red) → Under Review (orange) → Approved (blue) → Ready (green) → Implemented (dark green)
 - **Tasks**: Not Started (red) → In Progress (orange) → Complete (green)
 - **Priorities**: P0 (red) → P1 (orange) → P2 (blue) → P3 (gray)
 
 ### Configuration
+
 Edit configuration in:
+
 - `tailwind.config.js` - Styling and colors
 - `src/lib/services/mcp-client.ts` - Server connection settings
 - Individual page components for UI behavior
@@ -155,9 +174,10 @@ Edit configuration in:
 ## 🔧 Development
 
 ### Available Scripts
+
 ```bash
 npm run dev          # Start development server
-npm run build        # Build for production  
+npm run build        # Build for production
 npm run preview      # Preview production build
 npm run test:unit    # Run unit tests
 npm run lint         # Run ESLint
@@ -165,6 +185,7 @@ npm run format       # Format code with Prettier
 ```
 
 ### Development Workflow
+
 1. **Start MCP Server** (for real data)
 2. **Start Dev Server**: `npm run dev`
 3. **Make Changes**: Hot reload enabled
@@ -172,6 +193,7 @@ npm run format       # Format code with Prettier
 5. **Build**: `npm run build` for production
 
 ### Adding New Features
+
 1. **Define Types**: Add interfaces to `src/lib/types/lifecycle.ts`
 2. **Extend MCP Client**: Add methods to `src/lib/services/mcp-client.ts`
 3. **Create UI**: Build Svelte components with TypeScript
@@ -180,15 +202,17 @@ npm run format       # Format code with Prettier
 ## 📡 MCP Integration
 
 ### Real-time Connection
+
 - **WebSocket**: Persistent connection to MCP server
 - **Connection Status**: Visual indicator in sidebar
 - **Automatic Reconnection**: Handles temporary disconnections
 - **Fallback Mode**: Seamless transition to mock data
 
 ### MCP Tools Used
+
 - `query_requirements` - Get requirements list
 - `get_requirement_details` - Get single requirement
-- `query_tasks` - Get tasks list  
+- `query_tasks` - Get tasks list
 - `get_task_details` - Get single task
 - `get_project_status` - Get dashboard metrics
 - `create_requirement` - Add new requirements
@@ -198,17 +222,21 @@ npm run format       # Format code with Prettier
 ## 🚀 Production Deployment
 
 ### Build for Production
+
 ```bash
 npm run build
 ```
 
 ### Deploy Options
+
 - **Static Hosting**: Vercel, Netlify, GitHub Pages
 - **Node.js Hosting**: Any Node.js hosting provider
 - **Docker**: Containerize with included Dockerfile (if added)
 
 ### Environment Configuration
+
 Set environment variables for production:
+
 - `MCP_SERVER_URL` - URL of your MCP server
 - `PUBLIC_APP_NAME` - Application name/title
 
