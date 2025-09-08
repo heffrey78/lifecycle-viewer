@@ -4,6 +4,7 @@
 	import { Search, Filter, Plus, Eye, Edit, Trash2, FileText } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import { currentTheme, getArchitectureStatusColorClasses } from '$lib/theme';
 
 	let architectureDecisions: any[] = [];
 	let filteredDecisions: any[] = [];
@@ -50,16 +51,8 @@
 		});
 	}
 
-	function getStatusColor(status: string): string {
-		const colors: Record<string, string> = {
-			Draft: 'bg-red-100 text-red-800 border-red-200',
-			Proposed: 'bg-orange-100 text-orange-800 border-orange-200',
-			Accepted: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-			Deprecated: 'bg-gray-100 text-gray-800 border-gray-200',
-			Superseded: 'bg-purple-100 text-purple-800 border-purple-200'
-		};
-		return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-	}
+	// Theme-aware color function using centralized theme system
+	$: getStatusColor = (status: string) => getArchitectureStatusColorClasses(status as any, $currentTheme);
 
 	// Sortable table configuration
 	const columns = [

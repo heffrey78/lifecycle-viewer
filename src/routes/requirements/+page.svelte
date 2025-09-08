@@ -11,6 +11,7 @@
 	import { Search, Filter, Plus, Eye, Edit, Trash2, AlertTriangle } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import { currentTheme, getStatusColorClasses, getPriorityColorClasses, getRiskColorClasses } from '$lib/theme';
 
 	let requirements: Requirement[] = [];
 	let filteredRequirements: Requirement[] = [];
@@ -61,38 +62,10 @@
 		return matchesSearch && matchesStatus && matchesType && matchesPriority;
 	});
 
-	function getStatusColor(status: RequirementStatus): string {
-		const colors: Record<RequirementStatus, string> = {
-			Draft: 'bg-red-100 text-red-800 border-red-200',
-			'Under Review': 'bg-orange-100 text-orange-800 border-orange-200',
-			Approved: 'bg-blue-100 text-blue-800 border-blue-200',
-			Architecture: 'bg-purple-100 text-purple-800 border-purple-200',
-			Ready: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-			Implemented: 'bg-emerald-200 text-emerald-900 border-emerald-300',
-			Validated: 'bg-emerald-300 text-emerald-900 border-emerald-400',
-			Deprecated: 'bg-gray-100 text-gray-800 border-gray-200'
-		};
-		return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-	}
-
-	function getPriorityColor(priority: Priority): string {
-		const colors: Record<Priority, string> = {
-			P0: 'bg-red-100 text-red-800 border-red-200',
-			P1: 'bg-orange-100 text-orange-800 border-orange-200',
-			P2: 'bg-blue-100 text-blue-800 border-blue-200',
-			P3: 'bg-gray-100 text-gray-800 border-gray-200'
-		};
-		return colors[priority];
-	}
-
-	function getRiskColor(risk: string): string {
-		const colors: Record<string, string> = {
-			High: 'bg-red-100 text-red-800',
-			Medium: 'bg-orange-100 text-orange-800',
-			Low: 'bg-emerald-100 text-emerald-800'
-		};
-		return colors[risk] || 'bg-gray-100 text-gray-800';
-	}
+	// Theme-aware color functions using centralized theme system
+	$: getStatusColor = (status: RequirementStatus) => getStatusColorClasses(status, $currentTheme);
+	$: getPriorityColor = (priority: Priority) => getPriorityColorClasses(priority, $currentTheme);
+	$: getRiskColor = (risk: string) => getRiskColorClasses(risk as any, $currentTheme);
 
 	function getCompletionPercentage(req: Requirement): number {
 		if (req.task_count === 0) return 0;

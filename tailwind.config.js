@@ -4,7 +4,15 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				// Custom colors for lifecycle states
+				// Theme-aware base colors using CSS custom properties
+				'theme-background': 'var(--color-background)',
+				'theme-foreground': 'var(--color-foreground)',
+				'theme-muted': 'var(--color-muted)',
+				'theme-accent': 'var(--color-accent)',
+				'theme-border': 'var(--color-border)',
+
+				// Legacy colors for backward compatibility during migration
+				// TODO: Remove these once all components use theme system
 				draft: '#ef4444', // red-500
 				review: '#f97316', // orange-500
 				approved: '#3b82f6', // blue-500

@@ -21,6 +21,7 @@
 	} from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import { currentTheme, getTaskStatusColorClasses, getPriorityColorClasses, getEffortColorClasses } from '$lib/theme';
 
 	let tasks: Task[] = [];
 	let filteredTasks: Task[] = [];
@@ -71,37 +72,10 @@
 		return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
 	});
 
-	function getStatusColor(status: TaskStatus): string {
-		const colors: Record<TaskStatus, string> = {
-			'Not Started': 'bg-red-100 text-red-800 border-red-200',
-			'In Progress': 'bg-orange-100 text-orange-800 border-orange-200',
-			Blocked: 'bg-red-200 text-red-900 border-red-300',
-			Complete: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-			Abandoned: 'bg-gray-100 text-gray-800 border-gray-200'
-		};
-		return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
-	}
-
-	function getPriorityColor(priority: Priority): string {
-		const colors: Record<Priority, string> = {
-			P0: 'bg-red-100 text-red-800 border-red-200',
-			P1: 'bg-orange-100 text-orange-800 border-orange-200',
-			P2: 'bg-blue-100 text-blue-800 border-blue-200',
-			P3: 'bg-gray-100 text-gray-800 border-gray-200'
-		};
-		return colors[priority];
-	}
-
-	function getEffortColor(effort: EffortSize): string {
-		const colors: Record<EffortSize, string> = {
-			XS: 'bg-green-100 text-green-800',
-			S: 'bg-blue-100 text-blue-800',
-			M: 'bg-yellow-100 text-yellow-800',
-			L: 'bg-orange-100 text-orange-800',
-			XL: 'bg-red-100 text-red-800'
-		};
-		return colors[effort] || 'bg-gray-100 text-gray-800';
-	}
+	// Theme-aware color functions using centralized theme system
+	$: getStatusColor = (status: TaskStatus) => getTaskStatusColorClasses(status, $currentTheme);
+	$: getPriorityColor = (priority: Priority) => getPriorityColorClasses(priority, $currentTheme);
+	$: getEffortColor = (effort: EffortSize) => getEffortColorClasses(effort, $currentTheme);
 
 	function formatAssignee(email?: string): string {
 		if (!email) return 'Unassigned';

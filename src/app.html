@@ -4,6 +4,103 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<script src="https://cdn.tailwindcss.com"></script>
+		<style>
+			/* Theme-aware global styles */
+			.bg-white {
+				background-color: var(--color-card-bg, #ffffff) !important;
+				color: var(--color-card-text, #111827) !important;
+			}
+			
+			.bg-gray-50 {
+				background-color: var(--color-background, #f9fafb) !important;
+			}
+			
+			.bg-gray-100 {
+				background-color: var(--color-secondary-bg, #f3f4f6) !important;
+			}
+			
+			.hover\\:bg-gray-200:hover {
+				background-color: var(--color-secondary-hover-bg, #e5e7eb) !important;
+			}
+			
+			.text-gray-900 {
+				color: var(--color-foreground, #111827) !important;
+			}
+			
+			.text-gray-600 {
+				color: var(--color-muted, #6b7280) !important;
+			}
+			
+			.text-gray-700 {
+				color: var(--color-foreground, #374151) !important;
+			}
+			
+			.text-gray-500 {
+				color: var(--color-muted, #6b7280) !important;
+			}
+			
+			.border-gray-200 {
+				border-color: var(--color-card-border, #e5e7eb) !important;
+			}
+			
+			.border-gray-300 {
+				border-color: var(--color-border, #d1d5db) !important;
+			}
+			
+			/* Form elements */
+			select, input[type="text"], input[type="search"], input {
+				background-color: var(--color-card-bg, #ffffff) !important;
+				color: var(--color-card-text, #111827) !important;
+				border-color: var(--color-border, #d1d5db) !important;
+			}
+			
+			select:focus, input:focus {
+				background-color: var(--color-card-bg, #ffffff) !important;
+				color: var(--color-card-text, #111827) !important;
+				border-color: var(--color-accent, #3b82f6) !important;
+			}
+			
+			option {
+				background-color: var(--color-card-bg, #ffffff) !important;
+				color: var(--color-card-text, #111827) !important;
+			}
+			
+			/* Table hover states */
+			.hover\\:bg-gray-50:hover {
+				background-color: var(--color-hover-bg, rgba(156, 163, 175, 0.1)) !important;
+			}
+			
+			.hover\\:bg-gray-100:hover {
+				background-color: var(--color-hover-bg, rgba(156, 163, 175, 0.2)) !important;
+			}
+			
+			/* Button hover states */
+			.hover\\:text-blue-600:hover {
+				color: var(--color-accent, #3b82f6) !important;
+			}
+			
+			.hover\\:text-orange-600:hover {
+				color: var(--color-warning, #ea580c) !important;
+			}
+			
+			.hover\\:text-red-600:hover {
+				color: var(--color-error, #dc2626) !important;
+			}
+			
+			.hover\\:text-emerald-600:hover {
+				color: var(--color-success, #059669) !important;
+			}
+			
+			/* High contrast fixes for text visibility */
+			.text-white {
+				color: var(--color-contrast-text, #ffffff) !important;
+			}
+			
+			/* Additional hover state fixes */
+			tr:hover, tbody tr:hover {
+				background-color: var(--color-hover-bg, rgba(156, 163, 175, 0.1)) !important;
+			}
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
