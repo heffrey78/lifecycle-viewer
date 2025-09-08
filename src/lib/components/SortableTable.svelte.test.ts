@@ -21,48 +21,48 @@ describe('SortableTable', () => {
 
 	describe('Core Rendering', () => {
 		it('should render table with provided data and columns', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: basicColumns }
 			});
 
 			// Check table structure exists
 			const table = container.querySelector('table');
 			expect(table).toBeTruthy();
-			
+
 			// Check column headers are rendered
 			const headers = container.querySelectorAll('th');
 			expect(headers.length).toBe(5); // 5 columns defined
-			
+
 			// Check data rows are rendered
 			const rows = container.querySelectorAll('tbody tr');
 			expect(rows.length).toBe(3); // 3 data items
 		});
 
 		it('should handle empty data array', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: [], columns: basicColumns }
 			});
 
 			const table = container.querySelector('table');
 			expect(table).toBeTruthy();
-			
+
 			// Should still show headers
 			const headers = container.querySelectorAll('th');
 			expect(headers.length).toBe(5);
-			
+
 			// But no data rows
 			const rows = container.querySelectorAll('tbody tr');
 			expect(rows.length).toBe(0);
 		});
 
 		it('should handle empty columns array', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: [] }
 			});
 
 			const table = container.querySelector('table');
 			expect(table).toBeTruthy();
-			
+
 			// No columns should be rendered
 			const headers = container.querySelectorAll('th');
 			expect(headers.length).toBe(0);
@@ -71,7 +71,7 @@ describe('SortableTable', () => {
 
 	describe('Accessibility Features', () => {
 		it('should include proper ARIA attributes', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: basicColumns }
 			});
 
@@ -83,14 +83,14 @@ describe('SortableTable', () => {
 			expect(sortableHeaders.length).toBe(4); // 4 sortable columns
 
 			// Check non-sortable headers don't have tabindex
-			const statusHeader = Array.from(headers).find(h => h.textContent?.includes('Status'));
+			const statusHeader = Array.from(headers).find((h) => h.textContent?.includes('Status'));
 			if (statusHeader) {
 				expect(statusHeader.getAttribute('tabindex')).toBe('-1');
 			}
 		});
 
 		it('should have proper tabindex for keyboard navigation', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: basicColumns }
 			});
 
@@ -106,7 +106,7 @@ describe('SortableTable', () => {
 
 	describe('Visual Sort Indicators', () => {
 		it('should show sort icons for sortable columns', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: basicColumns }
 			});
 
@@ -121,7 +121,7 @@ describe('SortableTable', () => {
 				{ key: 'status', label: 'Status', type: 'string' as const, sortable: false }
 			];
 
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns }
 			});
 
@@ -134,16 +134,16 @@ describe('SortableTable', () => {
 	describe('Custom Render Functions', () => {
 		it('should use custom render function when provided', () => {
 			const columnsWithRender: SortableTableColumn[] = [
-				{ 
-					key: 'name', 
-					label: 'Name', 
+				{
+					key: 'name',
+					label: 'Name',
 					type: 'string',
 					render: (value) => `Mr. ${value}`
 				},
 				{ key: 'count', label: 'Count', type: 'number' }
 			];
 
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: columnsWithRender }
 			});
 
@@ -155,7 +155,7 @@ describe('SortableTable', () => {
 		});
 
 		it('should fall back to default rendering when render function not provided', () => {
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: sampleData, columns: basicColumns }
 			});
 
@@ -168,10 +168,8 @@ describe('SortableTable', () => {
 
 	describe('Type Safety', () => {
 		it('should handle different data types correctly', () => {
-			const typedData = [
-				{ name: 'Test', count: 42, active: true, date: '2024-01-01' }
-			];
-			
+			const typedData = [{ name: 'Test', count: 42, active: true, date: '2024-01-01' }];
+
 			const typedColumns: SortableTableColumn[] = [
 				{ key: 'name', label: 'Name', type: 'string' },
 				{ key: 'count', label: 'Count', type: 'number' },
@@ -179,7 +177,7 @@ describe('SortableTable', () => {
 			];
 
 			expect(() => {
-				render(SortableTable, { 
+				render(SortableTable, {
 					props: { data: typedData, columns: typedColumns }
 				});
 			}).not.toThrow();
@@ -198,7 +196,7 @@ describe('SortableTable', () => {
 			];
 
 			expect(() => {
-				render(SortableTable, { 
+				render(SortableTable, {
 					props: { data: dataWithNulls, columns }
 				});
 			}).not.toThrow();
@@ -214,7 +212,7 @@ describe('SortableTable', () => {
 			];
 
 			expect(() => {
-				render(SortableTable, { 
+				render(SortableTable, {
 					props: { data: sampleData, columns: malformedColumns }
 				});
 			}).not.toThrow();
@@ -231,7 +229,7 @@ describe('SortableTable', () => {
 				{ key: 'count', label: 'Count', type: 'number' }
 			];
 
-			const { container } = render(SortableTable, { 
+			const { container } = render(SortableTable, {
 				props: { data: nestedData, columns: nestedColumns }
 			});
 
@@ -255,19 +253,17 @@ describe('SortableTable', () => {
 			];
 
 			expect(() => {
-				render(SortableTable, { 
+				render(SortableTable, {
 					props: { data: [{ test: 'value' }], columns }
 				});
 			}).not.toThrow();
 		});
 
 		it('should work with minimal column configuration', () => {
-			const minimalColumns: SortableTableColumn[] = [
-				{ key: 'name', label: 'Name' }
-			];
+			const minimalColumns: SortableTableColumn[] = [{ key: 'name', label: 'Name' }];
 
 			expect(() => {
-				render(SortableTable, { 
+				render(SortableTable, {
 					props: { data: sampleData, columns: minimalColumns }
 				});
 			}).not.toThrow();

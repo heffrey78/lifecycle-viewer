@@ -72,29 +72,32 @@ Comprehensive testing infrastructure for MCP client functionality:
 #### Testing Patterns
 
 **Basic MCP Client Test:**
+
 ```typescript
 import { createConnectedMCPClient, REQUIREMENT_FIXTURES } from '$lib/test-utils';
 
 test('should fetch requirements', async () => {
-  const { testEnv, client } = await createConnectedMCPClient();
-  
-  const result = await client.getRequirements();
-  expect(result.success).toBe(true);
-  
-  testEnv.cleanup(); // Always cleanup
+	const { testEnv, client } = await createConnectedMCPClient();
+
+	const result = await client.getRequirements();
+	expect(result.success).toBe(true);
+
+	testEnv.cleanup(); // Always cleanup
 });
 ```
 
 **Network Simulation:**
+
 ```typescript
 const { client, mockWebSocket } = await setupMCPClient({
-  networkPreset: 'mobile', // or 'poor', 'typical', 'perfect'
-  mcpScenario: 'unreliable', // Simulate server errors
-  enableLogging: true // Debug network activity
+	networkPreset: 'mobile', // or 'poor', 'typical', 'perfect'
+	mcpScenario: 'unreliable', // Simulate server errors
+	enableLogging: true // Debug network activity
 });
 ```
 
 **Performance Testing:**
+
 ```typescript
 const results = await testEnv.stressTestConnection(100, 10); // 100 ops, 10 concurrent
 expect(results.successRate).toBeGreaterThan(0.95);
@@ -110,8 +113,9 @@ expect(results.successRate).toBeGreaterThan(0.95);
 #### Test Data Management
 
 **Fixtures provide:**
+
 - Requirements in all lifecycle states (Draft → Validated)
-- Tasks with various statuses and effort sizes  
+- Tasks with various statuses and effort sizes
 - Architecture decisions (ADR, TDD formats)
 - Realistic project metrics and relationships
 - Bulk data generation for performance testing
