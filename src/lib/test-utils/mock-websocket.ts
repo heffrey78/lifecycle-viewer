@@ -8,7 +8,7 @@ export class MockCloseEvent extends Event {
 	public code: number;
 	public reason: string;
 	public wasClean: boolean;
-	
+
 	constructor(type: string, options: { code?: number; reason?: string; wasClean?: boolean } = {}) {
 		super(type);
 		this.code = options.code || 1000;
@@ -20,7 +20,7 @@ export class MockCloseEvent extends Event {
 export class MockMessageEvent extends Event {
 	public data: unknown;
 	public origin: string;
-	
+
 	constructor(type: string, options: { data?: unknown; origin?: string } = {}) {
 		super(type);
 		this.data = options.data;
@@ -31,7 +31,7 @@ export class MockMessageEvent extends Event {
 export class MockErrorEvent extends Event {
 	public error: Error | null;
 	public message: string;
-	
+
 	constructor(type: string, options: { error?: Error; message?: string } = {}) {
 		super(type);
 		this.error = options.error || null;
@@ -94,7 +94,7 @@ export class EnhancedMockWebSocket {
 
 	constructor(url: string | URL, protocols?: string | string[], config: MockWebSocketConfig = {}) {
 		this.url = typeof url === 'string' ? url : url.href;
-		
+
 		this.config = {
 			networkPreset: 'typical',
 			autoConnect: true,
@@ -142,7 +142,10 @@ export class EnhancedMockWebSocket {
 	}
 
 	close(code?: number, reason?: string): void {
-		if (this.readyState === MockWebSocketState.CLOSED || this.readyState === MockWebSocketState.CLOSING) {
+		if (
+			this.readyState === MockWebSocketState.CLOSED ||
+			this.readyState === MockWebSocketState.CLOSING
+		) {
 			return;
 		}
 
@@ -159,7 +162,10 @@ export class EnhancedMockWebSocket {
 	// Enhanced testing methods
 	simulateMessage(data: unknown, options: { delay?: number } = {}): void {
 		if (this.readyState !== MockWebSocketState.OPEN) {
-			this.logMessage('WARN', `Cannot simulate message, WebSocket not open. State: ${this.readyState}`);
+			this.logMessage(
+				'WARN',
+				`Cannot simulate message, WebSocket not open. State: ${this.readyState}`
+			);
 			return;
 		}
 
@@ -178,7 +184,7 @@ export class EnhancedMockWebSocket {
 		setTimeout(async () => {
 			if (this.readyState === MockWebSocketState.OPEN) {
 				await this.networkSimulator.simulateLatency();
-				
+
 				if (!this.networkSimulator.shouldDropPacket()) {
 					this.onmessage?.(new MockMessageEvent('message', { data: messageData }));
 				} else {
@@ -191,10 +197,10 @@ export class EnhancedMockWebSocket {
 	simulateError(error: Error | string = 'WebSocket error'): void {
 		const errorObj = typeof error === 'string' ? new Error(error) : error;
 		this.logMessage('ERROR', { error: errorObj.message });
-		
+
 		this.readyState = MockWebSocketState.CLOSED;
 		this.cleanup();
-		
+
 		this.onerror?.(new MockErrorEvent('error', { error: errorObj, message: errorObj.message }));
 		this.fireCloseEvent(1006, 'Connection failed');
 	}
@@ -225,8 +231,8 @@ export class EnhancedMockWebSocket {
 	}
 
 	getLastMessage(direction?: 'inbound' | 'outbound'): WebSocketMessage | null {
-		const messages = direction 
-			? this.messageHistory.filter(m => m.direction === direction)
+		const messages = direction
+			? this.messageHistory.filter((m) => m.direction === direction)
 			: this.messageHistory;
 		return messages[messages.length - 1] || null;
 	}
@@ -275,7 +281,7 @@ export class EnhancedMockWebSocket {
 		this.connectionTimer = setTimeout(async () => {
 			try {
 				await this.networkSimulator.simulateLatency();
-				
+
 				if (this.networkSimulator.shouldDropPacket()) {
 					this.simulateError('Connection failed');
 					return;
@@ -294,7 +300,7 @@ export class EnhancedMockWebSocket {
 
 	private async simulateNetworkSend(data: string): Promise<void> {
 		await this.networkSimulator.simulateLatency();
-		
+
 		if (this.networkSimulator.shouldDropPacket()) {
 			this.logMessage('DROP', { data, direction: 'outbound' });
 			return;

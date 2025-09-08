@@ -39,14 +39,16 @@ export class TestEnvironment {
 	}
 
 	// Setup methods
-	async setupMCPClient(options: {
-		serverUrl?: string;
-		networkPreset?: NetworkPreset;
-		networkConditions?: Partial<NetworkConditions>;
-		autoConnect?: boolean;
-		mcpScenario?: keyof typeof MOCK_SCENARIOS;
-		enableLogging?: boolean;
-	} = {}): Promise<{
+	async setupMCPClient(
+		options: {
+			serverUrl?: string;
+			networkPreset?: NetworkPreset;
+			networkConditions?: Partial<NetworkConditions>;
+			autoConnect?: boolean;
+			mcpScenario?: keyof typeof MOCK_SCENARIOS;
+			enableLogging?: boolean;
+		} = {}
+	): Promise<{
 		client: LifecycleMCPClient;
 		mockWebSocket: EnhancedMockWebSocket;
 		mcpMock: MCPProtocolMock;
@@ -54,7 +56,7 @@ export class TestEnvironment {
 		// Setup MCP protocol mock
 		const scenario = options.mcpScenario || 'realistic';
 		this.mcpMock = MOCK_SCENARIOS[scenario]();
-		
+
 		if (options.enableLogging) {
 			this.mcpMock.enableProtocolLogging(true);
 		}
@@ -98,12 +100,12 @@ export class TestEnvironment {
 			try {
 				const messageData = typeof data === 'string' ? data : data.toString();
 				const request = JSON.parse(messageData);
-				
+
 				// Generate response based on request
 				setTimeout(async () => {
 					if (this.mockWebSocket && this.mcpMock) {
 						await this.mcpMock.simulateNetworkDelay();
-						
+
 						let response;
 						if (request.method === 'initialize') {
 							response = this.mcpMock.createInitializeResponse(request);
@@ -112,8 +114,8 @@ export class TestEnvironment {
 						} else {
 							// Unknown method
 							response = this.mcpMock.createErrorResponse(
-								request.id, 
-								-32601, 
+								request.id,
+								-32601,
 								`Method '${request.method}' not found`
 							);
 						}
@@ -134,10 +136,13 @@ export class TestEnvironment {
 		}
 
 		const connectPromise = this.mcpClient.connect();
-		
+
 		// Wait for WebSocket to be ready
-		await this.waitFor(() => this.mockWebSocket?.readyState === EnhancedMockWebSocket.OPEN, timeout);
-		
+		await this.waitFor(
+			() => this.mockWebSocket?.readyState === EnhancedMockWebSocket.OPEN,
+			timeout
+		);
+
 		await connectPromise;
 	}
 
@@ -157,7 +162,7 @@ export class TestEnvironment {
 	expectLastMessage(expectedData: unknown, direction: 'inbound' | 'outbound' = 'inbound'): void {
 		const lastMessage = this.mockWebSocket?.getLastMessage(direction);
 		expect(lastMessage).toBeDefined();
-		
+
 		if (typeof expectedData === 'object') {
 			const messageData = JSON.parse(lastMessage!.data);
 			expect(messageData).toMatchObject(expectedData);
@@ -168,8 +173,8 @@ export class TestEnvironment {
 
 	expectMessageCount(count: number, direction?: 'inbound' | 'outbound'): void {
 		const messages = this.mockWebSocket?.getMessageHistory() || [];
-		const filteredMessages = direction 
-			? messages.filter(m => m.direction === direction)
+		const filteredMessages = direction
+			? messages.filter((m) => m.direction === direction)
 			: messages;
 		expect(filteredMessages).toHaveLength(count);
 	}
@@ -195,14 +200,19 @@ export class TestEnvironment {
 	}
 
 	// Performance testing
-	async measureExecutionTime<T>(operation: () => Promise<T>): Promise<{ result: T; duration: number }> {
+	async measureExecutionTime<T>(
+		operation: () => Promise<T>
+	): Promise<{ result: T; duration: number }> {
 		const start = performance.now();
 		const result = await operation();
 		const duration = performance.now() - start;
 		return { result, duration };
 	}
 
-	async stressTestConnection(operations: number = 100, concurrency: number = 10): Promise<{
+	async stressTestConnection(
+		operations: number = 100,
+		concurrency: number = 10
+	): Promise<{
 		totalTime: number;
 		averageTime: number;
 		successCount: number;
@@ -220,11 +230,16 @@ export class TestEnvironment {
 		// Create batches of concurrent operations
 		for (let i = 0; i < operations; i += concurrency) {
 			const batch = Math.min(concurrency, operations - i);
-			
+
 			for (let j = 0; j < batch; j++) {
-				const promise = this.mcpClient.getRequirements()
-					.then(() => { successCount++; })
-					.catch(() => { errorCount++; });
+				const promise = this.mcpClient
+					.getRequirements()
+					.then(() => {
+						successCount++;
+					})
+					.catch(() => {
+						errorCount++;
+					});
 				promises.push(promise);
 			}
 
@@ -233,7 +248,7 @@ export class TestEnvironment {
 		}
 
 		await Promise.allSettled(promises);
-		
+
 		const totalTime = performance.now() - startTime;
 		return {
 			totalTime,
@@ -250,18 +265,18 @@ export class TestEnvironment {
 			if (Date.now() - start > timeout) {
 				throw new Error(`Timeout waiting for condition after ${timeout}ms`);
 			}
-			await new Promise(resolve => setTimeout(resolve, 10));
+			await new Promise((resolve) => setTimeout(resolve, 10));
 		}
 	}
 
 	async sleep(ms: number): Promise<void> {
-		await new Promise(resolve => setTimeout(resolve, ms));
+		await new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	// Cleanup
 	cleanup(): void {
 		// Run all cleanup callbacks
-		this.cleanupCallbacks.forEach(callback => {
+		this.cleanupCallbacks.forEach((callback) => {
 			try {
 				callback();
 			} catch (error) {
@@ -293,7 +308,9 @@ export class TestEnvironment {
 // Factory functions for common test scenarios
 export const createTestEnvironment = (): TestEnvironment => new TestEnvironment();
 
-export const createConnectedMCPClient = async (options?: Parameters<TestEnvironment['setupMCPClient']>[0]): Promise<{
+export const createConnectedMCPClient = async (
+	options?: Parameters<TestEnvironment['setupMCPClient']>[0]
+): Promise<{
 	testEnv: TestEnvironment;
 	client: LifecycleMCPClient;
 	mockWebSocket: EnhancedMockWebSocket;
@@ -302,7 +319,7 @@ export const createConnectedMCPClient = async (options?: Parameters<TestEnvironm
 	const testEnv = createTestEnvironment();
 	const setup = await testEnv.setupMCPClient(options);
 	await testEnv.establishConnection();
-	
+
 	return {
 		testEnv,
 		...setup
@@ -310,16 +327,19 @@ export const createConnectedMCPClient = async (options?: Parameters<TestEnvironm
 };
 
 // Vitest test helpers
-export const describeWithMCP = (name: string, testSuite: (helpers: {
-	setupMCP: (options?: Parameters<TestEnvironment['setupMCPClient']>[0]) => Promise<{
-		testEnv: TestEnvironment;
-		client: LifecycleMCPClient;
-		mockWebSocket: EnhancedMockWebSocket;
-		mcpMock: MCPProtocolMock;
-	}>;
-	createRequirement: () => ReturnType<typeof REQUIREMENT_FIXTURES.draft>;
-	createTask: () => ReturnType<typeof TASK_FIXTURES.notStarted>;
-}) => void) => {
+export const describeWithMCP = (
+	name: string,
+	testSuite: (helpers: {
+		setupMCP: (options?: Parameters<TestEnvironment['setupMCPClient']>[0]) => Promise<{
+			testEnv: TestEnvironment;
+			client: LifecycleMCPClient;
+			mockWebSocket: EnhancedMockWebSocket;
+			mcpMock: MCPProtocolMock;
+		}>;
+		createRequirement: () => ReturnType<typeof REQUIREMENT_FIXTURES.draft>;
+		createTask: () => ReturnType<typeof TASK_FIXTURES.notStarted>;
+	}) => void
+) => {
 	describe(name, () => {
 		testSuite({
 			setupMCP: createConnectedMCPClient,
@@ -331,8 +351,8 @@ export const describeWithMCP = (name: string, testSuite: (helpers: {
 
 // Performance benchmarking helpers
 export const benchmarkOperation = async <T>(
-	name: string, 
-	operation: () => Promise<T>, 
+	name: string,
+	operation: () => Promise<T>,
 	iterations: number = 100
 ): Promise<{
 	name: string;
@@ -368,7 +388,7 @@ export const benchmarkOperation = async <T>(
 export const debugTestState = (testEnv: TestEnvironment): void => {
 	const mockWebSocket = (testEnv as any).mockWebSocket;
 	const mcpClient = (testEnv as any).mcpClient;
-	
+
 	console.log('=== TEST STATE DEBUG ===');
 	console.log('WebSocket State:', {
 		readyState: mockWebSocket?.readyState,
@@ -376,7 +396,7 @@ export const debugTestState = (testEnv: TestEnvironment): void => {
 		messageHistory: mockWebSocket?.getMessageHistory().length
 	});
 	console.log('MCP Client State:', {
-		connected: mcpClient?.isConnected(),
+		connected: mcpClient?.isConnected()
 	});
 	console.log('Recent Messages:', mockWebSocket?.getMessageHistory().slice(-3));
 	console.log('========================');

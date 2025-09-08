@@ -257,12 +257,7 @@ export const ARCHITECTURE_FIXTURES = {
 			'Microservices architecture',
 			'Security best practices'
 		],
-		considered_options: [
-			'JWT tokens',
-			'Session cookies',
-			'OAuth 2.0',
-			'API keys'
-		],
+		considered_options: ['JWT tokens', 'Session cookies', 'OAuth 2.0', 'API keys'],
 		decision_outcome: 'Use JWT tokens with 24-hour expiration',
 		consequences: {
 			good: [
@@ -276,10 +271,7 @@ export const ARCHITECTURE_FIXTURES = {
 				'Cannot revoke tokens before expiration',
 				'Need secure token storage on client'
 			],
-			neutral: [
-				'Requires token refresh mechanism',
-				'Need to handle token expiration gracefully'
-			]
+			neutral: ['Requires token refresh mechanism', 'Need to handle token expiration gracefully']
 		},
 		authors: ['Security Architect', 'Lead Developer'],
 		created_at: BASE_DATE,
@@ -337,20 +329,20 @@ export const PROJECT_METRICS_FIXTURE = (): ProjectMetrics => ({
 	requirements: {
 		total: 12,
 		by_status: {
-			'Draft': 2,
+			Draft: 2,
 			'Under Review': 1,
-			'Approved': 4,
-			'Architecture': 2,
-			'Ready': 2,
-			'Implemented': 1,
-			'Validated': 0,
-			'Deprecated': 0
+			Approved: 4,
+			Architecture: 2,
+			Ready: 2,
+			Implemented: 1,
+			Validated: 0,
+			Deprecated: 0
 		},
 		by_priority: {
-			'P0': 3,
-			'P1': 5,
-			'P2': 3,
-			'P3': 1
+			P0: 3,
+			P1: 5,
+			P2: 3,
+			P3: 1
 		},
 		completion_percentage: 8.3 // 1 out of 12
 	},
@@ -359,36 +351,36 @@ export const PROJECT_METRICS_FIXTURE = (): ProjectMetrics => ({
 		by_status: {
 			'Not Started': 18,
 			'In Progress': 8,
-			'Blocked': 2,
-			'Complete': 4,
-			'Abandoned': 0
+			Blocked: 2,
+			Complete: 4,
+			Abandoned: 0
 		},
 		by_assignee: {
 			'Developer A': 8,
 			'Developer B': 6,
 			'QA Engineer': 4,
-			'DevOps': 3,
-			'Unassigned': 11
+			DevOps: 3,
+			Unassigned: 11
 		},
 		completion_percentage: 12.5 // 4 out of 32
 	},
 	architecture: {
 		total: 6,
 		by_status: {
-			'Proposed': 2,
-			'Accepted': 3,
-			'Rejected': 0,
-			'Deprecated': 0,
-			'Superseded': 0,
-			'Draft': 1,
+			Proposed: 2,
+			Accepted: 3,
+			Rejected: 0,
+			Deprecated: 0,
+			Superseded: 0,
+			Draft: 1,
 			'Under Review': 0,
-			'Approved': 0,
-			'Implemented': 0
+			Approved: 0,
+			Implemented: 0
 		},
 		by_type: {
-			'ADR': 5,
-			'TDD': 1,
-			'INTG': 0
+			ADR: 5,
+			TDD: 1,
+			INTG: 0
 		}
 	}
 });
@@ -398,7 +390,7 @@ export const TestDataRelationships = {
 	createRequirementWithTasks: (requirement?: Partial<Requirement>, taskCount: number = 3) => {
 		const req = { ...REQUIREMENT_FIXTURES.approved(), ...requirement };
 		const tasks: Task[] = [];
-		
+
 		for (let i = 0; i < taskCount; i++) {
 			const task = {
 				...TASK_FIXTURES.notStarted(),
@@ -411,7 +403,7 @@ export const TestDataRelationships = {
 		}
 
 		req.task_count = taskCount;
-		req.tasks_completed = tasks.filter(t => t.status === 'Complete').length;
+		req.tasks_completed = tasks.filter((t) => t.status === 'Complete').length;
 
 		return { requirement: req, tasks };
 	},
@@ -440,7 +432,14 @@ export const TestDataRelationships = {
 export const BulkTestData = {
 	generateRequirements: (count: number): Requirement[] => {
 		const requirements: Requirement[] = [];
-		const statuses: RequirementStatus[] = ['Draft', 'Under Review', 'Approved', 'Architecture', 'Ready', 'Implemented'];
+		const statuses: RequirementStatus[] = [
+			'Draft',
+			'Under Review',
+			'Approved',
+			'Architecture',
+			'Ready',
+			'Implemented'
+		];
 		const priorities: Priority[] = ['P0', 'P1', 'P2', 'P3'];
 		const types: RequirementType[] = ['FUNC', 'NFUNC', 'TECH', 'BUS', 'INTF'];
 
@@ -462,7 +461,13 @@ export const BulkTestData = {
 
 	generateTasks: (count: number): Task[] => {
 		const tasks: Task[] = [];
-		const statuses: TaskStatus[] = ['Not Started', 'In Progress', 'Blocked', 'Complete', 'Abandoned'];
+		const statuses: TaskStatus[] = [
+			'Not Started',
+			'In Progress',
+			'Blocked',
+			'Complete',
+			'Abandoned'
+		];
 		const efforts: EffortSize[] = ['XS', 'S', 'M', 'L', 'XL'];
 		const priorities: Priority[] = ['P0', 'P1', 'P2', 'P3'];
 

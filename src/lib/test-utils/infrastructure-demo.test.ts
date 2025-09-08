@@ -113,7 +113,7 @@ describe('Enhanced Test Infrastructure Demo', () => {
 		expect(manyTasks).toHaveLength(15);
 
 		// Verify diversity in generated data
-		const statuses = new Set(manyRequirements.map(req => req.status));
+		const statuses = new Set(manyRequirements.map((req) => req.status));
 		expect(statuses.size).toBeGreaterThan(1); // Multiple different statuses
 	});
 
@@ -136,7 +136,7 @@ describe('Enhanced Test Infrastructure Demo', () => {
 		expect(benchmark.duration).toBeLessThan(1000); // Should be fast with perfect conditions
 
 		// All results should be successful
-		benchmark.result.forEach(result => {
+		benchmark.result.forEach((result) => {
 			expect(result.success).toBe(true);
 		});
 	});

@@ -1,13 +1,18 @@
 // MCP Protocol Mocking Utilities
 // Provides comprehensive JSON-RPC 2.0 protocol mocking for MCP testing
 
-import { REQUIREMENT_FIXTURES, TASK_FIXTURES, ARCHITECTURE_FIXTURES, PROJECT_METRICS_FIXTURE } from './test-fixtures.js';
-import type { 
-	Requirement, 
-	Task, 
-	ArchitectureDecision, 
+import {
+	REQUIREMENT_FIXTURES,
+	TASK_FIXTURES,
+	ARCHITECTURE_FIXTURES,
+	PROJECT_METRICS_FIXTURE
+} from './test-fixtures.js';
+import type {
+	Requirement,
+	Task,
+	ArchitectureDecision,
 	ProjectMetrics,
-	MCPResponse 
+	MCPResponse
 } from '../types/lifecycle.js';
 
 // JSON-RPC 2.0 message interfaces
@@ -115,12 +120,16 @@ export class MCPProtocolMock {
 
 		// Check for simulated errors
 		if (Math.random() < this.errorRate) {
-			return this.createErrorResponse(request.id, JSONRPC_ERRORS.INTERNAL_ERROR, 'Simulated server error');
+			return this.createErrorResponse(
+				request.id,
+				JSONRPC_ERRORS.INTERNAL_ERROR,
+				'Simulated server error'
+			);
 		}
 
 		// Route to appropriate tool handler
 		let result: MCPToolResponse;
-		
+
 		try {
 			switch (toolName) {
 				case 'query_requirements':
@@ -162,8 +171,8 @@ export class MCPProtocolMock {
 					break;
 				default:
 					return this.createErrorResponse(
-						request.id, 
-						JSONRPC_ERRORS.METHOD_NOT_FOUND, 
+						request.id,
+						JSONRPC_ERRORS.METHOD_NOT_FOUND,
 						`Tool '${toolName}' not found`
 					);
 			}
@@ -182,7 +191,12 @@ export class MCPProtocolMock {
 		}
 	}
 
-	createErrorResponse(id: string | number | undefined, code: number, message: string, data?: unknown): JSONRPCResponse {
+	createErrorResponse(
+		id: string | number | undefined,
+		code: number,
+		message: string,
+		data?: unknown
+	): JSONRPCResponse {
 		return {
 			jsonrpc: '2.0',
 			id,
@@ -207,34 +221,39 @@ export class MCPProtocolMock {
 		// Apply basic filtering
 		if (filters.status) {
 			const statusFilter = Array.isArray(filters.status) ? filters.status : [filters.status];
-			requirements = requirements.filter(req => statusFilter.includes(req.status));
+			requirements = requirements.filter((req) => statusFilter.includes(req.status));
 		}
 
 		if (filters.priority) {
-			const priorityFilter = Array.isArray(filters.priority) ? filters.priority : [filters.priority];
-			requirements = requirements.filter(req => priorityFilter.includes(req.priority));
+			const priorityFilter = Array.isArray(filters.priority)
+				? filters.priority
+				: [filters.priority];
+			requirements = requirements.filter((req) => priorityFilter.includes(req.priority));
 		}
 
 		if (filters.search_text) {
 			const searchText = String(filters.search_text).toLowerCase();
-			requirements = requirements.filter(req => 
-				req.title.toLowerCase().includes(searchText) ||
-				req.current_state?.toLowerCase().includes(searchText) ||
-				req.desired_state?.toLowerCase().includes(searchText)
+			requirements = requirements.filter(
+				(req) =>
+					req.title.toLowerCase().includes(searchText) ||
+					req.current_state?.toLowerCase().includes(searchText) ||
+					req.desired_state?.toLowerCase().includes(searchText)
 			);
 		}
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(requirements)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(requirements)
+				}
+			]
 		};
 	}
 
 	private handleGetRequirementDetails(args: Record<string, unknown>): MCPToolResponse {
 		const requirementId = args.requirement_id as string;
-		
+
 		if (!requirementId) {
 			throw new Error('requirement_id is required');
 		}
@@ -243,10 +262,12 @@ export class MCPProtocolMock {
 		requirement.id = requirementId;
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(requirement)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(requirement)
+				}
+			]
 		};
 	}
 
@@ -260,16 +281,18 @@ export class MCPProtocolMock {
 		};
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(newRequirement)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(newRequirement)
+				}
+			]
 		};
 	}
 
 	private handleUpdateRequirementStatus(args: Record<string, unknown>): MCPToolResponse {
 		const { requirement_id, new_status, comment } = args;
-		
+
 		if (!requirement_id || !new_status) {
 			throw new Error('requirement_id and new_status are required');
 		}
@@ -286,10 +309,12 @@ export class MCPProtocolMock {
 		}
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(updatedRequirement)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(updatedRequirement)
+				}
+			]
 		};
 	}
 
@@ -305,12 +330,14 @@ export class MCPProtocolMock {
 		// Apply filtering
 		if (filters.status) {
 			const statusFilter = Array.isArray(filters.status) ? filters.status : [filters.status];
-			tasks = tasks.filter(task => statusFilter.includes(task.status));
+			tasks = tasks.filter((task) => statusFilter.includes(task.status));
 		}
 
 		if (filters.assignee) {
-			const assigneeFilter = Array.isArray(filters.assignee) ? filters.assignee : [filters.assignee];
-			tasks = tasks.filter(task => task.assignee && assigneeFilter.includes(task.assignee));
+			const assigneeFilter = Array.isArray(filters.assignee)
+				? filters.assignee
+				: [filters.assignee];
+			tasks = tasks.filter((task) => task.assignee && assigneeFilter.includes(task.assignee));
 		}
 
 		if (filters.requirement_id) {
@@ -318,16 +345,18 @@ export class MCPProtocolMock {
 		}
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(tasks)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(tasks)
+				}
+			]
 		};
 	}
 
 	private handleGetTaskDetails(args: Record<string, unknown>): MCPToolResponse {
 		const taskId = args.task_id as string;
-		
+
 		if (!taskId) {
 			throw new Error('task_id is required');
 		}
@@ -336,10 +365,12 @@ export class MCPProtocolMock {
 		task.id = taskId;
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(task)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(task)
+				}
+			]
 		};
 	}
 
@@ -353,16 +384,18 @@ export class MCPProtocolMock {
 		};
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(newTask)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(newTask)
+				}
+			]
 		};
 	}
 
 	private handleUpdateTaskStatus(args: Record<string, unknown>): MCPToolResponse {
 		const { task_id, new_status, comment, assignee } = args;
-		
+
 		if (!task_id || !new_status) {
 			throw new Error('task_id and new_status are required');
 		}
@@ -380,10 +413,12 @@ export class MCPProtocolMock {
 		}
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(updatedTask)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(updatedTask)
+				}
+			]
 		};
 	}
 
@@ -398,25 +433,27 @@ export class MCPProtocolMock {
 		// Apply filtering
 		if (filters.status) {
 			const statusFilter = Array.isArray(filters.status) ? filters.status : [filters.status];
-			decisions = decisions.filter(decision => statusFilter.includes(decision.status));
+			decisions = decisions.filter((decision) => statusFilter.includes(decision.status));
 		}
 
 		if (filters.type) {
 			const typeFilter = Array.isArray(filters.type) ? filters.type : [filters.type];
-			decisions = decisions.filter(decision => typeFilter.includes(decision.type));
+			decisions = decisions.filter((decision) => typeFilter.includes(decision.type));
 		}
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(decisions)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(decisions)
+				}
+			]
 		};
 	}
 
 	private handleGetArchitectureDetails(args: Record<string, unknown>): MCPToolResponse {
 		const architectureId = args.architecture_id as string;
-		
+
 		if (!architectureId) {
 			throw new Error('architecture_id is required');
 		}
@@ -425,10 +462,12 @@ export class MCPProtocolMock {
 		decision.id = architectureId;
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(decision)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(decision)
+				}
+			]
 		};
 	}
 
@@ -436,17 +475,19 @@ export class MCPProtocolMock {
 		const metrics = PROJECT_METRICS_FIXTURE();
 
 		return {
-			content: [{
-				type: 'text',
-				text: JSON.stringify(metrics)
-			}]
+			content: [
+				{
+					type: 'text',
+					text: JSON.stringify(metrics)
+				}
+			]
 		};
 	}
 
 	// Utility methods
 	async simulateNetworkDelay(): Promise<void> {
 		const delay = Math.random() * (this.delay.max - this.delay.min) + this.delay.min;
-		await new Promise(resolve => setTimeout(resolve, delay));
+		await new Promise((resolve) => setTimeout(resolve, delay));
 	}
 
 	generateMessageId(): number {
@@ -468,15 +509,15 @@ export const createMCPMock = (config?: {
 	logging?: boolean;
 }): MCPProtocolMock => {
 	const mock = new MCPProtocolMock();
-	
+
 	if (config?.responseDelay) {
 		mock.setResponseDelay(config.responseDelay.min, config.responseDelay.max);
 	}
-	
+
 	if (config?.errorRate !== undefined) {
 		mock.setErrorRate(config.errorRate);
 	}
-	
+
 	if (config?.logging) {
 		mock.enableProtocolLogging(config.logging);
 	}
@@ -486,27 +527,31 @@ export const createMCPMock = (config?: {
 
 // Common mock scenarios
 export const MOCK_SCENARIOS = {
-	perfect: () => createMCPMock({
-		responseDelay: { min: 0, max: 10 },
-		errorRate: 0,
-		logging: false
-	}),
+	perfect: () =>
+		createMCPMock({
+			responseDelay: { min: 0, max: 10 },
+			errorRate: 0,
+			logging: false
+		}),
 
-	realistic: () => createMCPMock({
-		responseDelay: { min: 50, max: 200 },
-		errorRate: 0.01,
-		logging: false
-	}),
+	realistic: () =>
+		createMCPMock({
+			responseDelay: { min: 50, max: 200 },
+			errorRate: 0.01,
+			logging: false
+		}),
 
-	slow: () => createMCPMock({
-		responseDelay: { min: 500, max: 2000 },
-		errorRate: 0.05,
-		logging: true
-	}),
+	slow: () =>
+		createMCPMock({
+			responseDelay: { min: 500, max: 2000 },
+			errorRate: 0.05,
+			logging: true
+		}),
 
-	unreliable: () => createMCPMock({
-		responseDelay: { min: 100, max: 1000 },
-		errorRate: 0.2,
-		logging: true
-	})
+	unreliable: () =>
+		createMCPMock({
+			responseDelay: { min: 100, max: 1000 },
+			errorRate: 0.2,
+			logging: true
+		})
 };

@@ -73,7 +73,7 @@ export class NetworkSimulator {
 		const { min, max } = this.conditions.latency;
 		const delay = Math.random() * (max - min) + min;
 		if (delay > 0) {
-			await new Promise(resolve => setTimeout(resolve, delay));
+			await new Promise((resolve) => setTimeout(resolve, delay));
 		}
 	}
 
@@ -96,7 +96,7 @@ export class NetworkSimulator {
 	// Start periodic disconnection simulation
 	startDisconnectionSimulation(callback: () => void): void {
 		this.stopDisconnectionSimulation();
-		
+
 		const checkInterval = 1000; // Check every second
 		this.disconnectionTimer = setInterval(() => {
 			if (this.shouldDisconnect()) {
