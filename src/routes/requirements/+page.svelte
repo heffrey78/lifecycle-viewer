@@ -33,36 +33,33 @@
 			const response = await mcpClient.requirements.getRequirementsJson();
 			if (response.success) {
 				requirements = response.data!;
+				// filteredRequirements will be automatically updated by the reactive statement
 			} else {
 				throw new Error(response.error || 'Failed to fetch requirements');
 			}
-
-			filteredRequirements = requirements;
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			requirements = [];
-			filteredRequirements = [];
+			// filteredRequirements will be automatically updated by the reactive statement
 		} finally {
 			loading = false;
 		}
 	});
 
-	// Filter requirements based on current filters
-	$: {
-		filteredRequirements = requirements.filter((req) => {
-			const matchesSearch =
-				!searchText ||
-				req.title.toLowerCase().includes(searchText.toLowerCase()) ||
-				req.desired_state?.toLowerCase().includes(searchText.toLowerCase()) ||
-				req.id.toLowerCase().includes(searchText.toLowerCase());
+	// Filter requirements based on current filters - explicitly list dependencies to ensure reactivity
+	$: filteredRequirements = requirements.filter((req) => {
+		const matchesSearch =
+			!searchText ||
+			req.title.toLowerCase().includes(searchText.toLowerCase()) ||
+			req.desired_state?.toLowerCase().includes(searchText.toLowerCase()) ||
+			req.id.toLowerCase().includes(searchText.toLowerCase());
 
-			const matchesStatus = !statusFilter || req.status === statusFilter;
-			const matchesType = !typeFilter || req.type === typeFilter;
-			const matchesPriority = !priorityFilter || req.priority === priorityFilter;
+		const matchesStatus = !statusFilter || req.status === statusFilter;
+		const matchesType = !typeFilter || req.type === typeFilter;
+		const matchesPriority = !priorityFilter || req.priority === priorityFilter;
 
-			return matchesSearch && matchesStatus && matchesType && matchesPriority;
-		});
-	}
+		return matchesSearch && matchesStatus && matchesType && matchesPriority;
+	});
 
 	function getStatusColor(status: RequirementStatus): string {
 		const colors: Record<RequirementStatus, string> = {
@@ -124,7 +121,7 @@
 			key: 'task_count',
 			label: 'Progress',
 			type: 'number' as const,
-			sortable: false  // Progress is calculated, not directly sortable by task count
+			sortable: false // Progress is calculated, not directly sortable by task count
 		},
 		{
 			key: 'risk_level',
@@ -274,7 +271,7 @@
 					const response = await mcpClient.requirements.getRequirements();
 					if (response.success) {
 						requirements = response.data!;
-						filteredRequirements = requirements;
+						// filteredRequirements will be automatically updated by the reactive statement
 					} else {
 						throw new Error(response.error || 'Failed to fetch requirements');
 					}
@@ -332,12 +329,18 @@
 					<div class="flex flex-col">
 						<div class="flex items-center justify-between text-sm">
 							<span class="text-gray-900">{row.tasks_completed}/{row.task_count} tasks</span>
-							<span class="text-gray-500">{Math.round((row.task_count > 0 ? (row.tasks_completed / row.task_count) * 100 : 0))}%</span>
+							<span class="text-gray-500"
+								>{Math.round(
+									row.task_count > 0 ? (row.tasks_completed / row.task_count) * 100 : 0
+								)}%</span
+							>
 						</div>
 						<div class="mt-1 bg-gray-200 rounded-full h-2">
 							<div
 								class="bg-blue-600 h-2 rounded-full"
-								style="width: {Math.round((row.task_count > 0 ? (row.tasks_completed / row.task_count) * 100 : 0))}%"
+								style="width: {Math.round(
+									row.task_count > 0 ? (row.tasks_completed / row.task_count) * 100 : 0
+								)}%"
 							></div>
 						</div>
 					</div>

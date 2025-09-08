@@ -43,36 +43,33 @@
 			const response = await mcpClient.tasks.getTasksJson();
 			if (response.success) {
 				tasks = response.data!;
+				// filteredTasks will be automatically updated by the reactive statement
 			} else {
 				throw new Error(response.error || 'Failed to fetch tasks');
 			}
-
-			filteredTasks = tasks;
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			tasks = [];
-			filteredTasks = [];
+			// filteredTasks will be automatically updated by the reactive statement
 		} finally {
 			loading = false;
 		}
 	});
 
-	// Filter tasks based on current filters
-	$: {
-		filteredTasks = tasks.filter((task) => {
-			const matchesSearch =
-				!searchText ||
-				task.title.toLowerCase().includes(searchText.toLowerCase()) ||
-				task.user_story?.toLowerCase().includes(searchText.toLowerCase()) ||
-				task.id.toLowerCase().includes(searchText.toLowerCase());
+	// Filter tasks based on current filters - explicitly list dependencies to ensure reactivity
+	$: filteredTasks = tasks.filter((task) => {
+		const matchesSearch =
+			!searchText ||
+			task.title.toLowerCase().includes(searchText.toLowerCase()) ||
+			task.user_story?.toLowerCase().includes(searchText.toLowerCase()) ||
+			task.id.toLowerCase().includes(searchText.toLowerCase());
 
-			const matchesStatus = !statusFilter || task.status === statusFilter;
-			const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-			const matchesAssignee = !assigneeFilter || task.assignee?.includes(assigneeFilter);
+		const matchesStatus = !statusFilter || task.status === statusFilter;
+		const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+		const matchesAssignee = !assigneeFilter || task.assignee?.includes(assigneeFilter);
 
-			return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
-		});
-	}
+		return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+	});
 
 	function getStatusColor(status: TaskStatus): string {
 		const colors: Record<TaskStatus, string> = {
@@ -289,7 +286,7 @@
 					const response = await mcpClient.tasks.getTasksJson();
 					if (response.success) {
 						tasks = response.data!;
-						filteredTasks = tasks;
+						// filteredTasks will be automatically updated by the reactive statement
 					} else {
 						throw new Error(response.error || 'Failed to fetch tasks');
 					}
@@ -353,9 +350,7 @@
 				{:else if column.key === 'effort'}
 					{#if row.effort}
 						<span
-							class="inline-flex px-2 py-1 text-xs font-medium rounded {getEffortColor(
-								row.effort
-							)}"
+							class="inline-flex px-2 py-1 text-xs font-medium rounded {getEffortColor(row.effort)}"
 						>
 							{row.effort}
 						</span>
