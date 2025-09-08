@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Home, FileText, CheckSquare, GitBranch, Settings } from 'lucide-svelte';
-	import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
 	import ProjectName from '$lib/components/ProjectName.svelte';
-
-	let connected = false;
-	let connectionError = '';
 
 	const navItems = [
 		{ href: '/', icon: Home, label: 'Dashboard' },
@@ -25,10 +21,6 @@
 				<h1 class="text-xl font-bold">Lifecycle Viewer</h1>
 			</div>
 
-			<!-- Connection Status -->
-			<div class="border-b border-gray-200">
-				<ConnectionStatus bind:connected bind:error={connectionError} />
-			</div>
 
 			<!-- Navigation Links -->
 			<nav class="flex-1 px-4 py-4 space-y-2">
@@ -77,9 +69,6 @@
 
 					<div class="flex items-center space-x-4">
 						<ProjectName />
-						{#if !connected}
-							<div class="text-sm text-red-600">Not connected to MCP server</div>
-						{/if}
 					</div>
 				</div>
 			</div>

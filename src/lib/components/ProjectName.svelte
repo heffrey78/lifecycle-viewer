@@ -22,7 +22,7 @@
 
 			const response = await mcpClient.database.getCurrentDatabase();
 			if (response.success) {
-				currentDatabase = response.data;
+				currentDatabase = response.data ?? null;
 			} else {
 				error = response.error || 'Failed to get current database';
 				currentDatabase = null;
