@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Wifi, WifiOff, AlertCircle } from 'lucide-svelte';
-	import { mcpClient } from '$lib/services/mcp-client.js';
+	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 
 	export let connected = false;
 	export let error = '';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { mcpClient } from '$lib/services/mcp-client.js';
+	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import type { ProjectMetrics, RequirementProgress } from '$lib/types/lifecycle.js';
 	import { FileText, CheckSquare, GitBranch, TrendingUp, AlertTriangle } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
@@ -16,7 +16,7 @@
 				await mcpClient.connect();
 			}
 
-			const response = await mcpClient.getProjectMetrics();
+			const response = await mcpClient.project.getProjectMetrics();
 			if (response.success) {
 				projectMetrics = response.data!;
 			} else {
@@ -86,7 +86,7 @@
 				if (!mcpClient.isConnected()) {
 					await mcpClient.connect();
 				}
-				const response = await mcpClient.getProjectMetrics();
+				const response = await mcpClient.project.getProjectMetrics();
 				if (response.success) {
 					projectMetrics = response.data!;
 				} else {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { mcpClient } from '$lib/services/mcp-client.js';
+	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import type {
 		Requirement,
 		RequirementFilters,
@@ -30,7 +30,7 @@
 				await mcpClient.connect();
 			}
 
-			const response = await mcpClient.getRequirementsJson();
+			const response = await mcpClient.requirements.getRequirementsJson();
 			if (response.success) {
 				requirements = response.data!;
 			} else {
@@ -271,7 +271,7 @@
 					if (!mcpClient.isConnected()) {
 						await mcpClient.connect();
 					}
-					const response = await mcpClient.getRequirements();
+					const response = await mcpClient.requirements.getRequirements();
 					if (response.success) {
 						requirements = response.data!;
 						filteredRequirements = requirements;

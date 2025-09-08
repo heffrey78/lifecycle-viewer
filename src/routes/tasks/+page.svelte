@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { mcpClient } from '$lib/services/mcp-client.js';
+	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import type {
 		Task,
 		TaskFilters,
@@ -40,7 +40,7 @@
 				await mcpClient.connect();
 			}
 
-			const response = await mcpClient.getTasksJson();
+			const response = await mcpClient.tasks.getTasksJson();
 			if (response.success) {
 				tasks = response.data!;
 			} else {
@@ -286,7 +286,7 @@
 					if (!mcpClient.isConnected()) {
 						await mcpClient.connect();
 					}
-					const response = await mcpClient.getTasksJson();
+					const response = await mcpClient.tasks.getTasksJson();
 					if (response.success) {
 						tasks = response.data!;
 						filteredTasks = tasks;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Database, FolderOpen, Save, AlertCircle, CheckCircle } from 'lucide-svelte';
-	import { mcpClient } from '$lib/services/mcp-client.js';
+	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 
 	let currentDatabase = '';
@@ -18,7 +18,7 @@
 
 	async function loadCurrentDatabase() {
 		try {
-			const response = await mcpClient.getCurrentDatabase();
+			const response = await mcpClient.database.getCurrentDatabase();
 			if (response.success && response.data) {
 				currentDatabase = response.data;
 				selectedDatabase = response.data;
@@ -35,7 +35,7 @@
 	async function browseForDatabase() {
 		try {
 			loading = true;
-			const response = await mcpClient.pickDatabase();
+			const response = await mcpClient.database.pickDatabase();
 
 			if (response.success && response.data) {
 				selectedDatabase = response.data;
@@ -65,7 +65,7 @@
 
 		try {
 			console.log('🔄 Attempting database switch to:', selectedDatabase);
-			const response = await mcpClient.switchDatabase(selectedDatabase);
+			const response = await mcpClient.database.switchDatabase(selectedDatabase);
 			console.log('📥 Switch database response:', JSON.stringify(response, null, 2));
 
 			if (response.success) {
