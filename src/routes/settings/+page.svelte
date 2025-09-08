@@ -73,6 +73,11 @@
 				success = true;
 				setTimeout(() => (success = false), 3000);
 
+				// Notify other components of database switch
+				window.dispatchEvent(new CustomEvent('database-switched', { 
+					detail: { databasePath: selectedDatabase } 
+				}));
+
 				// Refresh connection status
 				setTimeout(() => {
 					checkConnection();

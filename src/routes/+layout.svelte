@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { Home, FileText, CheckSquare, GitBranch, Settings } from 'lucide-svelte';
 	import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
+	import ProjectName from '$lib/components/ProjectName.svelte';
 
 	let connected = false;
 	let connectionError = '';
@@ -75,6 +76,7 @@
 					</h2>
 
 					<div class="flex items-center space-x-4">
+						<ProjectName />
 						{#if !connected}
 							<div class="text-sm text-red-600">Not connected to MCP server</div>
 						{/if}
