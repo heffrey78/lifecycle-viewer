@@ -40,10 +40,10 @@ The MCP server should be running on `ws://localhost:3000/mcp` (or configure the 
 
 ## 🛠️ Installation & Setup
 
-1. **Clone this repository** (if not already done)
+1. **Clone this repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/heffrey78/lifecycle-viewer.git
    cd lifecycle-viewer
    ```
 
@@ -60,13 +60,21 @@ The MCP server should be running on `ws://localhost:3000/mcp` (or configure the 
    constructor(private serverUrl: string = 'ws://localhost:3000/mcp')
    ```
 
-4. **Start the development server**
+4. **Start the MCP bridge server** (in a separate terminal)
+
+   ```bash
+   npm run mcp-bridge
+   ```
+
+   This starts the WebSocket bridge that connects the web UI to the MCP server.
+
+5. **Start the development server** (in another terminal)
 
    ```bash
    npm run dev
    ```
 
-5. **Open the application**
+6. **Open the application**
    Navigate to http://localhost:5173/
 
 ## 🔌 Connecting to Real Data
@@ -86,12 +94,20 @@ To see real project data:
    uv run server.py  # or lifecycle-mcp
    ```
 
-2. **Verify Connection**
-   - Open the Lifecycle Viewer at http://localhost:5173/
-   - Check the connection status in the sidebar (should show green "Connected")
-   - If showing red "Disconnected", the UI will fall back to mock data
+2. **Start the MCP Bridge** (in the lifecycle-viewer directory)
 
-3. **Create Real Data**
+   ```bash
+   npm run mcp-bridge
+   ```
+   
+   This bridge is **required** - it converts WebSocket connections from the browser into stdio communication with the MCP server.
+
+3. **Verify Connection**
+   - Open the Lifecycle Viewer at http://localhost:5173/
+   - The project name should show your actual database name in the header
+   - If showing "No Project" or "Database Error", the UI will fall back to mock data
+
+4. **Create Real Data**
    Use the MCP server tools through Claude Code or directly via MCP protocol:
 
    ```bash
@@ -99,7 +115,7 @@ To see real project data:
    claude mcp add lifecycle lifecycle-mcp -e LIFECYCLE_DB=./lifecycle.db
    ```
 
-4. **Interact Through Claude**
+5. **Interact Through Claude**
    Once connected to Claude, you can use MCP tools to create real data:
    - `create_requirement` - Add project requirements
    - `create_task` - Add implementation tasks
@@ -186,11 +202,12 @@ npm run format       # Format code with Prettier
 
 ### Development Workflow
 
-1. **Start MCP Server** (for real data)
-2. **Start Dev Server**: `npm run dev`
-3. **Make Changes**: Hot reload enabled
-4. **Test**: Application works with both real and mock data
-5. **Build**: `npm run build` for production
+1. **Start MCP Server** (for real data): `uv run server.py`
+2. **Start MCP Bridge**: `npm run mcp-bridge` 
+3. **Start Dev Server**: `npm run dev`
+4. **Make Changes**: Hot reload enabled
+5. **Test**: Application works with both real and mock data
+6. **Build**: `npm run build` for production
 
 ### Adding New Features
 
