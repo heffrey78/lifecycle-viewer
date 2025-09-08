@@ -5,17 +5,11 @@ export class ProjectService {
 	constructor(private protocolHandler: ProtocolHandler) {}
 
 	async getProjectStatus(): Promise<MCPResponse<ProjectMetrics>> {
-		return this.protocolHandler.sendRequestWithResponse<ProjectMetrics>(
-			'get_project_status',
-			{}
-		);
+		return this.protocolHandler.sendRequestWithResponse<ProjectMetrics>('get_project_status', {});
 	}
 
 	async getProjectMetrics(): Promise<MCPResponse<ProjectMetrics>> {
-		return this.protocolHandler.sendRequestWithResponse<ProjectMetrics>(
-			'get_project_metrics',
-			{}
-		);
+		return this.protocolHandler.sendRequestWithResponse<ProjectMetrics>('get_project_metrics', {});
 	}
 
 	async startRequirementInterview(
@@ -35,13 +29,10 @@ export class ProjectService {
 		sessionId: string,
 		answers: Record<string, string>
 	): Promise<MCPResponse<unknown>> {
-		return this.protocolHandler.sendRequestWithResponse<unknown>(
-			'continue_requirement_interview',
-			{
-				session_id: sessionId,
-				answers
-			}
-		);
+		return this.protocolHandler.sendRequestWithResponse<unknown>('continue_requirement_interview', {
+			session_id: sessionId,
+			answers
+		});
 	}
 
 	async exportProjectDocumentation(options: {

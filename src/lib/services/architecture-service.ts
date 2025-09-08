@@ -1,4 +1,8 @@
-import type { ArchitectureDecision, ArchitectureFilters, MCPResponse } from '$lib/types/lifecycle.js';
+import type {
+	ArchitectureDecision,
+	ArchitectureFilters,
+	MCPResponse
+} from '$lib/types/lifecycle.js';
 import type { ProtocolHandler } from './protocol-handler.js';
 
 export class ArchitectureService {

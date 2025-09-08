@@ -163,8 +163,7 @@ describe('ProjectService', () => {
 		it('should handle protocol handler exceptions', async () => {
 			mockProtocolHandler.mockReject(new Error('Database connection failed'));
 
-			await expect(projectService.getProjectStatus())
-				.rejects.toThrow('Database connection failed');
+			await expect(projectService.getProjectStatus()).rejects.toThrow('Database connection failed');
 		});
 	});
 
@@ -329,10 +328,7 @@ describe('ProjectService', () => {
 			};
 			mockProtocolHandler.mockSuccess(continueResponse);
 
-			const result = await projectService.continueRequirementInterview(
-				'interview-123',
-				answers
-			);
+			const result = await projectService.continueRequirementInterview('interview-123', answers);
 
 			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
 				'continue_requirement_interview',
@@ -350,7 +346,7 @@ describe('ProjectService', () => {
 		it('should handle incomplete answers', async () => {
 			const partialAnswers = {
 				business_goal: 'Improve system performance',
-				user_story: ''  // Empty answer
+				user_story: '' // Empty answer
 			};
 
 			const continueResponse = {
@@ -373,10 +369,9 @@ describe('ProjectService', () => {
 		it('should handle invalid session ID', async () => {
 			mockProtocolHandler.mockError('Interview session not found or expired');
 
-			const result = await projectService.continueRequirementInterview(
-				'invalid-session',
-				{ answer1: 'response' }
-			);
+			const result = await projectService.continueRequirementInterview('invalid-session', {
+				answer1: 'response'
+			});
 
 			expect(result).toEqual({
 				success: false,
@@ -387,10 +382,7 @@ describe('ProjectService', () => {
 		it('should handle empty answers object', async () => {
 			mockProtocolHandler.mockSuccess({ session_id: 'interview-789' });
 
-			const result = await projectService.continueRequirementInterview(
-				'interview-789',
-				{}
-			);
+			const result = await projectService.continueRequirementInterview('interview-789', {});
 
 			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
 				'continue_requirement_interview',
@@ -418,10 +410,7 @@ describe('ProjectService', () => {
 			};
 			mockProtocolHandler.mockSuccess(completionResponse);
 
-			const result = await projectService.continueRequirementInterview(
-				'interview-123',
-				answers
-			);
+			const result = await projectService.continueRequirementInterview('interview-123', answers);
 
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual(completionResponse);
@@ -458,9 +447,7 @@ describe('ProjectService', () => {
 		});
 
 		it('should handle export with default options', async () => {
-			const exportResponse = [
-				'/default/project_documentation.md'
-			];
+			const exportResponse = ['/default/project_documentation.md'];
 			mockProtocolHandler.mockSuccess(exportResponse);
 
 			const result = await projectService.exportProjectDocumentation({});
@@ -574,11 +561,7 @@ describe('ProjectService', () => {
 		it('should handle complex diagram with all options', async () => {
 			const complexOptions = {
 				diagram_type: 'full_project',
-				requirement_ids: [
-					'REQ-001-FUNC-00',
-					'REQ-002-NFUNC-00',
-					'REQ-003-TECH-00'
-				],
+				requirement_ids: ['REQ-001-FUNC-00', 'REQ-002-NFUNC-00', 'REQ-003-TECH-00'],
 				include_relationships: true,
 				output_format: 'markdown_with_mermaid'
 			};
@@ -632,8 +615,7 @@ graph LR
 				new Error('Network connection failed')
 			);
 
-			await expect(projectService.getProjectStatus())
-				.rejects.toThrow('Network connection failed');
+			await expect(projectService.getProjectStatus()).rejects.toThrow('Network connection failed');
 		});
 
 		it('should handle malformed response data', async () => {
@@ -650,10 +632,9 @@ graph LR
 		it('should handle interview session timeouts', async () => {
 			mockProtocolHandler.mockError('Interview session expired');
 
-			const result = await projectService.continueRequirementInterview(
-				'expired-session',
-				{ answer: 'test' }
-			);
+			const result = await projectService.continueRequirementInterview('expired-session', {
+				answer: 'test'
+			});
 
 			expect(result).toEqual({
 				success: false,
@@ -707,17 +688,14 @@ graph LR
 		});
 
 		it('should validate export response format', async () => {
-			const exportResponse = [
-				'/path/to/file1.md',
-				'/path/to/file2.md'
-			];
+			const exportResponse = ['/path/to/file1.md', '/path/to/file2.md'];
 			mockProtocolHandler.mockSuccess(exportResponse);
 
 			const result = await projectService.exportProjectDocumentation({});
 
 			if (result.success) {
 				expect(Array.isArray(result.data)).toBe(true);
-				expect(result.data?.every(path => typeof path === 'string')).toBe(true);
+				expect(result.data?.every((path) => typeof path === 'string')).toBe(true);
 			}
 		});
 	});
@@ -763,10 +741,9 @@ graph LR
 			};
 			mockProtocolHandler.mockSuccess(continueResponse);
 
-			const continueResult = await projectService.continueRequirementInterview(
-				'workflow-test',
-				{ q1: 'First answer' }
-			);
+			const continueResult = await projectService.continueRequirementInterview('workflow-test', {
+				q1: 'First answer'
+			});
 			expect(continueResult.success).toBe(true);
 		});
 
@@ -777,11 +754,7 @@ graph LR
 
 			// Export based on metrics
 			mockProtocolHandler.reset();
-			const exportFiles = [
-				'/exports/requirements.md',
-				'/exports/tasks.md',
-				'/exports/metrics.md'
-			];
+			const exportFiles = ['/exports/requirements.md', '/exports/tasks.md', '/exports/metrics.md'];
 			mockProtocolHandler.mockSuccess(exportFiles);
 
 			const exportResult = await projectService.exportProjectDocumentation({

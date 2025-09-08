@@ -9,7 +9,7 @@ import { DatabaseService } from './database-service.js';
 export class LifecycleMCPClient {
 	private connectionManager: ConnectionManager;
 	private protocolHandler: ProtocolHandler;
-	
+
 	public readonly requirements: RequirementService;
 	public readonly tasks: TaskService;
 	public readonly architecture: ArchitectureService;
@@ -19,7 +19,7 @@ export class LifecycleMCPClient {
 	constructor(serverUrl: string = 'ws://localhost:3000/mcp') {
 		this.connectionManager = new ConnectionManager(serverUrl);
 		this.protocolHandler = new ProtocolHandler(this.connectionManager);
-		
+
 		this.requirements = new RequirementService(this.protocolHandler);
 		this.tasks = new TaskService(this.protocolHandler);
 		this.architecture = new ArchitectureService(this.protocolHandler);

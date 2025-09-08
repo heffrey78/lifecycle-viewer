@@ -39,7 +39,7 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 				if (request.method === 'initialize') {
 					this.simulateMessage({
 						id: request.id,
-						result: { 
+						result: {
 							protocolVersion: '1.0.0',
 							capabilities: { tools: {} },
 							serverInfo: { name: 'test-server', version: '1.0.0' }
@@ -86,30 +86,30 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 		// Restore original WebSocket
 		global.WebSocket = originalWebSocket;
 		// Small delay to allow cleanup
-		await new Promise(resolve => setTimeout(resolve, 10));
+		await new Promise((resolve) => setTimeout(resolve, 10));
 	});
 
 	describe('Basic WebSocket Connection', () => {
 		it('should create WebSocket with correct URL', async () => {
 			await client.connect();
-			
+
 			expect(client.isConnected()).toBe(true);
 		});
 
 		it('should handle connection state transitions correctly', async () => {
 			expect(client.isConnected()).toBe(false);
-			
+
 			await client.connect();
-			
+
 			expect(client.isConnected()).toBe(true);
 		});
 
 		it('should prevent multiple concurrent connections', async () => {
 			const connection1 = client.connect();
 			const connection2 = client.connect();
-			
+
 			await Promise.all([connection1, connection2]);
-			
+
 			expect(client.isConnected()).toBe(true);
 			// Should have only one WebSocket connection internally
 		});
@@ -117,9 +117,9 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 		it('should handle disconnection properly', async () => {
 			await client.connect();
 			expect(client.isConnected()).toBe(true);
-			
+
 			client.disconnect();
-			
+
 			expect(client.isConnected()).toBe(false);
 		});
 	});
@@ -132,11 +132,11 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 		it('should send properly formatted JSON-RPC messages', async () => {
 			// Access the WebSocket instance to check messages
 			const ws = (client as any).ws as TestWebSocket;
-			
+
 			// The connect process should have sent an initialize message
 			const messages = ws.getMessages();
 			expect(messages).toHaveLength(1);
-			
+
 			const initMessage = messages[0];
 			expect(initMessage.jsonrpc).toBe('2.0');
 			expect(initMessage.method).toBe('initialize');
@@ -146,28 +146,28 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 
 		it('should handle response messages correctly', async () => {
 			const ws = (client as any).ws as TestWebSocket;
-			
+
 			// Simulate a response to a request
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 1,
 				result: { success: true, data: [] }
 			});
-			
+
 			// No error should be thrown
 			expect(true).toBe(true);
 		});
 
 		it('should handle error responses correctly', async () => {
 			const ws = (client as any).ws as TestWebSocket;
-			
+
 			// Simulate an error response
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 1,
 				error: { code: -32000, message: 'Test error' }
 			});
-			
+
 			// No error should be thrown from message handling
 			expect(true).toBe(true);
 		});
@@ -199,7 +199,7 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 
 		it('should handle invalid URLs', async () => {
 			client = new LifecycleMCPClient('invalid-url');
-			
+
 			await expect(client.connect()).rejects.toThrow();
 			expect(client.isConnected()).toBe(false);
 		});
@@ -208,13 +208,13 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 	describe('Connection State Validation', () => {
 		it('should reject requests when not connected', async () => {
 			expect(client.isConnected()).toBe(false);
-			
+
 			await expect(client.getRequirements()).rejects.toThrow('Client not connected');
 		});
 
 		it('should accept requests when connected', async () => {
 			await client.connect();
-			
+
 			// Mock the actual API response
 			const ws = (client as any).ws as TestWebSocket;
 			setTimeout(() => {
@@ -224,14 +224,14 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 					result: { success: true, data: [] }
 				});
 			}, 1);
-			
+
 			const response = await client.getRequirements();
 			expect(response.success).toBe(true);
 		});
 
 		it('should handle connection status checks correctly', () => {
 			expect(client.isConnected()).toBe(false);
-			
+
 			return client.connect().then(() => {
 				expect(client.isConnected()).toBe(true);
 			});
@@ -245,19 +245,19 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 
 		it('should generate sequential message IDs', async () => {
 			const ws = (client as any).ws as TestWebSocket;
-			
+
 			// Make multiple requests to check ID sequence
 			const promise1 = client.getRequirements();
 			const promise2 = client.getTasks();
-			
+
 			// Mock responses
 			setTimeout(() => {
-				ws.simulateMessage({ jsonrpc: '2.0', id: 2, result: { success: true, data: [] }});
-				ws.simulateMessage({ jsonrpc: '2.0', id: 3, result: { success: true, data: [] }});
+				ws.simulateMessage({ jsonrpc: '2.0', id: 2, result: { success: true, data: [] } });
+				ws.simulateMessage({ jsonrpc: '2.0', id: 3, result: { success: true, data: [] } });
 			}, 1);
-			
+
 			await Promise.all([promise1, promise2]);
-			
+
 			const messages = ws.getMessages();
 			// Should have initialize (id:1), getRequirements (id:2), getTasks (id:3)
 			expect(messages).toHaveLength(3);
@@ -275,24 +275,24 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 				public onclose: ((event: Event) => void) | null = null;
 				public onmessage: ((event: Event) => void) | null = null;
 				public onerror: ((event: Event) => void) | null = null;
-				
+
 				private messages: any[] = [];
-				
+
 				constructor(url: string) {
 					// Don't automatically transition to OPEN
 				}
-				
+
 				send(data: string) {
 					if (this.readyState !== 1) {
 						throw new Error('WebSocket is not open');
 					}
 					this.messages.push(JSON.parse(data));
 				}
-				
+
 				close() {
 					this.readyState = 3; // CLOSED
 				}
-				
+
 				simulateOpen() {
 					this.readyState = 1; // OPEN
 					this.onopen?.(new Event('open'));
@@ -300,33 +300,35 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 			} as any;
 
 			client = new LifecycleMCPClient('ws://localhost:3000/test');
-			
+
 			// Start connection but don't resolve it
 			const connectPromise = client.connect();
-			
+
 			// WebSocket should still be connecting
 			expect(client.isConnected()).toBe(false);
-			
+
 			// Simulate the WebSocket opening after a delay
 			setTimeout(() => {
 				const ws = (client as any).ws;
 				ws.simulateOpen();
 				// Send initialize response
 				setTimeout(() => {
-					ws.onmessage?.(new MessageEvent('message', {
-						data: JSON.stringify({
-							jsonrpc: '2.0',
-							id: 1,
-							result: { 
-								protocolVersion: '1.0.0',
-								capabilities: { tools: {} },
-								serverInfo: { name: 'test-server', version: '1.0.0' }
-							}
-						})
-					}) as any);
+					ws.onmessage?.(
+						new MessageEvent('message', {
+							data: JSON.stringify({
+								jsonrpc: '2.0',
+								id: 1,
+								result: {
+									protocolVersion: '1.0.0',
+									capabilities: { tools: {} },
+									serverInfo: { name: 'test-server', version: '1.0.0' }
+								}
+							})
+						}) as any
+					);
 				}, 1);
 			}, 5);
-			
+
 			await connectPromise;
 			expect(client.isConnected()).toBe(true);
 		});

@@ -163,10 +163,10 @@ export class ProtocolHandler {
 				}
 			}, this.requestTimeout);
 
-			this.pendingRequests.set(id, { 
-				resolve, 
+			this.pendingRequests.set(id, {
+				resolve,
 				reject,
-				timeout 
+				timeout
 			});
 
 			this.connectionManager.send(message);
@@ -174,7 +174,7 @@ export class ProtocolHandler {
 	}
 
 	async sendRequestWithResponse<T>(
-		method: string, 
+		method: string,
 		params: Record<string, unknown> = {}
 	): Promise<{ success: true; data: T } | { success: false; error: string }> {
 		try {

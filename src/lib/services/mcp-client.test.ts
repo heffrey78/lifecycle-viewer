@@ -642,7 +642,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 		it('should retry initialization on recoverable failures', async () => {
 			vi.useFakeTimers();
-			
+
 			const connectPromise = client.connect();
 			await vi.runOnlyPendingTimersAsync();
 
@@ -680,7 +680,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 			await connectPromise;
 			expect(client.isConnected()).toBe(true);
-			
+
 			vi.useRealTimers();
 		});
 	});
@@ -703,10 +703,10 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 		it('should retry recoverable errors with exponential backoff', async () => {
 			vi.useFakeTimers();
-			
+
 			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 			const connectPromise = client.connect();
-			
+
 			await vi.runOnlyPendingTimersAsync();
 
 			// First failure (recoverable)
@@ -721,7 +721,9 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 			// Should log retry message and wait 100ms
 			vi.advanceTimersByTime(100);
 			await vi.runOnlyPendingTimersAsync();
-			expect(consoleSpy).toHaveBeenCalledWith('MCP initialization attempt 1 failed, retrying in 100ms...');
+			expect(consoleSpy).toHaveBeenCalledWith(
+				'MCP initialization attempt 1 failed, retrying in 100ms...'
+			);
 
 			// Second failure (recoverable)
 			mockWs.simulateMessage({
@@ -735,7 +737,9 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 			// Should wait 200ms (exponential backoff)
 			vi.advanceTimersByTime(200);
 			await vi.runOnlyPendingTimersAsync();
-			expect(consoleSpy).toHaveBeenCalledWith('MCP initialization attempt 2 failed, retrying in 200ms...');
+			expect(consoleSpy).toHaveBeenCalledWith(
+				'MCP initialization attempt 2 failed, retrying in 200ms...'
+			);
 
 			// Third attempt succeeds
 			mockWs.simulateMessage({
@@ -745,7 +749,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 			await connectPromise;
 			expect(client.isConnected()).toBe(true);
-			
+
 			consoleSpy.mockRestore();
 			vi.useRealTimers();
 		});
@@ -769,7 +773,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 		it('should fail after maximum retry attempts', async () => {
 			vi.useFakeTimers();
-			
+
 			const connectPromise = client.connect();
 			await vi.runOnlyPendingTimersAsync();
 
@@ -792,7 +796,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 			await expect(connectPromise).rejects.toThrow('MCP initialization failed after 4 attempts');
 			expect(client.isConnected()).toBe(false);
-			
+
 			vi.useRealTimers();
 		});
 
@@ -821,7 +825,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 			// Disconnect and reconnect - should start fresh
 			client.disconnect();
-			
+
 			connectPromise = client.connect();
 			await vi.runOnlyPendingTimersAsync();
 
@@ -832,7 +836,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 
 			await connectPromise;
 			expect(client.isConnected()).toBe(true);
-			
+
 			vi.useRealTimers();
 		});
 	});
@@ -910,7 +914,8 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 				id: 1,
 				error: {
 					code: -32602,
-					message: 'Error occurred\n    at function1 (/path/file.js:10:5)\n    at function2 (/path/file.js:20:3)'
+					message:
+						'Error occurred\n    at function1 (/path/file.js:10:5)\n    at function2 (/path/file.js:20:3)'
 				}
 			});
 
@@ -936,7 +941,9 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 			try {
 				await connectPromise;
 			} catch (error: any) {
-				expect(error.message).toBe('MCP initialization failed after 1 attempts: Connection error occurred');
+				expect(error.message).toBe(
+					'MCP initialization failed after 1 attempts: Connection error occurred'
+				);
 			}
 		});
 	});
@@ -949,13 +956,13 @@ describe('LifecycleMCPClient - API Methods', () => {
 	beforeEach(async () => {
 		client = new LifecycleMCPClient();
 		vi.clearAllMocks();
-		
+
 		// Connect and initialize the client
 		const connectPromise = client.connect();
 		await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-		
+
 		mockWs = (client as any).ws as MockWebSocket;
-		
+
 		// Simulate successful initialization
 		mockWs.simulateMessage({
 			id: 1,
@@ -965,7 +972,7 @@ describe('LifecycleMCPClient - API Methods', () => {
 				serverInfo: { name: 'test-server', version: '1.0.0' }
 			}
 		});
-		
+
 		await connectPromise;
 	});
 
@@ -977,17 +984,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get requirements successfully', async () => {
 			const resultPromise = client.getRequirements();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify([{ id: 'REQ-001', title: 'Test Requirement', status: 'Draft' }]) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify([{ id: 'REQ-001', title: 'Test Requirement', status: 'Draft' }])
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBeDefined();
@@ -996,12 +1005,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle get requirements error', async () => {
 			const resultPromise = client.getRequirements();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				error: { code: -32603, message: 'Internal error' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Internal error');
@@ -1010,17 +1019,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get requirements JSON successfully', async () => {
 			const resultPromise = client.getRequirementsJson();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify([{ id: 'REQ-001', title: 'Test Requirement' }]) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify([{ id: 'REQ-001', title: 'Test Requirement' }])
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1028,12 +1039,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get requirement details successfully', async () => {
 			const resultPromise = client.getRequirementDetails('REQ-001');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'REQ-001', title: 'Test Requirement', status: 'Draft' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual({ id: 'REQ-001', title: 'Test Requirement', status: 'Draft' });
@@ -1043,12 +1054,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 			const newReq = { title: 'New Requirement', priority: 'P1' };
 			const resultPromise = client.createRequirement(newReq);
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'REQ-002', ...newReq, status: 'Draft' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toMatchObject(newReq);
@@ -1057,12 +1068,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should update requirement status successfully', async () => {
 			const resultPromise = client.updateRequirementStatus('REQ-001', 'Approved', 'Looks good');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'REQ-001', status: 'Approved' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1070,12 +1081,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should trace requirement successfully', async () => {
 			const resultPromise = client.traceRequirement('REQ-001');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { traces: ['task1', 'task2'] }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1085,17 +1096,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get tasks successfully', async () => {
 			const resultPromise = client.getTasks();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify([{ id: 'TASK-001', title: 'Test Task', status: 'Not Started' }]) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify([{ id: 'TASK-001', title: 'Test Task', status: 'Not Started' }])
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBeDefined();
@@ -1104,17 +1117,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get tasks JSON successfully', async () => {
 			const resultPromise = client.getTasksJson();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify([{ id: 'TASK-001', title: 'Test Task' }]) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify([{ id: 'TASK-001', title: 'Test Task' }])
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1122,12 +1137,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get task details successfully', async () => {
 			const resultPromise = client.getTaskDetails('TASK-001');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'TASK-001', title: 'Test Task', status: 'In Progress' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual({ id: 'TASK-001', title: 'Test Task', status: 'In Progress' });
@@ -1137,26 +1152,31 @@ describe('LifecycleMCPClient - API Methods', () => {
 			const newTask = { title: 'New Task', priority: 'P1' };
 			const resultPromise = client.createTask(newTask);
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'TASK-002', ...newTask, status: 'Not Started' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toMatchObject(newTask);
 		});
 
 		it('should update task status successfully', async () => {
-			const resultPromise = client.updateTaskStatus('TASK-001', 'In Progress', 'john.doe', 'Starting work');
+			const resultPromise = client.updateTaskStatus(
+				'TASK-001',
+				'In Progress',
+				'john.doe',
+				'Starting work'
+			);
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'TASK-001', status: 'In Progress', assignee: 'john.doe' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1166,17 +1186,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get architecture decisions successfully', async () => {
 			const resultPromise = client.getArchitectureDecisions();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify([{ id: 'ADR-001', title: 'Test Architecture Decision' }]) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify([{ id: 'ADR-001', title: 'Test Architecture Decision' }])
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1184,12 +1206,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get architecture decision details successfully', async () => {
 			const resultPromise = client.getArchitectureDetails('ADR-001');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { id: 'ADR-001', title: 'Test Decision', status: 'Accepted' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1199,17 +1221,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get project status successfully', async () => {
 			const resultPromise = client.getProjectStatus();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ requirements: 10, tasks: 25, architecture: 5 }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ requirements: 10, tasks: 25, architecture: 5 })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1217,17 +1241,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get project metrics successfully', async () => {
 			const resultPromise = client.getProjectMetrics();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ totalRequirements: 10, completedTasks: 15 }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ totalRequirements: 10, completedTasks: 15 })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1237,17 +1263,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should get current database successfully', async () => {
 			const resultPromise = client.getCurrentDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ database: '/path/to/db.sqlite' }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ database: '/path/to/db.sqlite' })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBe('/path/to/db.sqlite');
@@ -1256,17 +1284,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle null database response', async () => {
 			const resultPromise = client.getCurrentDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ database: null }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ database: null })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBe(null);
@@ -1275,17 +1305,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle invalid database response format', async () => {
 			const resultPromise = client.getCurrentDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: 'invalid-format' 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: 'invalid-format'
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBe(null);
@@ -1294,12 +1326,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle database request error', async () => {
 			const resultPromise = client.getCurrentDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				error: { code: -32603, message: 'Database connection failed' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Database connection failed');
@@ -1308,17 +1340,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should pick database successfully', async () => {
 			const resultPromise = client.pickDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ success: true, path: '/path/to/db.sqlite' }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ success: true, path: '/path/to/db.sqlite' })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBe('/path/to/db.sqlite');
@@ -1327,17 +1361,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle cancelled database picker', async () => {
 			const resultPromise = client.pickDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ cancelled: true }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ cancelled: true })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('File selection cancelled');
@@ -1346,17 +1382,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should switch database successfully', async () => {
 			const resultPromise = client.switchDatabase('/new/path.db');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ success: true }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ success: true })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1364,17 +1402,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle invalid picker response', async () => {
 			const resultPromise = client.pickDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: 'invalid-response' 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: 'invalid-response'
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Invalid response from file picker');
@@ -1383,17 +1423,19 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle picker error with custom error message', async () => {
 			const resultPromise = client.pickDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: {
-					content: [{ 
-						type: 'text', 
-						text: JSON.stringify({ error: 'Custom picker error' }) 
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({ error: 'Custom picker error' })
+						}
+					]
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Custom picker error');
@@ -1402,12 +1444,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should handle database picker request error', async () => {
 			const resultPromise = client.pickDatabase();
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				error: { code: -32603, message: 'Server error' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Server error');
@@ -1418,29 +1460,31 @@ describe('LifecycleMCPClient - API Methods', () => {
 		it('should start requirement interview successfully', async () => {
 			const resultPromise = client.startRequirementInterview('Test project', 'Product Manager');
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
-				result: { 
-					session_id: 'session123', 
-					questions: { q1: 'What is the main goal?' } 
+				result: {
+					session_id: 'session123',
+					questions: { q1: 'What is the main goal?' }
 				}
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toMatchObject({ session_id: 'session123' });
 		});
 
 		it('should continue requirement interview successfully', async () => {
-			const resultPromise = client.continueRequirementInterview('session123', { q1: 'Improve efficiency' });
+			const resultPromise = client.continueRequirementInterview('session123', {
+				q1: 'Improve efficiency'
+			});
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: { session_complete: true, requirement_draft: 'Generated requirement' }
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 		});
@@ -1453,12 +1497,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 				output_directory: '/export'
 			});
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: ['requirements.md', 'tasks.md']
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual(['requirements.md', 'tasks.md']);
@@ -1470,12 +1514,12 @@ describe('LifecycleMCPClient - API Methods', () => {
 				requirement_ids: ['REQ-001']
 			});
 			await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-			
+
 			mockWs.simulateMessage({
 				id: 2,
 				result: 'diagram-content.mermaid'
 			});
-			
+
 			const result = await resultPromise;
 			expect(result.success).toBe(true);
 			expect(result.data).toBe('diagram-content.mermaid');

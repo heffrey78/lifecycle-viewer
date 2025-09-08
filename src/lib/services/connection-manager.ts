@@ -18,7 +18,7 @@ export class ConnectionManager {
 	constructor(private serverUrl: string = 'ws://localhost:3000/mcp') {}
 
 	private emit(event: ConnectionEvent): void {
-		this.listeners.forEach(listener => listener(event));
+		this.listeners.forEach((listener) => listener(event));
 	}
 
 	addListener(listener: ConnectionEventListener): void {
@@ -40,36 +40,36 @@ export class ConnectionManager {
 			if (error.code === -32602) return false;
 			if (error.code === -32601) return false;
 		}
-		
+
 		if (error instanceof Error) {
 			const message = error.message.toLowerCase();
 			if (message.includes('websocket connection failed')) return true;
 			if (message.includes('network')) return true;
 			if (message.includes('connection')) return true;
 		}
-		
+
 		return false;
 	}
 
 	private sanitizeErrorMessage(error: any): string {
 		if (typeof error === 'object' && error.message) {
 			let message = error.message;
-			
+
 			message = message.replace(/\/[^\s]*\.(js|ts|json|py|etc)\b/g, '[file]');
 			message = message.replace(/\s+at\s+[^\n]*\([^\n]*\)/g, '');
 			message = message.replace(/secret[^\s]*/gi, '[redacted]');
 			message = message.replace(/token[^\s]*/gi, '[redacted]');
 			message = message.replace(/key[^\s]*/gi, '[redacted]');
 			message = message.replace(/password[^\s]*/gi, '[redacted]');
-			
+
 			return message.trim();
 		}
-		
+
 		return 'Connection error occurred';
 	}
 
 	private async delay(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	private calculateRetryDelay(attempt: number): number {
@@ -113,9 +113,9 @@ export class ConnectionManager {
 					this.connected = false;
 					this.connectPromise = null;
 					if (event.code !== 1000) {
-						this.emit({ 
-							type: 'disconnected', 
-							message: `WebSocket disconnected: ${event.code} ${event.reason}` 
+						this.emit({
+							type: 'disconnected',
+							message: `WebSocket disconnected: ${event.code} ${event.reason}`
 						});
 					} else {
 						this.emit({ type: 'disconnected', message: 'Disconnected from server' });
@@ -139,7 +139,7 @@ export class ConnectionManager {
 				return;
 			} catch (error) {
 				lastError = error;
-				
+
 				if (attempt < this.maxRetries && this.isRecoverableError(error)) {
 					const delayMs = this.calculateRetryDelay(attempt);
 					this.emit({

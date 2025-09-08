@@ -21,8 +21,8 @@ export class DatabaseService {
 
 	async switchDatabase(databasePath: string): Promise<MCPResponse<void>> {
 		try {
-			const result = await this.protocolHandler.sendRequest('database/switch', { 
-				database: databasePath 
+			const result = await this.protocolHandler.sendRequest('database/switch', {
+				database: databasePath
 			});
 			const data = this.extractDatabaseData(result);
 

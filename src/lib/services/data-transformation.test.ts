@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LifecycleMCPClient } from './mcp-client.js';
-import type { 
-	Requirement, 
-	Task, 
-	ArchitectureDecision, 
-	MCPResponse 
-} from '$lib/types/lifecycle.js';
+import type { Requirement, Task, ArchitectureDecision, MCPResponse } from '$lib/types/lifecycle.js';
 
 describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	let client: LifecycleMCPClient;
@@ -14,7 +9,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	// Mock WebSocket for data transformation testing
 	class DataTransformWebSocket {
 		static OPEN = 1;
-		
+
 		public readyState = DataTransformWebSocket.OPEN;
 		public onopen: ((event: Event) => void) | null = null;
 		public onclose: ((event: Event) => void) | null = null;
@@ -31,7 +26,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					this.simulateMessage({
 						jsonrpc: '2.0',
 						id: message.id,
-						result: { 
+						result: {
 							protocolVersion: '1.0.0',
 							capabilities: { tools: {} },
 							serverInfo: { name: 'test-server', version: '1.0.0' }
@@ -44,8 +39,8 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 		close() {}
 
 		simulateMessage(message: any) {
-			const event = new MessageEvent('message', { 
-				data: JSON.stringify(message) 
+			const event = new MessageEvent('message', {
+				data: JSON.stringify(message)
 			});
 			this.onmessage?.(event);
 		}
@@ -66,9 +61,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('Requirement Data Transformation', () => {
 		it('should properly transform valid requirement data', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			// Send well-formed requirement data
 			ws.simulateMessage({
 				jsonrpc: '2.0',
@@ -99,12 +94,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(1);
-			
+
 			const requirement = response.data[0] as Requirement;
 			expect(requirement.id).toBe('REQ-001-FUNC-00');
 			expect(requirement.type).toBe('FUNC');
@@ -117,9 +112,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle missing optional fields in requirement data', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			// Send minimal requirement data
 			ws.simulateMessage({
 				jsonrpc: '2.0',
@@ -138,12 +133,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(1);
-			
+
 			const requirement = response.data[0] as Requirement;
 			expect(requirement.id).toBe('REQ-002');
 			expect(requirement.title).toBe('Basic Requirement');
@@ -152,9 +147,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle malformed requirement data gracefully', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			// Send malformed data
 			ws.simulateMessage({
 				jsonrpc: '2.0',
@@ -172,9 +167,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			// Should still succeed but data might be transformed/sanitized
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(1);
@@ -182,7 +177,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle array vs single item response formats', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			// Test array format (normal case)
 			const arrayPromise = client.getRequirements();
 			ws.simulateMessage({
@@ -215,9 +210,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('Task Data Transformation', () => {
 		it('should properly transform valid task data', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getTasks();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -244,12 +239,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(1);
-			
+
 			const task = response.data[0] as Task;
 			expect(task.id).toBe('TASK-001-00-00');
 			expect(task.status).toBe('In Progress');
@@ -262,9 +257,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle task effort size validation', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getTasks();
-			
+
 			// Test all valid effort sizes
 			ws.simulateMessage({
 				jsonrpc: '2.0',
@@ -280,21 +275,21 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(5);
-			
+
 			const efforts = response.data.map((task: Task) => task.effort);
 			expect(efforts).toEqual(['XS', 'S', 'M', 'L', 'XL']);
 		});
 
 		it('should handle task status validation', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getTasks();
-			
+
 			// Test all valid statuses
 			ws.simulateMessage({
 				jsonrpc: '2.0',
@@ -310,9 +305,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			const statuses = response.data.map((task: Task) => task.status);
 			expect(statuses).toEqual(['Not Started', 'In Progress', 'Blocked', 'Complete', 'Abandoned']);
@@ -322,9 +317,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('Architecture Decision Data Transformation', () => {
 		it('should properly transform architecture decision data', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getArchitectureDecisions();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -351,12 +346,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(true);
 			expect(response.data).toHaveLength(1);
-			
+
 			const adr = response.data[0] as ArchitectureDecision;
 			expect(adr.id).toBe('ADR-001-00-00');
 			expect(adr.status).toBe('Accepted');
@@ -371,9 +366,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('Error Response Transformation', () => {
 		it('should transform error responses consistently', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -386,9 +381,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					}
 				}
 			});
-			
+
 			const response = await promise;
-			
+
 			expect(response.success).toBe(false);
 			expect(response.error).toBeDefined();
 			expect(typeof response.error).toBe('string');
@@ -397,7 +392,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle various error formats', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const testCases = [
 				// String error
 				{ error: 'Simple string error' },
@@ -411,13 +406,13 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			for (let i = 0; i < testCases.length; i++) {
 				const promise = client.getRequirements();
-				
+
 				ws.simulateMessage({
 					jsonrpc: '2.0',
 					id: 2 + i,
 					...testCases[i]
 				});
-				
+
 				const response = await promise;
 				expect(response.success).toBe(false);
 				expect(response.error).toBeDefined();
@@ -429,9 +424,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('Data Type Coercion and Validation', () => {
 		it('should handle string to number coercion where appropriate', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -451,10 +446,10 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
 			expect(response.success).toBe(true);
-			
+
 			// Numbers should be handled properly regardless of string/number input
 			const req = response.data[0];
 			expect(req.task_count).toBeDefined();
@@ -463,9 +458,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle date string validation', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getTasks();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -484,10 +479,10 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
 			expect(response.success).toBe(true);
-			
+
 			const task = response.data[0];
 			expect(task.created_at).toBeDefined();
 			expect(task.updated_at).toBeDefined(); // Should handle invalid date gracefully
@@ -496,9 +491,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should handle array field validation', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -518,10 +513,10 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					]
 				}
 			});
-			
+
 			const response = await promise;
 			expect(response.success).toBe(true);
-			
+
 			const req = response.data[0];
 			// Should handle various array field formats gracefully
 			expect(req).toBeDefined();
@@ -531,9 +526,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 	describe('MCPResponse Wrapper Validation', () => {
 		it('should ensure MCPResponse structure is consistent', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -543,9 +538,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					message: 'Operation completed successfully'
 				}
 			});
-			
+
 			const response: MCPResponse<Requirement[]> = await promise;
-			
+
 			// Validate MCPResponse structure
 			expect(response).toHaveProperty('success');
 			expect(typeof response.success).toBe('boolean');
@@ -557,9 +552,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 		it('should validate MCPResponse error structure', async () => {
 			const ws = (client as any).ws as DataTransformWebSocket;
-			
+
 			const promise = client.getRequirements();
-			
+
 			ws.simulateMessage({
 				jsonrpc: '2.0',
 				id: 2,
@@ -568,9 +563,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					message: 'Test error'
 				}
 			});
-			
+
 			const response: MCPResponse<Requirement[]> = await promise;
-			
+
 			// Validate error MCPResponse structure
 			expect(response).toHaveProperty('success');
 			expect(response.success).toBe(false);

@@ -43,7 +43,10 @@ describe('TaskService', () => {
 		effort: 'M',
 		assignee: 'john.doe@company.com',
 		user_story: 'As a user, I want to authenticate so that I can access protected features',
-		acceptance_criteria: ['Login form accepts valid credentials', 'Invalid credentials are rejected'],
+		acceptance_criteria: [
+			'Login form accepts valid credentials',
+			'Invalid credentials are rejected'
+		],
 		github_issue_url: 'https://github.com/company/repo/issues/123',
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-02T00:00:00Z'
@@ -84,10 +87,7 @@ describe('TaskService', () => {
 
 			const result = await taskService.getTasks();
 
-			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
-				'query_tasks',
-				{}
-			);
+			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith('query_tasks', {});
 			expect(result).toEqual({
 				success: true,
 				data: expectedData
@@ -119,8 +119,7 @@ describe('TaskService', () => {
 		it('should handle protocol handler exceptions', async () => {
 			mockProtocolHandler.mockReject(new Error('Network timeout'));
 
-			await expect(taskService.getTasks())
-				.rejects.toThrow('Network timeout');
+			await expect(taskService.getTasks()).rejects.toThrow('Network timeout');
 		});
 	});
 
@@ -203,10 +202,9 @@ describe('TaskService', () => {
 
 			const result = await taskService.getTaskDetails('TASK-001-00-00');
 
-			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
-				'get_task_details',
-				{ task_id: 'TASK-001-00-00' }
-			);
+			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith('get_task_details', {
+				task_id: 'TASK-001-00-00'
+			});
 			expect(result).toEqual({
 				success: true,
 				data: sampleTask
@@ -229,10 +227,9 @@ describe('TaskService', () => {
 
 			await taskService.getTaskDetails('');
 
-			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
-				'get_task_details',
-				{ task_id: '' }
-			);
+			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith('get_task_details', {
+				task_id: ''
+			});
 		});
 
 		it('should handle tasks with additional relationships', async () => {
@@ -289,10 +286,7 @@ describe('TaskService', () => {
 
 			const result = await taskService.createTask({});
 
-			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
-				'create_task',
-				{}
-			);
+			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith('create_task', {});
 		});
 
 		it('should preserve all provided fields', async () => {
@@ -311,7 +305,7 @@ describe('TaskService', () => {
 				],
 				parent_task_id: 'TASK-000-00-00'
 			};
-			
+
 			mockProtocolHandler.mockSuccess(fullTask as Task);
 
 			const result = await taskService.createTask(fullTask);
@@ -329,7 +323,7 @@ describe('TaskService', () => {
 				priority: 'P1',
 				github_issue_url: 'https://github.com/company/repo/issues/456'
 			};
-			
+
 			mockProtocolHandler.mockSuccess(taskWithGithub as Task);
 
 			const result = await taskService.createTask(taskWithGithub);
@@ -344,10 +338,7 @@ describe('TaskService', () => {
 			const updatedTask = { ...sampleTask, status: 'In Progress' };
 			mockProtocolHandler.mockSuccess(updatedTask);
 
-			const result = await taskService.updateTaskStatus(
-				'TASK-001-00-00',
-				'In Progress'
-			);
+			const result = await taskService.updateTaskStatus('TASK-001-00-00', 'In Progress');
 
 			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
 				'update_task_status',
@@ -384,7 +375,11 @@ describe('TaskService', () => {
 		});
 
 		it('should include assignee when provided', async () => {
-			const updatedTask = { ...sampleTask, status: 'In Progress', assignee: 'jane.smith@company.com' };
+			const updatedTask = {
+				...sampleTask,
+				status: 'In Progress',
+				assignee: 'jane.smith@company.com'
+			};
 			mockProtocolHandler.mockSuccess(updatedTask);
 
 			const result = await taskService.updateTaskStatus(
@@ -431,10 +426,7 @@ describe('TaskService', () => {
 		it('should handle invalid status transitions', async () => {
 			mockProtocolHandler.mockError('Invalid status transition from Not Started to Complete');
 
-			const result = await taskService.updateTaskStatus(
-				'TASK-001-00-00',
-				'Complete'
-			);
+			const result = await taskService.updateTaskStatus('TASK-001-00-00', 'Complete');
 
 			expect(result).toEqual({
 				success: false,
@@ -446,12 +438,7 @@ describe('TaskService', () => {
 			const updatedTask = { ...sampleTask, status: 'In Progress' };
 			mockProtocolHandler.mockSuccess(updatedTask);
 
-			const result = await taskService.updateTaskStatus(
-				'TASK-001-00-00',
-				'In Progress',
-				'',
-				''
-			);
+			const result = await taskService.updateTaskStatus('TASK-001-00-00', 'In Progress', '', '');
 
 			expect(mockProtocolHandler.sendRequestWithResponse).toHaveBeenCalledWith(
 				'update_task_status',
@@ -476,9 +463,9 @@ describe('TaskService', () => {
 
 			for (const transition of statusTransitions) {
 				mockProtocolHandler.reset();
-				mockProtocolHandler.mockSuccess({ 
-					...sampleTask, 
-					status: transition.to 
+				mockProtocolHandler.mockSuccess({
+					...sampleTask,
+					status: transition.to
 				});
 
 				const result = await taskService.updateTaskStatus(
@@ -498,8 +485,7 @@ describe('TaskService', () => {
 				new Error('Network connection failed')
 			);
 
-			await expect(taskService.getTasks())
-				.rejects.toThrow('Network connection failed');
+			await expect(taskService.getTasks()).rejects.toThrow('Network connection failed');
 		});
 
 		it('should handle malformed response data', async () => {
@@ -624,14 +610,14 @@ describe('TaskService', () => {
 			];
 
 			// Simulate bulk status update
-			const updatePromises = tasks.map(task => {
+			const updatePromises = tasks.map((task) => {
 				mockProtocolHandler.mockSuccess({ ...task, status: 'In Progress' });
 				return taskService.updateTaskStatus(task.id, 'In Progress');
 			});
 
 			const results = await Promise.all(updatePromises);
 
-			results.forEach(result => {
+			results.forEach((result) => {
 				expect(result.success).toBe(true);
 			});
 		});

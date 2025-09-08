@@ -41,7 +41,7 @@ export class LifecycleMCPClient {
 			if (error.code === -32602) return false; // Invalid params (4xx equivalent)
 			if (error.code === -32601) return false; // Method not found (4xx equivalent)
 		}
-		
+
 		// WebSocket/Network errors are typically recoverable
 		if (error instanceof Error) {
 			const message = error.message.toLowerCase();
@@ -50,7 +50,7 @@ export class LifecycleMCPClient {
 			if (message.includes('mcp initialization timeout')) return true;
 			if (message.includes('connection')) return true;
 		}
-		
+
 		// Default to non-recoverable for unknown errors
 		return false;
 	}
@@ -59,27 +59,27 @@ export class LifecycleMCPClient {
 		// Sanitize error messages to prevent information leakage
 		if (typeof error === 'object' && error.message) {
 			let message = error.message;
-			
+
 			// Remove file paths (keep the text around them)
 			message = message.replace(/\/[^\s]*\.(js|ts|json|py|etc)\b/g, '[file]');
-			
+
 			// Remove internal stack traces (more specific pattern to avoid removing line references)
 			message = message.replace(/\s+at\s+[^\n]*\([^\n]*\)/g, '');
-			
+
 			// Remove sensitive data patterns (keep surrounding text)
 			message = message.replace(/secret[^\s]*/gi, '[redacted]');
 			message = message.replace(/token[^\s]*/gi, '[redacted]');
 			message = message.replace(/key[^\s]*/gi, '[redacted]');
 			message = message.replace(/password[^\s]*/gi, '[redacted]');
-			
+
 			return message.trim();
 		}
-		
+
 		return 'Connection error occurred';
 	}
 
 	private async delay(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	private calculateRetryDelay(attempt: number): number {
@@ -170,14 +170,16 @@ export class LifecycleMCPClient {
 				return;
 			} catch (error) {
 				lastError = error;
-				
+
 				// Check if this is a recoverable error and if we have retries left
 				if (attempt < this.maxRetries && this.isRecoverableError(error)) {
 					// Wait before retrying with exponential backoff
 					const delayMs = this.calculateRetryDelay(attempt);
-					console.log(`MCP initialization attempt ${attempt + 1} failed, retrying in ${delayMs}ms...`);
+					console.log(
+						`MCP initialization attempt ${attempt + 1} failed, retrying in ${delayMs}ms...`
+					);
 					await this.delay(delayMs);
-					
+
 					// Increment retry counter
 					this.retryAttempts = attempt + 1;
 					continue;

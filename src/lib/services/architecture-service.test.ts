@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ArchitectureService } from './architecture-service.js';
 import type { ProtocolHandler } from './protocol-handler.js';
-import type { ArchitectureDecision, ArchitectureFilters, MCPResponse } from '$lib/types/lifecycle.js';
+import type {
+	ArchitectureDecision,
+	ArchitectureFilters,
+	MCPResponse
+} from '$lib/types/lifecycle.js';
 
 // Mock ProtocolHandler
 class MockProtocolHandler {
@@ -43,7 +47,10 @@ describe('ArchitectureService', () => {
 		decision: 'Implement JWT-based authentication with refresh tokens',
 		consequences: {
 			positive: ['Stateless authentication', 'Scalable across multiple services'],
-			negative: ['Token management complexity', 'Potential security risks if not implemented properly']
+			negative: [
+				'Token management complexity',
+				'Potential security risks if not implemented properly'
+			]
 		},
 		decision_drivers: ['Security requirements', 'Scalability needs', 'Development team expertise'],
 		considered_options: ['Session-based auth', 'OAuth 2.0', 'JWT tokens'],
@@ -121,8 +128,9 @@ describe('ArchitectureService', () => {
 		it('should handle protocol handler exceptions', async () => {
 			mockProtocolHandler.mockReject(new Error('Connection timeout'));
 
-			await expect(architectureService.getArchitectureDecisions())
-				.rejects.toThrow('Connection timeout');
+			await expect(architectureService.getArchitectureDecisions()).rejects.toThrow(
+				'Connection timeout'
+			);
 		});
 	});
 
@@ -320,11 +328,7 @@ describe('ArchitectureService', () => {
 				context: 'Our monolithic application is becoming difficult to maintain and scale',
 				decision: 'Migrate to microservices architecture using containerization',
 				consequences: {
-					positive: [
-						'Independent deployments',
-						'Technology diversity',
-						'Fault isolation'
-					],
+					positive: ['Independent deployments', 'Technology diversity', 'Fault isolation'],
 					negative: [
 						'Increased operational complexity',
 						'Network latency',
@@ -345,7 +349,7 @@ describe('ArchitectureService', () => {
 				],
 				authors: ['Senior Architect', 'Tech Lead', 'DevOps Engineer']
 			};
-			
+
 			mockProtocolHandler.mockSuccess(fullDecision as ArchitectureDecision);
 
 			const result = await architectureService.createArchitectureDecision(fullDecision);
@@ -368,7 +372,7 @@ describe('ArchitectureService', () => {
 				context: 'This decision affects multiple requirements',
 				decision: 'Implement comprehensive solution'
 			};
-			
+
 			mockProtocolHandler.mockSuccess(multiReqDecision as ArchitectureDecision);
 
 			const result = await architectureService.createArchitectureDecision(multiReqDecision);
@@ -466,9 +470,9 @@ describe('ArchitectureService', () => {
 
 			for (const transition of statusTransitions) {
 				mockProtocolHandler.reset();
-				mockProtocolHandler.mockSuccess({ 
-					...sampleArchitectureDecision, 
-					status: transition.to 
+				mockProtocolHandler.mockSuccess({
+					...sampleArchitectureDecision,
+					status: transition.to
 				});
 
 				const result = await architectureService.updateArchitectureStatus(
@@ -516,8 +520,9 @@ describe('ArchitectureService', () => {
 				new Error('Network connection failed')
 			);
 
-			await expect(architectureService.getArchitectureDecisions())
-				.rejects.toThrow('Network connection failed');
+			await expect(architectureService.getArchitectureDecisions()).rejects.toThrow(
+				'Network connection failed'
+			);
 		});
 
 		it('should handle malformed response data', async () => {
@@ -641,7 +646,10 @@ describe('ArchitectureService', () => {
 			mockProtocolHandler.sendRequestWithResponse
 				.mockResolvedValueOnce({ success: true, data: [sampleArchitectureDecision] })
 				.mockResolvedValueOnce({ success: true, data: sampleArchitectureDecision })
-				.mockResolvedValueOnce({ success: true, data: { ...sampleArchitectureDecision, status: 'Accepted' } });
+				.mockResolvedValueOnce({
+					success: true,
+					data: { ...sampleArchitectureDecision, status: 'Accepted' }
+				});
 
 			const [listResult, detailResult, updateResult] = await Promise.all([
 				architectureService.getArchitectureDecisions(),
@@ -701,7 +709,11 @@ describe('ArchitectureService', () => {
 					context: 'Original JWT decision needs updating',
 					decision: 'Use OAuth 2.0 with PKCE'
 				}),
-				architectureService.updateArchitectureStatus('ADR-001-00-00', 'Superseded', 'Superseded by ADR-002-00-00')
+				architectureService.updateArchitectureStatus(
+					'ADR-001-00-00',
+					'Superseded',
+					'Superseded by ADR-002-00-00'
+				)
 			]);
 
 			expect(originalResult.success).toBe(true);

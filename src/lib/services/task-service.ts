@@ -5,31 +5,19 @@ export class TaskService {
 	constructor(private protocolHandler: ProtocolHandler) {}
 
 	async getTasks(filters?: TaskFilters): Promise<MCPResponse<Task[]>> {
-		return this.protocolHandler.sendRequestWithResponse<Task[]>(
-			'query_tasks',
-			filters || {}
-		);
+		return this.protocolHandler.sendRequestWithResponse<Task[]>('query_tasks', filters || {});
 	}
 
 	async getTasksJson(filters?: TaskFilters): Promise<MCPResponse<Task[]>> {
-		return this.protocolHandler.sendRequestWithResponse<Task[]>(
-			'query_tasks_json',
-			filters || {}
-		);
+		return this.protocolHandler.sendRequestWithResponse<Task[]>('query_tasks_json', filters || {});
 	}
 
 	async getTaskDetails(id: string): Promise<MCPResponse<Task>> {
-		return this.protocolHandler.sendRequestWithResponse<Task>(
-			'get_task_details',
-			{ task_id: id }
-		);
+		return this.protocolHandler.sendRequestWithResponse<Task>('get_task_details', { task_id: id });
 	}
 
 	async createTask(task: Partial<Task>): Promise<MCPResponse<Task>> {
-		return this.protocolHandler.sendRequestWithResponse<Task>(
-			'create_task',
-			task
-		);
+		return this.protocolHandler.sendRequestWithResponse<Task>('create_task', task);
 	}
 
 	async updateTaskStatus(
@@ -38,14 +26,11 @@ export class TaskService {
 		comment?: string,
 		assignee?: string
 	): Promise<MCPResponse<Task>> {
-		return this.protocolHandler.sendRequestWithResponse<Task>(
-			'update_task_status',
-			{
-				task_id: id,
-				new_status: newStatus,
-				comment,
-				assignee
-			}
-		);
+		return this.protocolHandler.sendRequestWithResponse<Task>('update_task_status', {
+			task_id: id,
+			new_status: newStatus,
+			comment,
+			assignee
+		});
 	}
 }

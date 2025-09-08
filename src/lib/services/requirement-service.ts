@@ -19,10 +19,9 @@ export class RequirementService {
 	}
 
 	async getRequirementDetails(id: string): Promise<MCPResponse<Requirement>> {
-		return this.protocolHandler.sendRequestWithResponse<Requirement>(
-			'get_requirement_details',
-			{ requirement_id: id }
-		);
+		return this.protocolHandler.sendRequestWithResponse<Requirement>('get_requirement_details', {
+			requirement_id: id
+		});
 	}
 
 	async createRequirement(requirement: Partial<Requirement>): Promise<MCPResponse<Requirement>> {
@@ -37,20 +36,16 @@ export class RequirementService {
 		newStatus: string,
 		comment?: string
 	): Promise<MCPResponse<Requirement>> {
-		return this.protocolHandler.sendRequestWithResponse<Requirement>(
-			'update_requirement_status',
-			{
-				requirement_id: id,
-				new_status: newStatus,
-				comment
-			}
-		);
+		return this.protocolHandler.sendRequestWithResponse<Requirement>('update_requirement_status', {
+			requirement_id: id,
+			new_status: newStatus,
+			comment
+		});
 	}
 
 	async traceRequirement(id: string): Promise<MCPResponse<unknown>> {
-		return this.protocolHandler.sendRequestWithResponse<unknown>(
-			'trace_requirement',
-			{ requirement_id: id }
-		);
+		return this.protocolHandler.sendRequestWithResponse<unknown>('trace_requirement', {
+			requirement_id: id
+		});
 	}
 }

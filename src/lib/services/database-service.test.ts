@@ -27,7 +27,7 @@ describe('DatabaseService', () => {
 	beforeEach(() => {
 		mockProtocolHandler = new MockProtocolHandler();
 		databaseService = new DatabaseService(mockProtocolHandler as any as ProtocolHandler);
-		
+
 		// Mock console methods to avoid noise in test output
 		vi.spyOn(console, 'error').mockImplementation(() => {});
 		vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -41,10 +41,9 @@ describe('DatabaseService', () => {
 
 			const result = await databaseService.switchDatabase(databasePath);
 
-			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-				'database/switch',
-				{ database: databasePath }
-			);
+			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/switch', {
+				database: databasePath
+			});
 			expect(result).toEqual({
 				success: true,
 				data: undefined
@@ -53,8 +52,8 @@ describe('DatabaseService', () => {
 
 		it('should handle successful database switch with object response', async () => {
 			const databasePath = '/path/to/new.db';
-			const mockResponse = { 
-				success: true, 
+			const mockResponse = {
+				success: true,
 				message: 'Database switched successfully',
 				previous_database: '/path/to/old.db'
 			};
@@ -104,10 +103,7 @@ describe('DatabaseService', () => {
 				success: false,
 				error: 'Network connection failed'
 			});
-			expect(console.error).toHaveBeenCalledWith(
-				'Database switch error:',
-				expect.any(Error)
-			);
+			expect(console.error).toHaveBeenCalledWith('Database switch error:', expect.any(Error));
 		});
 
 		it('should handle non-Error exceptions', async () => {
@@ -128,10 +124,9 @@ describe('DatabaseService', () => {
 
 			const result = await databaseService.switchDatabase('');
 
-			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-				'database/switch',
-				{ database: '' }
-			);
+			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/switch', {
+				database: ''
+			});
 		});
 
 		it('should handle database path with spaces', async () => {
@@ -141,19 +136,20 @@ describe('DatabaseService', () => {
 
 			const result = await databaseService.switchDatabase(databasePath);
 
-			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-				'database/switch',
-				{ database: databasePath }
-			);
+			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/switch', {
+				database: databasePath
+			});
 			expect(result.success).toBe(true);
 		});
 
 		it('should extract data from MCP response format', async () => {
 			const databasePath = '/path/to/db.db';
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ success: true, database_switched: true })
-				}]
+				content: [
+					{
+						text: JSON.stringify({ success: true, database_switched: true })
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -168,9 +164,11 @@ describe('DatabaseService', () => {
 		it('should handle MCP response with non-JSON text', async () => {
 			const databasePath = '/path/to/db.db';
 			const mcpResponse = {
-				content: [{
-					text: 'Database switched successfully'
-				}]
+				content: [
+					{
+						text: 'Database switched successfully'
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -191,10 +189,7 @@ describe('DatabaseService', () => {
 
 			const result = await databaseService.getCurrentDatabase();
 
-			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-				'database/current',
-				{}
-			);
+			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/current', {});
 			expect(result).toEqual({
 				success: true,
 				data: currentDbPath
@@ -257,18 +252,17 @@ describe('DatabaseService', () => {
 				success: false,
 				error: 'Connection timeout'
 			});
-			expect(console.error).toHaveBeenCalledWith(
-				'Get current database error:',
-				expect.any(Error)
-			);
+			expect(console.error).toHaveBeenCalledWith('Get current database error:', expect.any(Error));
 		});
 
 		it('should extract data from MCP response format', async () => {
 			const dbPath = '/extracted/from/mcp.db';
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ database: dbPath })
-				}]
+				content: [
+					{
+						text: JSON.stringify({ database: dbPath })
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -282,9 +276,11 @@ describe('DatabaseService', () => {
 
 		it('should handle MCP response without database field', async () => {
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ status: 'no database set' })
-				}]
+				content: [
+					{
+						text: JSON.stringify({ status: 'no database set' })
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -300,18 +296,15 @@ describe('DatabaseService', () => {
 	describe('pickDatabase', () => {
 		it('should call database/pick and return selected path', async () => {
 			const selectedPath = '/user/selected/database.db';
-			const mockResponse = { 
-				success: true, 
-				path: selectedPath 
+			const mockResponse = {
+				success: true,
+				path: selectedPath
 			};
 			mockProtocolHandler.mockSuccess(mockResponse);
 
 			const result = await databaseService.pickDatabase();
 
-			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-				'database/pick',
-				{}
-			);
+			expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/pick', {});
 			expect(result).toEqual({
 				success: true,
 				data: selectedPath
@@ -319,8 +312,8 @@ describe('DatabaseService', () => {
 		});
 
 		it('should handle cancelled file selection', async () => {
-			const mockResponse = { 
-				cancelled: true 
+			const mockResponse = {
+				cancelled: true
 			};
 			mockProtocolHandler.mockSuccess(mockResponse);
 
@@ -333,9 +326,9 @@ describe('DatabaseService', () => {
 		});
 
 		it('should handle file picker failure', async () => {
-			const mockResponse = { 
-				success: false, 
-				error: 'File picker not available' 
+			const mockResponse = {
+				success: false,
+				error: 'File picker not available'
 			};
 			mockProtocolHandler.mockSuccess(mockResponse);
 
@@ -348,8 +341,8 @@ describe('DatabaseService', () => {
 		});
 
 		it('should handle file picker failure without specific error', async () => {
-			const mockResponse = { 
-				success: false 
+			const mockResponse = {
+				success: false
 			};
 			mockProtocolHandler.mockSuccess(mockResponse);
 
@@ -381,10 +374,7 @@ describe('DatabaseService', () => {
 				success: false,
 				error: 'File system access denied'
 			});
-			expect(console.error).toHaveBeenCalledWith(
-				'File picker error:',
-				expect.any(Error)
-			);
+			expect(console.error).toHaveBeenCalledWith('File picker error:', expect.any(Error));
 		});
 
 		it('should handle non-Error exceptions', async () => {
@@ -401,12 +391,14 @@ describe('DatabaseService', () => {
 		it('should extract data from MCP response format', async () => {
 			const pickedPath = '/mcp/extracted/path.db';
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ 
-						success: true, 
-						path: pickedPath 
-					})
-				}]
+				content: [
+					{
+						text: JSON.stringify({
+							success: true,
+							path: pickedPath
+						})
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -420,11 +412,13 @@ describe('DatabaseService', () => {
 
 		it('should handle MCP response with cancellation', async () => {
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ 
-						cancelled: true 
-					})
-				}]
+				content: [
+					{
+						text: JSON.stringify({
+							cancelled: true
+						})
+					}
+				]
 			};
 			mockProtocolHandler.mockSuccess(mcpResponse);
 
@@ -459,11 +453,13 @@ describe('DatabaseService', () => {
 	describe('MCP Data Extraction', () => {
 		it('should extract JSON data from content array', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const mcpResponse = {
-				content: [{
-					text: JSON.stringify({ database: '/test/path.db' })
-				}]
+				content: [
+					{
+						text: JSON.stringify({ database: '/test/path.db' })
+					}
+				]
 			};
 
 			const result = extractData(mcpResponse);
@@ -472,11 +468,13 @@ describe('DatabaseService', () => {
 
 		it('should extract plain text from content array', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const mcpResponse = {
-				content: [{
-					text: 'Plain text response'
-				}]
+				content: [
+					{
+						text: 'Plain text response'
+					}
+				]
 			};
 
 			const result = extractData(mcpResponse);
@@ -485,12 +483,14 @@ describe('DatabaseService', () => {
 
 		it('should extract direct content without text property', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const mcpResponse = {
-				content: [{
-					database: '/direct/content.db',
-					status: 'success'
-				}]
+				content: [
+					{
+						database: '/direct/content.db',
+						status: 'success'
+					}
+				]
 			};
 
 			const result = extractData(mcpResponse);
@@ -502,36 +502,38 @@ describe('DatabaseService', () => {
 
 		it('should return original data when not in MCP format', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const directResponse = { database: '/direct/response.db' };
-			
+
 			const result = extractData(directResponse);
 			expect(result).toEqual(directResponse);
 		});
 
 		it('should handle empty content array', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const mcpResponse = { content: [] };
-			
+
 			const result = extractData(mcpResponse);
 			expect(result).toEqual(mcpResponse);
 		});
 
 		it('should handle null or undefined input', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			expect(extractData(null)).toBe(null);
 			expect(extractData(undefined)).toBe(undefined);
 		});
 
 		it('should handle malformed JSON in content', () => {
 			const extractData = (databaseService as any).extractDatabaseData.bind(databaseService);
-			
+
 			const mcpResponse = {
-				content: [{
-					text: '{"invalid": json malformed'
-				}]
+				content: [
+					{
+						text: '{"invalid": json malformed'
+					}
+				]
 			};
 
 			const result = extractData(mcpResponse);
@@ -548,9 +550,9 @@ describe('DatabaseService', () => {
 
 			// Pick new database
 			mockProtocolHandler.reset();
-			mockProtocolHandler.mockSuccess({ 
-				success: true, 
-				path: '/new/selected.db' 
+			mockProtocolHandler.mockSuccess({
+				success: true,
+				path: '/new/selected.db'
 			});
 			const pickResult = await databaseService.pickDatabase();
 			expect(pickResult.data).toBe('/new/selected.db');
@@ -620,11 +622,10 @@ describe('DatabaseService', () => {
 				mockProtocolHandler.mockSuccess({ success: true });
 
 				const result = await databaseService.switchDatabase(path);
-				
-				expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith(
-					'database/switch',
-					{ database: path }
-				);
+
+				expect(mockProtocolHandler.sendRequest).toHaveBeenCalledWith('database/switch', {
+					database: path
+				});
 				expect(result.success).toBe(true);
 			}
 		});
@@ -661,7 +662,7 @@ describe('DatabaseService', () => {
 				mockProtocolHandler.mockSuccess(response);
 
 				const result = await databaseService.getCurrentDatabase();
-				
+
 				// Should not throw, should handle gracefully
 				expect(typeof result).toBe('object');
 				expect(result).toHaveProperty('success');

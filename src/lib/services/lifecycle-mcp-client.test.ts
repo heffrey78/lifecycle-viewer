@@ -102,7 +102,7 @@ describe('LifecycleMCPClient', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		client = new LifecycleMCPClient('ws://test-server:3000/mcp');
-		
+
 		// Get references to the mocked instances
 		mockConnectionManager = (ConnectionManager as any).mock.results[0].value;
 		mockProtocolHandler = (ProtocolHandler as any).mock.results[0].value;
@@ -125,7 +125,7 @@ describe('LifecycleMCPClient', () => {
 
 		it('should use default server URL when none provided', () => {
 			const defaultClient = new LifecycleMCPClient();
-			
+
 			expect(ConnectionManager).toHaveBeenCalledWith('ws://localhost:3000/mcp');
 		});
 
@@ -231,7 +231,7 @@ describe('LifecycleMCPClient', () => {
 
 			client.disconnect();
 			mockProtocolHandler.isInitialized.mockReturnValue(false);
-			
+
 			expect(client.isConnected()).toBe(false);
 		});
 
@@ -321,7 +321,7 @@ describe('LifecycleMCPClient', () => {
 			// Initial state
 			mockProtocolHandler.isInitialized.mockReturnValue(false);
 			mockProtocolHandler.getPendingRequestCount.mockReturnValue(0);
-			
+
 			let stats = client.getConnectionStats();
 			expect(stats.connected).toBe(false);
 			expect(stats.pendingRequests).toBe(0);
@@ -329,7 +329,7 @@ describe('LifecycleMCPClient', () => {
 			// After connection
 			mockProtocolHandler.isInitialized.mockReturnValue(true);
 			mockProtocolHandler.getPendingRequestCount.mockReturnValue(2);
-			
+
 			stats = client.getConnectionStats();
 			expect(stats.connected).toBe(true);
 			expect(stats.pendingRequests).toBe(2);
@@ -446,14 +446,13 @@ describe('LifecycleMCPClient', () => {
 				throw new Error('Service initialization failed');
 			});
 
-			expect(() => new LifecycleMCPClient())
-				.toThrow('Service initialization failed');
+			expect(() => new LifecycleMCPClient()).toThrow('Service initialization failed');
 		});
 
 		it('should handle invalid server URLs', () => {
 			// Should not throw during construction, but delegate validation to ConnectionManager
 			expect(() => new LifecycleMCPClient('invalid-url')).not.toThrow();
-			
+
 			// ConnectionManager should have received the invalid URL
 			const calls = (ConnectionManager as any).mock.calls;
 			expect(calls[calls.length - 1][0]).toBe('invalid-url');
@@ -514,7 +513,9 @@ describe('LifecycleMCPClient', () => {
 		it('should handle concurrent connection attempts', async () => {
 			mockProtocolHandler.initialize.mockResolvedValue(undefined);
 
-			const promises = Array(5).fill(null).map(() => client.connect());
+			const promises = Array(5)
+				.fill(null)
+				.map(() => client.connect());
 			await Promise.all(promises);
 
 			// All should complete successfully
@@ -536,7 +537,7 @@ describe('LifecycleMCPClient', () => {
 			const results = await Promise.all(promises);
 
 			expect(results).toHaveLength(3);
-			results.forEach(result => expect(result).toBe(mockResponse));
+			results.forEach((result) => expect(result).toBe(mockResponse));
 		});
 
 		it('should maintain statistics accuracy during concurrent operations', async () => {

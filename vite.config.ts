@@ -14,12 +14,7 @@ export default defineConfig({
 				'!src/lib/**/*.{test,spec}.{js,ts}',
 				'!src/lib/test-utils/**'
 			],
-			exclude: [
-				'node_modules/',
-				'src/lib/test-utils/',
-				'**/*.d.ts',
-				'**/*.config.*'
-			],
+			exclude: ['node_modules/', 'src/lib/test-utils/', '**/*.d.ts', '**/*.config.*'],
 			thresholds: {
 				global: {
 					branches: 80,

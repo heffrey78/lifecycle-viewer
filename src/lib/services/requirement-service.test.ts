@@ -124,8 +124,7 @@ describe('RequirementService', () => {
 		it('should handle protocol handler exceptions', async () => {
 			mockProtocolHandler.mockReject(new Error('Network timeout'));
 
-			await expect(requirementService.getRequirements())
-				.rejects.toThrow('Network timeout');
+			await expect(requirementService.getRequirements()).rejects.toThrow('Network timeout');
 		});
 	});
 
@@ -273,7 +272,7 @@ describe('RequirementService', () => {
 				acceptance_criteria: ['All API calls < 1s'],
 				author: 'Technical Lead'
 			};
-			
+
 			mockProtocolHandler.mockSuccess(fullRequirement as Requirement);
 
 			const result = await requirementService.createRequirement(fullRequirement);
@@ -370,9 +369,7 @@ describe('RequirementService', () => {
 					{ id: 'TASK-001', title: 'Implement login form' },
 					{ id: 'TASK-002', title: 'Add password validation' }
 				],
-				architecture_decisions: [
-					{ id: 'ADR-001', title: 'Choose authentication method' }
-				]
+				architecture_decisions: [{ id: 'ADR-001', title: 'Choose authentication method' }]
 			};
 			mockProtocolHandler.mockSuccess(traceData);
 
@@ -420,8 +417,9 @@ describe('RequirementService', () => {
 				new Error('Network connection failed')
 			);
 
-			await expect(requirementService.getRequirements())
-				.rejects.toThrow('Network connection failed');
+			await expect(requirementService.getRequirements()).rejects.toThrow(
+				'Network connection failed'
+			);
 		});
 
 		it('should handle malformed response data', async () => {
