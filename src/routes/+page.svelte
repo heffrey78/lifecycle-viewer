@@ -2,8 +2,10 @@
 	import { onMount } from 'svelte';
 	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import type { ProjectMetrics, RequirementProgress } from '$lib/types/lifecycle.js';
-	import { FileText, CheckSquare, GitBranch, TrendingUp, AlertTriangle } from 'lucide-svelte';
+	import { FileText, CheckSquare, GitBranch, TrendingUp, AlertTriangle, Settings } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
+	import Modal from '$lib/components/Modal.svelte';
+	import { modalStore } from '$lib/stores/modal.js';
 
 	let projectMetrics: ProjectMetrics | null = null;
 	let loading = true;
@@ -65,6 +67,15 @@
 			P3: 'bg-gray-500'
 		};
 		return priorityColors[priority] || 'bg-gray-400';
+	}
+
+	// Modal test functions
+	function openTestModal() {
+		modalStore.open({
+			title: 'Modal Test',
+			size: 'md',
+			data: { message: 'This is a test modal to demonstrate the modal component functionality.' }
+		});
 	}
 </script>
 
@@ -164,7 +175,7 @@
 						<p class="text-2xl font-bold text-gray-900">{projectMetrics.architecture.total}</p>
 						<p class="text-sm text-gray-500">
 							{Object.entries(projectMetrics.architecture.by_status).filter(
-								([, count]) => ['Accepted', 'Implemented'].includes(status) && count > 0
+								([status, count]) => ['Accepted', 'Implemented'].includes(status) && count > 0
 							).length} Decisions
 						</p>
 					</div>
@@ -299,8 +310,65 @@
 							<p class="text-sm text-purple-700">View architecture decisions and designs</p>
 						</div>
 					</a>
+
+					<!-- Modal Test Button -->
+					<button
+						on:click={openTestModal}
+						class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-300"
+					>
+						<Settings class="w-6 h-6 text-gray-600 mr-3" />
+						<div class="text-left">
+							<p class="font-medium text-gray-900">Test Modal</p>
+							<p class="text-sm text-gray-700">Demo modal component functionality</p>
+						</div>
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
 {/if}
+
+<!-- Modal Component -->
+<Modal 
+	isOpen={$modalStore.isOpen}
+	title={$modalStore.title}
+	size={$modalStore.size}
+	closeOnBackdrop={$modalStore.closeOnBackdrop}
+	closeOnEscape={$modalStore.closeOnEscape}
+	showCloseButton={$modalStore.showCloseButton}
+	on:close={() => modalStore.close()}
+>
+	{#if $modalStore.data}
+		<div class="space-y-4">
+			<p class="text-gray-700">{$modalStore.data.message}</p>
+			<div class="flex items-center space-x-3 text-sm text-gray-600">
+				<span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded">
+					✓ Backdrop click handling
+				</span>
+				<span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded">
+					✓ ESC key support
+				</span>
+				<span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded">
+					✓ Focus management
+				</span>
+			</div>
+		</div>
+	{/if}
+
+	<svelte:fragment slot="footer">
+		<button
+			type="button"
+			on:click={() => modalStore.close()}
+			class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+		>
+			Cancel
+		</button>
+		<button
+			type="button"
+			on:click={() => modalStore.close()}
+			class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors"
+		>
+			Got it!
+		</button>
+	</svelte:fragment>
+</Modal>

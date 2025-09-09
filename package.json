@@ -27,6 +27,8 @@
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.22.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
+		"@testing-library/svelte": "^5.2.8",
+		"@testing-library/user-event": "^14.6.1",
 		"@vitest/browser": "^3.2.3",
 		"@vitest/coverage-v8": "^3.2.4",
 		"eslint": "^9.18.0",
