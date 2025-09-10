@@ -13,9 +13,10 @@ export function extractProjectName(databasePath: string | null | undefined): str
 	}
 
 	// Remove file extension and get basename
-	const basename = databasePath
-		.split(/[/\\]/) // Split on forward or backward slash
-		.pop() || databasePath; // Get last segment or fallback to full path
+	const basename =
+		databasePath
+			.split(/[/\\]/) // Split on forward or backward slash
+			.pop() || databasePath; // Get last segment or fallback to full path
 
 	// Remove common database extensions
 	const nameWithoutExt = basename.replace(/\.(db|sqlite|sqlite3)$/i, '');
@@ -44,12 +45,14 @@ function formatProjectName(name: string): string {
 	}
 
 	// Convert common separators to spaces and title case
-	return name
-		.replace(/[-_]/g, ' ') // Replace dashes and underscores with spaces
-		.split(' ')
-		.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-		.join(' ')
-		.trim() || 'Unnamed Project';
+	return (
+		name
+			.replace(/[-_]/g, ' ') // Replace dashes and underscores with spaces
+			.split(' ')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.join(' ')
+			.trim() || 'Unnamed Project'
+	);
 }
 
 /**

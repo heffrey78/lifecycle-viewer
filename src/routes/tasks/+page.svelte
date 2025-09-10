@@ -21,7 +21,12 @@
 	} from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
-	import { currentTheme, getTaskStatusColorClasses, getPriorityColorClasses, getEffortColorClasses } from '$lib/theme';
+	import {
+		currentTheme,
+		getTaskStatusColorClasses,
+		getPriorityColorClasses,
+		getEffortColorClasses
+	} from '$lib/theme';
 
 	let tasks: Task[] = [];
 	let filteredTasks: Task[] = [];

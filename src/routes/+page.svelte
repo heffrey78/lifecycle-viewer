@@ -2,7 +2,14 @@
 	import { onMount } from 'svelte';
 	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import type { ProjectMetrics, RequirementProgress } from '$lib/types/lifecycle.js';
-	import { FileText, CheckSquare, GitBranch, TrendingUp, AlertTriangle, Settings } from 'lucide-svelte';
+	import {
+		FileText,
+		CheckSquare,
+		GitBranch,
+		TrendingUp,
+		AlertTriangle,
+		Settings
+	} from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { modalStore } from '$lib/stores/modal.js';
@@ -329,7 +336,7 @@
 {/if}
 
 <!-- Modal Component -->
-<Modal 
+<Modal
 	isOpen={$modalStore.isOpen}
 	title={$modalStore.title}
 	size={$modalStore.size}

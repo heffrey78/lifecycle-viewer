@@ -18,6 +18,8 @@ npm run test:coverage       # Run tests with code coverage report
 npm run test:coverage:ui    # Run tests with interactive coverage UI
 npm run test:server         # Run server-side tests only
 npm run test:server:coverage # Run server tests with coverage
+npm run test:browser         # Run cross-browser tests with Playwright
+npm run test:browser:ui      # Run browser tests with Playwright UI mode
 
 # Code Quality
 npm run lint         # Run ESLint and Prettier checks
@@ -109,6 +111,34 @@ expect(results.successRate).toBeGreaterThan(0.95);
 - **Core services**: 85% (`src/lib/services/mcp-client.ts`)
 - **Coverage reports**: HTML and JSON formats in `./coverage/`
 - **Excluded**: Test utilities (`src/lib/test-utils/`) and test files
+
+#### Cross-Browser Testing
+
+**Location:** `src/lib/components/browser-tests/`
+
+Comprehensive cross-browser testing with **Playwright**:
+
+- **Browsers tested**: Chrome, Firefox, Safari (webkit)
+- **Test scope**: Rich text editor functionality, accessibility, fallback modes
+- **Configuration**: `playwright.config.ts`
+- **Test page**: `/test-editor` route for isolated testing
+
+**Running browser tests:**
+
+```bash
+npm run test:browser         # Run all browser tests
+npm run test:browser:ui      # Interactive mode with browser debugging
+npx playwright test --list   # List all tests
+npx playwright show-report   # View HTML test report
+```
+
+**Browser test coverage:**
+
+- Rich text editor rendering consistency
+- Cross-browser keyboard navigation and accessibility
+- HTML sanitization across different DOM implementations
+- Graceful fallback when editor fails to initialize
+- Form integration and validation across browsers
 
 #### Test Data Management
 

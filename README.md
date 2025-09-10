@@ -99,7 +99,7 @@ To see real project data:
    ```bash
    npm run mcp-bridge
    ```
-   
+
    This bridge is **required** - it converts WebSocket connections from the browser into stdio communication with the MCP server.
 
 3. **Verify Connection**
@@ -203,7 +203,7 @@ npm run format       # Format code with Prettier
 ### Development Workflow
 
 1. **Start MCP Server** (for real data): `uv run server.py`
-2. **Start MCP Bridge**: `npm run mcp-bridge` 
+2. **Start MCP Bridge**: `npm run mcp-bridge`
 3. **Start Dev Server**: `npm run dev`
 4. **Make Changes**: Hot reload enabled
 5. **Test**: Application works with both real and mock data

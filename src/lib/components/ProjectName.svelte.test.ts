@@ -48,11 +48,11 @@ describe('ProjectName Component', () => {
 
 	it('should display project name when database is loaded', async () => {
 		const { mcpClient } = await import('$lib/services/lifecycle-mcp-client.js');
-		
+
 		// Mock connection methods
 		vi.mocked(mcpClient.isConnected).mockReturnValue(true);
 		vi.mocked(mcpClient.connect).mockResolvedValue(undefined);
-		
+
 		vi.mocked(mcpClient.database.getCurrentDatabase).mockResolvedValue({
 			success: true,
 			data: '/path/to/my-app/lifecycle.db'
@@ -69,11 +69,11 @@ describe('ProjectName Component', () => {
 
 	it('should display "No Project" when no database is set', async () => {
 		const { mcpClient } = await import('$lib/services/lifecycle-mcp-client.js');
-		
+
 		// Mock connection methods
 		vi.mocked(mcpClient.isConnected).mockReturnValue(true);
 		vi.mocked(mcpClient.connect).mockResolvedValue(undefined);
-		
+
 		vi.mocked(mcpClient.database.getCurrentDatabase).mockResolvedValue({
 			success: true,
 			data: null
@@ -88,11 +88,11 @@ describe('ProjectName Component', () => {
 
 	it('should display error state when database fetch fails', async () => {
 		const { mcpClient } = await import('$lib/services/lifecycle-mcp-client.js');
-		
+
 		// Mock connection methods
 		vi.mocked(mcpClient.isConnected).mockReturnValue(true);
 		vi.mocked(mcpClient.connect).mockResolvedValue(undefined);
-		
+
 		vi.mocked(mcpClient.database.getCurrentDatabase).mockResolvedValue({
 			success: false,
 			error: 'Connection failed'
@@ -156,7 +156,9 @@ describe('ProjectName Component', () => {
 
 	it('should include database icon', async () => {
 		const { mcpClient } = await import('$lib/services/lifecycle-mcp-client.js');
-		vi.mocked(mcpClient.database.getCurrentDatabase).mockImplementation(() => new Promise(() => {}));
+		vi.mocked(mcpClient.database.getCurrentDatabase).mockImplementation(
+			() => new Promise(() => {})
+		);
 
 		const { container } = render(ProjectName);
 
@@ -167,11 +169,11 @@ describe('ProjectName Component', () => {
 
 	it('should show tooltip with database path', async () => {
 		const { mcpClient } = await import('$lib/services/lifecycle-mcp-client.js');
-		
+
 		// Mock connection methods
 		vi.mocked(mcpClient.isConnected).mockReturnValue(true);
 		vi.mocked(mcpClient.connect).mockResolvedValue(undefined);
-		
+
 		vi.mocked(mcpClient.database.getCurrentDatabase).mockResolvedValue({
 			success: true,
 			data: '/path/to/my-app/lifecycle.db'

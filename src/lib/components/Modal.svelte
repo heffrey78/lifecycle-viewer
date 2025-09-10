@@ -46,7 +46,7 @@
 		const focusableElements = modalElement.querySelectorAll(
 			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 		);
-		
+
 		const firstFocusable = focusableElements[0] as HTMLElement;
 		const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
 
@@ -81,14 +81,14 @@
 		if (isOpen) {
 			// Store current focus
 			previousActiveElement = document.activeElement as HTMLElement;
-			
+
 			// Focus first focusable element in modal after DOM updates
 			await tick();
 			const firstFocusable = modalElement?.querySelector(
 				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 			) as HTMLElement;
 			firstFocusable?.focus();
-			
+
 			dispatch('open');
 		} else {
 			// Restore previous focus
@@ -134,7 +134,7 @@
 		tabindex="-1"
 	>
 		<!-- Backdrop -->
-		<div 
+		<div
 			class="absolute inset-0 transition-opacity duration-300"
 			style="background-color: rgba(0, 0, 0, 0.5);"
 		></div>
@@ -142,7 +142,9 @@
 		<!-- Modal Content -->
 		<div
 			bind:this={modalElement}
-			class="relative w-full {sizeClasses[size]} transform transition-all duration-300 scale-100 opacity-100"
+			class="relative w-full {sizeClasses[
+				size
+			]} transform transition-all duration-300 scale-100 opacity-100"
 			style="background-color: {$currentTheme.semantic.card.background}; 
 				   color: {$currentTheme.semantic.card.text};
 				   border-color: {$currentTheme.semantic.card.border};"
@@ -151,20 +153,20 @@
 			<div class="rounded-lg shadow-xl border overflow-hidden">
 				<!-- Header -->
 				{#if title || showCloseButton}
-					<div 
+					<div
 						class="flex items-center justify-between p-6 border-b"
 						style="border-color: {$currentTheme.base.border};"
 					>
 						{#if title}
-							<h2 
-								id="modal-title" 
+							<h2
+								id="modal-title"
 								class="text-xl font-semibold"
 								style="color: {$currentTheme.base.foreground};"
 							>
 								{title}
 							</h2>
 						{/if}
-						
+
 						{#if showCloseButton}
 							<button
 								type="button"
@@ -186,7 +188,7 @@
 
 				<!-- Footer Slot -->
 				{#if $$slots.footer}
-					<div 
+					<div
 						class="px-6 py-4 border-t flex justify-end space-x-3"
 						style="background-color: {$currentTheme.base.background}; 
 							   border-color: {$currentTheme.base.border};"

@@ -74,8 +74,7 @@ describe('project-name utilities', () => {
 		});
 
 		it('should preserve last two segments for long paths', () => {
-			const longPath =
-				'/very/long/path/that/goes/on/and/on/with/many/nested/final-dir/project.db';
+			const longPath = '/very/long/path/that/goes/on/and/on/with/many/nested/final-dir/project.db';
 			const result = getDisplayPath(longPath);
 			expect(result).toBe('.../final-dir/project.db');
 		});

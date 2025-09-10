@@ -52,7 +52,8 @@
 	}
 
 	// Theme-aware color function using centralized theme system
-	$: getStatusColor = (status: string) => getArchitectureStatusColorClasses(status as any, $currentTheme);
+	$: getStatusColor = (status: string) =>
+		getArchitectureStatusColorClasses(status as any, $currentTheme);
 
 	// Sortable table configuration
 	const columns = [

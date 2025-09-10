@@ -11,7 +11,12 @@
 	import { Search, Filter, Plus, Eye, Edit, Trash2, AlertTriangle } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
-	import { currentTheme, getStatusColorClasses, getPriorityColorClasses, getRiskColorClasses } from '$lib/theme';
+	import {
+		currentTheme,
+		getStatusColorClasses,
+		getPriorityColorClasses,
+		getRiskColorClasses
+	} from '$lib/theme';
 
 	let requirements: Requirement[] = [];
 	let filteredRequirements: Requirement[] = [];

@@ -265,3 +265,30 @@ export interface UIState {
 		id: string;
 	};
 }
+
+// Form data interfaces for entity creation
+export interface RequirementFormData {
+	type: RequirementType;
+	title: string;
+	priority: Priority;
+	current_state: string;
+	desired_state: string;
+	business_value?: string;
+	risk_level?: RiskLevel;
+	functional_requirements?: string[];
+	acceptance_criteria?: string[];
+	author?: string;
+}
+
+export interface CreateRequirementParams {
+	type: RequirementType;
+	title: string;
+	priority: Priority;
+	current_state: string;
+	desired_state: string;
+	business_value?: string;
+	risk_level?: RiskLevel;
+	functional_requirements?: string[];
+	acceptance_criteria?: string[];
+	author?: string;
+}

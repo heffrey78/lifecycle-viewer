@@ -54,16 +54,13 @@
 
 <div class="flex items-center space-x-2 text-sm">
 	<Database class="w-4 h-4 text-gray-400" />
-	
+
 	{#if loading}
 		<span class="text-gray-500">Loading...</span>
 	{:else if error}
 		<span class="text-red-600" title="Error: {error}">Database Error</span>
 	{:else if currentDatabase}
-		<span 
-			class="text-gray-700 font-medium cursor-help" 
-			title="Database: {displayPath}"
-		>
+		<span class="text-gray-700 font-medium cursor-help" title="Database: {displayPath}">
 			{projectName}
 		</span>
 	{:else}

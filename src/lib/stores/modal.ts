@@ -25,40 +25,40 @@ function createModalStore() {
 
 	return {
 		subscribe,
-		
+
 		// Open modal with configuration
 		open: (config: Partial<ModalState> = {}) => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				...config,
 				isOpen: true
 			}));
 		},
-		
+
 		// Close modal
 		close: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				isOpen: false
 			}));
 		},
-		
+
 		// Reset to default state
 		reset: () => {
 			set(defaultModalState);
 		},
-		
+
 		// Update modal configuration without closing
 		updateConfig: (config: Partial<Omit<ModalState, 'isOpen'>>) => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				...config
 			}));
 		},
-		
+
 		// Set modal data
 		setData: (data: any) => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				data
 			}));
