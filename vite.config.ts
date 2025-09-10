@@ -3,7 +3,19 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	build: {
+		rollupOptions: {
+			external: (id) => {
+				// Externalize JSDOM for client builds
+				return id === 'jsdom';
+			}
+		}
+	},
+	optimizeDeps: {
+		exclude: ['jsdom']
+	},
 	test: {
+		globals: true,
 		expect: { requireAssertions: true },
 		coverage: {
 			provider: 'v8',
@@ -35,16 +47,23 @@ export default defineConfig({
 			{
 				extends: './vite.config.ts',
 				test: {
-					name: 'client',
-					environment: 'browser',
-					browser: {
-						enabled: true,
-						provider: 'playwright',
-						instances: [{ browser: 'chromium' }]
-					},
-					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					name: 'component',
+					environment: 'jsdom',
+					globals: true,
+					include: [
+						'src/lib/components/**/*.{test,spec}.{js,ts}',
+						'src/routes/**/*.{test,spec}.{js,ts}'
+					],
 					exclude: ['src/lib/server/**'],
-					setupFiles: ['./vitest-setup-client.ts']
+					setupFiles: ['./src/lib/test-utils/setup.ts']
+				},
+				define: {
+					// Ensure Svelte runs in browser mode
+					'process.env.NODE_ENV': '"test"',
+					global: 'globalThis'
+				},
+				resolve: {
+					conditions: ['browser']
 				}
 			},
 			{
@@ -52,8 +71,13 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
+					globals: true,
 					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					exclude: [
+						'src/lib/components/**/*.{test,spec}.{js,ts}',
+						'src/routes/**/*.{test,spec}.{js,ts}'
+					],
+					setupFiles: ['./src/lib/test-utils/setup-server.ts'],
 					coverage: {
 						provider: 'v8',
 						reporter: ['text', 'html', 'json'],
@@ -61,6 +85,7 @@ export default defineConfig({
 						include: [
 							'src/lib/services/**/*.{js,ts}',
 							'src/lib/types/**/*.{js,ts}',
+							'src/lib/validation/**/*.{js,ts}',
 							'!src/lib/**/*.{test,spec}.{js,ts}',
 							'!src/lib/test-utils/**'
 						],
@@ -76,5 +101,9 @@ export default defineConfig({
 				}
 			}
 		]
+	},
+	define: {
+		// Enable DOM APIs in test environment
+		global: 'globalThis'
 	}
 });
