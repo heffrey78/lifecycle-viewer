@@ -21,6 +21,7 @@
 	} from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import TaskFormModal from '$lib/components/TaskFormModal.svelte';
 	import {
 		currentTheme,
 		getTaskStatusColorClasses,
@@ -32,6 +33,10 @@
 	let filteredTasks: Task[] = [];
 	let loading = true;
 	let error = '';
+
+	// Modal state
+	let isModalOpen = false;
+	let isSubmitting = false;
 
 	// Filters
 	let searchText = '';
@@ -162,6 +167,41 @@
 			console.log('Deleting task:', id);
 		}
 	}
+
+	// Modal handlers
+	function openNewTaskModal(): void {
+		isModalOpen = true;
+	}
+
+	function closeModal(): void {
+		isModalOpen = false;
+		isSubmitting = false;
+	}
+
+	async function handleCreateTask(event: CustomEvent<any>): Promise<void> {
+		isSubmitting = true;
+		try {
+			// When TaskForm is implemented, this will handle actual task creation
+			// For now, this is a placeholder for future implementation
+			await refreshTasks();
+			closeModal();
+		} catch (error) {
+			console.error('Failed to create task:', error);
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	async function refreshTasks(): Promise<void> {
+		try {
+			const response = await mcpClient.tasks.getTasksJson();
+			if (response.success) {
+				tasks = response.data!;
+			}
+		} catch (e) {
+			console.error('Failed to refresh tasks:', e);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -176,6 +216,7 @@
 			<p class="text-gray-600">Track and manage implementation tasks</p>
 		</div>
 		<button
+			onclick={openNewTaskModal}
 			class="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
 		>
 			<Plus class="w-4 h-4 mr-2" />
@@ -240,7 +281,7 @@
 				<p class="text-sm text-gray-600">
 					Showing {filteredTasks.length} of {tasks.length} tasks
 				</p>
-				<button on:click={clearFilters} class="text-sm text-emerald-600 hover:text-emerald-800">
+				<button onclick={clearFilters} class="text-sm text-emerald-600 hover:text-emerald-800">
 					Clear Filters
 				</button>
 			</div>
@@ -351,21 +392,21 @@
 				{:else if column.key === 'actions'}
 					<div class="flex items-center justify-end space-x-2">
 						<button
-							on:click={() => viewTask(row.id)}
+							onclick={() => viewTask(row.id)}
 							class="p-1 text-gray-400 hover:text-emerald-600 transition-colors"
 							title="View Details"
 						>
 							<Eye class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => editTask(row.id)}
+							onclick={() => editTask(row.id)}
 							class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
 							title="Edit"
 						>
 							<Edit class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => deleteTask(row.id)}
+							onclick={() => deleteTask(row.id)}
 							class="p-1 text-gray-400 hover:text-red-600 transition-colors"
 							title="Delete"
 						>
@@ -416,3 +457,11 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Task Creation Modal -->
+<TaskFormModal
+	isOpen={isModalOpen}
+	{isSubmitting}
+	on:close={closeModal}
+	on:create={handleCreateTask}
+/>

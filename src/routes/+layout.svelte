@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+		import { page } from '$app/stores';
 	import { Home, FileText, CheckSquare, GitBranch, Settings, Palette } from 'lucide-svelte';
 	import ProjectName from '$lib/components/ProjectName.svelte';
 	import { currentTheme, setTheme, defaultThemes } from '$lib/theme';
@@ -47,22 +47,12 @@
 				{#each navItems as item}
 					<a
 						href={item.href}
-						class="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
+						class="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors hover:bg-opacity-10
                    {$page.url.pathname === item.href ? 'border-r-2' : ''}"
 						style="color: {$currentTheme.base.foreground}; 
 							{$page.url.pathname === item.href
 							? `background-color: ${$currentTheme.semantic.primary.background}20; color: ${$currentTheme.base.accent}; border-color: ${$currentTheme.base.accent};`
 							: ''}"
-						on:mouseenter={(e) => {
-							if ($page.url.pathname !== item.href) {
-								e.currentTarget.style.backgroundColor = $currentTheme.base.muted + '20';
-							}
-						}}
-						on:mouseleave={(e) => {
-							if ($page.url.pathname !== item.href) {
-								e.currentTarget.style.backgroundColor = 'transparent';
-							}
-						}}
 					>
 						<svelte:component this={item.icon} class="w-5 h-5" />
 						<span class="font-medium">{item.label}</span>
@@ -112,11 +102,8 @@
 						<div class="relative">
 							<button
 								on:click={() => (showThemeDropdown = !showThemeDropdown)}
-								class="flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+								class="flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-opacity-10"
 								style="color: {$currentTheme.base.foreground};"
-								on:mouseenter={(e) =>
-									(e.currentTarget.style.backgroundColor = $currentTheme.base.muted + '20')}
-								on:mouseleave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
 								aria-haspopup="true"
 								aria-expanded={showThemeDropdown}
 							>
@@ -133,21 +120,11 @@
 									{#each Object.values(defaultThemes) as theme}
 										<button
 											on:click={() => handleThemeChange(theme.id)}
-											class="w-full text-left px-4 py-2 text-sm flex items-center space-x-2 transition-colors"
+											class="w-full text-left px-4 py-2 text-sm flex items-center space-x-2 transition-colors hover:bg-opacity-10"
 											style="color: {$currentTheme.base.foreground}; 
 												{theme.id === $currentTheme.id
 												? `background-color: ${$currentTheme.base.accent}20; color: ${$currentTheme.base.accent};`
 												: ''}"
-											on:mouseenter={(e) => {
-												if (theme.id !== $currentTheme.id) {
-													e.currentTarget.style.backgroundColor = $currentTheme.base.muted + '20';
-												}
-											}}
-											on:mouseleave={(e) => {
-												if (theme.id !== $currentTheme.id) {
-													e.currentTarget.style.backgroundColor = 'transparent';
-												}
-											}}
 										>
 											<div
 												class="w-3 h-3 rounded-full border"

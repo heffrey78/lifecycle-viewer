@@ -107,14 +107,16 @@
 
 	// Update content when prop changes
 	$effect(() => {
-		if (editor && content !== editor.getHTML()) {
-			editor.commands.setContent(content);
+		if (editor && typeof editor.getHTML === 'function' && content !== editor.getHTML()) {
+			if (typeof editor.commands?.setContent === 'function') {
+				editor.commands.setContent(content);
+			}
 		}
 	});
 
 	// Update disabled state
 	$effect(() => {
-		if (editor) {
+		if (editor && typeof editor.setEditable === 'function') {
 			editor.setEditable(!disabled);
 		}
 	});
@@ -158,11 +160,11 @@
 
 	// Helper functions for toolbar state
 	const isActive = $derived((format: string, options?: object) => {
-		return editor?.isActive(format, options) ?? false;
+		return (typeof editor?.isActive === 'function') ? editor.isActive(format, options) : false;
 	});
 
-	const canUndo = $derived.by(() => editor?.can().undo() ?? false);
-	const canRedo = $derived.by(() => editor?.can().redo() ?? false);
+	const canUndo = $derived.by(() => (typeof editor?.can === 'function') ? editor.can().undo() : false);
+	const canRedo = $derived.by(() => (typeof editor?.can === 'function') ? editor.can().redo() : false);
 </script>
 
 <!-- Fallback textarea if editor fails -->

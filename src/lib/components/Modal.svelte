@@ -142,61 +142,50 @@
 		<!-- Modal Content -->
 		<div
 			bind:this={modalElement}
-			class="relative w-full {sizeClasses[
+			class="bg-white rounded-lg shadow-xl w-full {sizeClasses[
 				size
-			]} transform transition-all duration-300 scale-100 opacity-100"
-			style="background-color: {$currentTheme.semantic.card.background}; 
-				   color: {$currentTheme.semantic.card.text};
-				   border-color: {$currentTheme.semantic.card.border};"
+			]} max-h-[90vh] transform transition-all duration-300 scale-100 opacity-100 flex flex-col overflow-hidden border border-gray-200"
 		>
-			<!-- Modal Container -->
-			<div class="rounded-lg shadow-xl border overflow-hidden">
-				<!-- Header -->
-				{#if title || showCloseButton}
-					<div
-						class="flex items-center justify-between p-6 border-b"
-						style="border-color: {$currentTheme.base.border};"
-					>
-						{#if title}
-							<h2
-								id="modal-title"
-								class="text-xl font-semibold"
-								style="color: {$currentTheme.base.foreground};"
-							>
-								{title}
-							</h2>
-						{/if}
+			<!-- Header -->
+			{#if title || showCloseButton}
+				<div
+					class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0"
+				>
+					{#if title}
+						<h2
+							id="modal-title"
+							class="text-xl font-semibold text-gray-900"
+						>
+							{title}
+						</h2>
+					{/if}
 
-						{#if showCloseButton}
-							<button
-								type="button"
-								on:click={closeModal}
-								class="p-1 rounded-lg transition-colors hover:bg-opacity-10"
-								style="color: {$currentTheme.base.muted};"
-								aria-label="Close modal"
-							>
-								<X class="w-5 h-5" />
-							</button>
-						{/if}
-					</div>
-				{/if}
-
-				<!-- Content -->
-				<div class="p-6">
-					<slot />
+					{#if showCloseButton}
+						<button
+							type="button"
+							on:click={closeModal}
+							class="p-1 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+							aria-label="Close modal"
+						>
+							<X class="w-5 h-5" />
+						</button>
+					{/if}
 				</div>
+			{/if}
 
-				<!-- Footer Slot -->
-				{#if $$slots.footer}
-					<div
-						class="px-6 py-4 border-t flex justify-end space-x-3"
-						style="background-color: {$currentTheme.base.background}; 
-							   border-color: {$currentTheme.base.border};"
-					>
-						<slot name="footer" />
-					</div>
-				{/if}
+			<!-- Content -->
+			<div class="p-6 overflow-y-auto flex-1 bg-white">
+				<slot />
 			</div>
+
+			<!-- Footer Slot -->
+			{#if $$slots.footer}
+				<div
+					class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3 flex-shrink-0 bg-gray-50"
+				>
+					<slot name="footer" />
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

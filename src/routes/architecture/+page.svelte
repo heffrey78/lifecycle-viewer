@@ -4,15 +4,16 @@
 	import { Search, Filter, Plus, Eye, Edit, Trash2, FileText } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import ADRFormModal from '$lib/components/ADRFormModal.svelte';
 	import { currentTheme, getArchitectureStatusColorClasses } from '$lib/theme';
 
-	let architectureDecisions: any[] = [];
-	let filteredDecisions: any[] = [];
-	let loading = true;
-	let error = '';
+	let architectureDecisions = $state<any[]>([]);
+	let loading = $state(true);
+	let error = $state('');
+	let isModalOpen = $state(false);
 
 	// Filters
-	let searchText = '';
+	let searchText = $state('');
 
 	onMount(async () => {
 		try {
@@ -28,19 +29,17 @@
 				throw new Error(response.error || 'Failed to fetch architecture decisions');
 			}
 
-			filteredDecisions = architectureDecisions;
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			architectureDecisions = [];
-			filteredDecisions = [];
 		} finally {
 			loading = false;
 		}
 	});
 
-	// Filter decisions based on current filters
-	$: {
-		filteredDecisions = architectureDecisions.filter((decision) => {
+	// Filter decisions based on current filters using $derived
+	const filteredDecisions = $derived(
+		architectureDecisions.filter((decision) => {
 			const matchesSearch =
 				!searchText ||
 				decision.title?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -48,12 +47,13 @@
 				decision.id?.toLowerCase().includes(searchText.toLowerCase());
 
 			return matchesSearch;
-		});
-	}
+		})
+	);
 
 	// Theme-aware color function using centralized theme system
-	$: getStatusColor = (status: string) =>
-		getArchitectureStatusColorClasses(status as any, $currentTheme);
+	const getStatusColor = $derived(
+		(status: string) => getArchitectureStatusColorClasses(status as any, $currentTheme)
+	);
 
 	// Sortable table configuration
 	const columns = [
@@ -103,6 +103,42 @@
 			console.log('Deleting architecture decision:', id);
 		}
 	}
+
+	function openNewADRModal(): void {
+		isModalOpen = true;
+	}
+
+	function closeModal(): void {
+		isModalOpen = false;
+	}
+
+	async function handleCreateADR(event: CustomEvent<any>): Promise<void> {
+		console.log('Creating new ADR:', event.detail);
+		// TODO: Implement ADR creation when ADRForm is available
+		isModalOpen = false;
+		// Refresh the list when ADR creation is implemented
+		// await refreshDecisions();
+	}
+
+	async function refreshDecisions(): Promise<void> {
+		loading = true;
+		error = '';
+		try {
+			if (!mcpClient.isConnected()) {
+				await mcpClient.connect();
+			}
+			const response = await mcpClient.architecture.getArchitectureDecisionsJson();
+			if (response.success) {
+				architectureDecisions = response.data!;
+			} else {
+				throw new Error(response.error || 'Failed to fetch architecture decisions');
+			}
+		} catch (e) {
+			error = e instanceof Error ? e.message : String(e);
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -117,6 +153,7 @@
 			<p class="text-gray-600">Manage and track architectural decision records (ADRs)</p>
 		</div>
 		<button
+			onclick={openNewADRModal}
 			class="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
 		>
 			<Plus class="w-4 h-4 mr-2" />
@@ -140,7 +177,7 @@
 
 			<div class="flex justify-end">
 				{#if searchText}
-					<button on:click={clearFilters} class="text-sm text-purple-600 hover:text-purple-800">
+					<button onclick={clearFilters} class="text-sm text-purple-600 hover:text-purple-800">
 						Clear Filters
 					</button>
 				{/if}
@@ -174,7 +211,6 @@
 					const response = await mcpClient.architecture.getArchitectureDecisionsJson();
 					if (response.success) {
 						architectureDecisions = response.data!;
-						filteredDecisions = architectureDecisions;
 					} else {
 						throw new Error(response.error || 'Failed to fetch architecture decisions');
 					}
@@ -197,6 +233,7 @@
 			</p>
 			<div class="mt-6">
 				<button
+					onclick={openNewADRModal}
 					class="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mx-auto"
 				>
 					<Plus class="w-4 h-4 mr-2" />
@@ -238,21 +275,21 @@
 				{:else if column.key === 'actions'}
 					<div class="flex items-center justify-end space-x-2">
 						<button
-							on:click={() => viewDecision(String(row.id))}
+							onclick={() => viewDecision(String(row.id))}
 							class="p-1 text-gray-400 hover:text-purple-600 transition-colors"
 							title="View Details"
 						>
 							<Eye class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => editDecision(String(row.id))}
+							onclick={() => editDecision(String(row.id))}
 							class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
 							title="Edit"
 						>
 							<Edit class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => deleteDecision(String(row.id))}
+							onclick={() => deleteDecision(String(row.id))}
 							class="p-1 text-gray-400 hover:text-red-600 transition-colors"
 							title="Delete"
 						>
@@ -297,3 +334,10 @@
 		</div>
 	{/if}
 </div>
+
+<!-- ADR Form Modal -->
+<ADRFormModal
+	bind:isOpen={isModalOpen}
+	on:close={closeModal}
+	on:create={handleCreateADR}
+/>
