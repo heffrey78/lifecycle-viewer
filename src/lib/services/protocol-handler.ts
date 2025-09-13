@@ -15,16 +15,19 @@ export class ProtocolHandler {
 	constructor(private connectionManager: ConnectionManager) {
 		this.connectionManager.addListener((event) => {
 			if (event.type === 'disconnected') {
-				this.cleanup();
+				this.cleanup(true); // Reject pending promises on disconnect
 			}
 		});
 	}
 
-	private cleanup(): void {
+	private cleanup(rejectPending = false): void {
 		this.initialized = false;
 		this.pendingRequests.forEach(({ reject, timeout }) => {
 			if (timeout) clearTimeout(timeout);
-			reject(new Error('Connection lost'));
+			if (rejectPending) {
+				// Only reject promises when explicitly requested (e.g., during disconnect)
+				reject(new Error('Connection lost'));
+			}
 		});
 		this.pendingRequests.clear();
 	}
