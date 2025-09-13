@@ -148,14 +148,9 @@
 		>
 			<!-- Header -->
 			{#if title || showCloseButton}
-				<div
-					class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0"
-				>
+				<div class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
 					{#if title}
-						<h2
-							id="modal-title"
-							class="text-xl font-semibold text-gray-900"
-						>
+						<h2 id="modal-title" class="text-xl font-semibold text-gray-900">
 							{title}
 						</h2>
 					{/if}

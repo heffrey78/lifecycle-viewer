@@ -47,7 +47,9 @@
 		tabindex="0"
 	>
 		<!-- Modal content -->
-		<div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+		<div
+			class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+		>
 			<!-- Modal header -->
 			<div class="flex items-center justify-between p-6 border-b flex-shrink-0">
 				<h2 id="modal-title" class="text-xl font-semibold text-gray-900">
@@ -69,13 +71,13 @@
 					<AlertTriangle class="w-16 h-16 text-yellow-500 mb-4" />
 					<h3 class="text-lg font-semibold text-gray-900 mb-2">ADR Form Not Yet Implemented</h3>
 					<p class="text-gray-600 mb-6">
-						The architecture decision record creation form is coming soon! This feature will be available once TASK-0009-00-00 
-						(Implement ADR Creation Form) is completed.
+						The architecture decision record creation form is coming soon! This feature will be
+						available once TASK-0009-00-00 (Implement ADR Creation Form) is completed.
 					</p>
 					<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md">
 						<p class="text-sm text-blue-800">
-							<strong>Coming Soon:</strong> Full ADR creation with context, decision drivers, 
-							considered options, and consequences tracking.
+							<strong>Coming Soon:</strong> Full ADR creation with context, decision drivers, considered
+							options, and consequences tracking.
 						</p>
 					</div>
 				</div>

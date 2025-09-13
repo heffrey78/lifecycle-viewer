@@ -229,18 +229,18 @@ describe('LifecycleMCPClient - Connection Lifecycle', () => {
 		it('should handle MCP initialization timeout', async () => {
 			// Create a client with very short timeout for this test
 			const timeoutClient = new LifecycleMCPClient('ws://localhost:3000/test');
-			
+
 			// Mock the private performInitialization method to simulate timeout
 			const originalPerformInit = (timeoutClient as any).performInitialization;
-			(timeoutClient as any).performInitialization = vi.fn().mockRejectedValue(
-				new Error('MCP initialization timeout')
-			);
+			(timeoutClient as any).performInitialization = vi
+				.fn()
+				.mockRejectedValue(new Error('MCP initialization timeout'));
 
 			const connectPromise = timeoutClient.connect();
-			
+
 			await expect(connectPromise).rejects.toThrow('MCP initialization timeout');
 			expect(timeoutClient.isConnected()).toBe(false);
-			
+
 			timeoutClient.disconnect();
 		});
 	});
@@ -538,7 +538,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 			});
 
 			await connectPromise;
-			
+
 			// Verify the client handled the malformed JSON gracefully
 			expect(client.isConnected()).toBe(true);
 			expect(parseErrorOccurred).toBe(true);
@@ -575,17 +575,17 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 		it('should handle initialization timeout correctly', async () => {
 			// Create a client specifically for this timeout test
 			const timeoutClient = new LifecycleMCPClient('ws://localhost:3000/test');
-			
+
 			// Mock the private performInitialization method to simulate timeout
-			(timeoutClient as any).performInitialization = vi.fn().mockRejectedValue(
-				new Error('MCP initialization timeout')
-			);
+			(timeoutClient as any).performInitialization = vi
+				.fn()
+				.mockRejectedValue(new Error('MCP initialization timeout'));
 
 			const connectPromise = timeoutClient.connect();
-			
+
 			await expect(connectPromise).rejects.toThrow('MCP initialization timeout');
 			expect(timeoutClient.isConnected()).toBe(false);
-			
+
 			timeoutClient.disconnect();
 		});
 
@@ -640,7 +640,7 @@ describe('LifecycleMCPClient - MCP Protocol Initialization', () => {
 	describe('Realistic Network Conditions', () => {
 		it('should handle initialization with network latency', async () => {
 			vi.useFakeTimers();
-			
+
 			const connectPromise = client.connect();
 			await vi.runOnlyPendingTimersAsync();
 

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { currentTheme } from '$lib/theme';
+	import { sanitizePresets } from '$lib/utils/html-sanitizer';
 
 	let content = $state('');
+
+	const sanitizedContent = $derived(content ? sanitizePresets.rich(content) : '<em>No content yet...</em>');
 </script>
 
 <div class="container mx-auto p-6">
@@ -40,7 +43,7 @@
 				style="border-color: {$currentTheme.base.border}; background-color: {$currentTheme.base
 					.surface};"
 			>
-				{@html content || '<em>No content yet...</em>'}
+				{@html sanitizedContent}
 			</div>
 		</div>
 	</div>

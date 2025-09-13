@@ -28,7 +28,6 @@
 			} else {
 				throw new Error(response.error || 'Failed to fetch architecture decisions');
 			}
-
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			architectureDecisions = [];
@@ -51,8 +50,8 @@
 	);
 
 	// Theme-aware color function using centralized theme system
-	const getStatusColor = $derived(
-		(status: string) => getArchitectureStatusColorClasses(status as any, $currentTheme)
+	const getStatusColor = $derived((status: string) =>
+		getArchitectureStatusColorClasses(status as any, $currentTheme)
 	);
 
 	// Sortable table configuration
@@ -336,8 +335,4 @@
 </div>
 
 <!-- ADR Form Modal -->
-<ADRFormModal
-	bind:isOpen={isModalOpen}
-	on:close={closeModal}
-	on:create={handleCreateADR}
-/>
+<ADRFormModal bind:isOpen={isModalOpen} on:close={closeModal} on:create={handleCreateADR} />

@@ -54,10 +54,7 @@ export default defineConfig({
 						'src/lib/components/**/*.{test,spec}.{js,ts}',
 						'src/routes/**/*.{test,spec}.{js,ts}'
 					],
-					exclude: [
-						'src/lib/server/**',
-						'src/lib/components/browser-tests/**'
-					],
+					exclude: ['src/lib/server/**', 'src/lib/components/browser-tests/**'],
 					setupFiles: ['./src/lib/test-utils/setup.ts']
 				},
 				define: {

@@ -2,8 +2,8 @@
 // Handles data transformation, error handling, and retry logic
 
 import { mcpClient } from './lifecycle-mcp-client.js';
-import type { 
-	RequirementFormData, 
+import type {
+	RequirementFormData,
 	CreateRequirementParams,
 	Requirement,
 	MCPResponse
@@ -39,16 +39,18 @@ export class RequirementCreationService {
 	 */
 	private sanitizeInput(input: string): string {
 		if (!input) return '';
-		
-		return input
-			.trim()
-			// Remove script tags and other dangerous elements
-			.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-			.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-			.replace(/javascript:/gi, '')
-			.replace(/on\w+\s*=/gi, '')
-			// Limit length to prevent DOS attacks
-			.substring(0, 10000);
+
+		return (
+			input
+				.trim()
+				// Remove script tags and other dangerous elements
+				.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+				.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+				.replace(/javascript:/gi, '')
+				.replace(/on\w+\s*=/gi, '')
+				// Limit length to prevent DOS attacks
+				.substring(0, 10000)
+		);
 	}
 
 	/**
@@ -56,14 +58,16 @@ export class RequirementCreationService {
 	 */
 	private transformFormData(formData: RequirementFormData): CreateRequirementParams {
 		// Clean up acceptance criteria - remove empty strings and sanitize
-		const cleanAcceptanceCriteria = formData.acceptance_criteria
-			?.map(criteria => this.sanitizeInput(criteria))
-			.filter(criteria => criteria !== '') || [];
+		const cleanAcceptanceCriteria =
+			formData.acceptance_criteria
+				?.map((criteria) => this.sanitizeInput(criteria))
+				.filter((criteria) => criteria !== '') || [];
 
 		// Clean up functional requirements - remove empty strings and sanitize
-		const cleanFunctionalRequirements = formData.functional_requirements
-			?.map(req => this.sanitizeInput(req))
-			.filter(req => req !== '') || [];
+		const cleanFunctionalRequirements =
+			formData.functional_requirements
+				?.map((req) => this.sanitizeInput(req))
+				.filter((req) => req !== '') || [];
 
 		return {
 			type: formData.type,
@@ -71,9 +75,12 @@ export class RequirementCreationService {
 			priority: formData.priority,
 			current_state: this.sanitizeInput(formData.current_state),
 			desired_state: this.sanitizeInput(formData.desired_state),
-			business_value: formData.business_value ? this.sanitizeInput(formData.business_value) : undefined,
+			business_value: formData.business_value
+				? this.sanitizeInput(formData.business_value)
+				: undefined,
 			risk_level: formData.risk_level,
-			functional_requirements: cleanFunctionalRequirements.length > 0 ? cleanFunctionalRequirements : undefined,
+			functional_requirements:
+				cleanFunctionalRequirements.length > 0 ? cleanFunctionalRequirements : undefined,
 			acceptance_criteria: cleanAcceptanceCriteria,
 			author: formData.author ? this.sanitizeInput(formData.author) : 'System'
 		};
@@ -99,9 +106,8 @@ export class RequirementCreationService {
 		}
 
 		// Acceptance criteria validation
-		const validCriteria = formData.acceptance_criteria?.filter(
-			(criteria) => criteria.trim() !== ''
-		) || [];
+		const validCriteria =
+			formData.acceptance_criteria?.filter((criteria) => criteria.trim() !== '') || [];
 
 		if (validCriteria.length === 0) {
 			errors.push('At least one acceptance criterion is required');
@@ -129,7 +135,7 @@ export class RequirementCreationService {
 			if (error.code >= -32099 && error.code <= -32000) return true;
 			if (error.code === -32603) return true; // Internal error
 			if (error.code === -32000) return true; // Generic server error
-			
+
 			// Client errors are not retryable
 			if (error.code === -32602) return false; // Invalid params
 			if (error.code === -32601) return false; // Method not found
@@ -159,27 +165,31 @@ export class RequirementCreationService {
 		if (typeof error === 'object' && error.message) {
 			// Handle common MCP errors
 			const message = error.message.toLowerCase();
-			
-			if (message.includes('duplicate') || message.includes('already exists') || message.includes('unique constraint failed')) {
+
+			if (
+				message.includes('duplicate') ||
+				message.includes('already exists') ||
+				message.includes('unique constraint failed')
+			) {
 				return 'A requirement with this title already exists. Please use a different title.';
 			}
-			
+
 			if (message.includes('validation') || message.includes('invalid')) {
 				return 'The provided data is invalid. Please check your inputs and try again.';
 			}
-			
+
 			if (message.includes('permission') || message.includes('authorized')) {
 				return 'You do not have permission to create requirements.';
 			}
-			
+
 			if (message.includes('connection') || message.includes('network')) {
 				return 'Connection to the server failed. Please check your network connection.';
 			}
-			
+
 			if (message.includes('timeout')) {
 				return 'The operation timed out. Please try again.';
 			}
-			
+
 			return error.message;
 		}
 
@@ -190,7 +200,7 @@ export class RequirementCreationService {
 	 * Sleep for specified milliseconds (for retry delays)
 	 */
 	private sleep(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	/**
@@ -269,10 +279,10 @@ export class RequirementCreationService {
 		// Attempt creation with retry logic
 		let lastError: any = null;
 		const maxAttempts = Math.min(opts.retries + 1, 10); // Hard limit to prevent infinite loops
-		
+
 		for (let attempt = 0; attempt < maxAttempts; attempt++) {
 			let timeoutId: NodeJS.Timeout | null = null;
-			
+
 			try {
 				// Set a timeout for the operation with proper cleanup
 				const timeoutPromise = new Promise<never>((_, reject) => {
@@ -280,7 +290,10 @@ export class RequirementCreationService {
 				});
 
 				const createPromise = mcpClient.requirements.createRequirement(mcpParams);
-				const response = await Promise.race([createPromise, timeoutPromise]) as MCPResponse<Requirement>;
+				const response = (await Promise.race([
+					createPromise,
+					timeoutPromise
+				])) as MCPResponse<Requirement>;
 
 				// Clear timeout on success
 				if (timeoutId) {
@@ -296,16 +309,15 @@ export class RequirementCreationService {
 				} else {
 					throw new Error(response.error || 'Failed to create requirement');
 				}
-
 			} catch (error) {
 				// Clear timeout on error
 				if (timeoutId) {
 					clearTimeout(timeoutId);
 					timeoutId = null;
 				}
-				
+
 				lastError = error;
-				
+
 				// If this is the last attempt or error is not retryable, don't retry
 				if (attempt >= maxAttempts - 1 || !this.isRetryableError(error)) {
 					break;
@@ -334,7 +346,7 @@ export class RequirementCreationService {
 		options: RequirementCreationOptions = {}
 	): Promise<RequirementCreationResult> {
 		const opts = { ...this.defaultOptions, ...options, optimistic: true };
-		
+
 		// For optimistic updates, we could return a temporary requirement
 		// and then update it when the actual response comes back
 		// For now, we'll just use the regular creation flow

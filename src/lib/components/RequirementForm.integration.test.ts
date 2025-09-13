@@ -102,7 +102,7 @@ describe('RequirementForm - Rich Text Integration', () => {
 			// Verify rich text editors are rendered
 			const currentStateEditor = screen.getByLabelText(/Current State/);
 			const desiredStateEditor = screen.getByLabelText(/Desired State/);
-			
+
 			expect(currentStateEditor).toBeInTheDocument();
 			expect(desiredStateEditor).toBeInTheDocument();
 

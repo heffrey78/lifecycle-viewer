@@ -61,7 +61,8 @@ describe('Enhanced Test Infrastructure Demo', () => {
 		let errorCount = 0;
 		let successCount = 0;
 
-		for (let i = 0; i < 10; i++) { // Reduced from 20 to 10
+		for (let i = 0; i < 10; i++) {
+			// Reduced from 20 to 10
 			const result = await client.getRequirements();
 			if (result.success) {
 				successCount++;

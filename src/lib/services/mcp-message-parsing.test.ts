@@ -88,7 +88,7 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 		originalWebSocket = global.WebSocket;
 		global.WebSocket = MessageParsingWebSocket as any;
 		client = new LifecycleMCPClient('ws://localhost:3000/test');
-		
+
 		// Connect synchronously for testing
 		await client.connect();
 		mockWebSocket = (client as any).ws as MessageParsingWebSocket;
@@ -108,9 +108,11 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 
 			// Simulate successful response with proper MCP tool format
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify([{ id: '1', title: 'Test Requirement', status: 'Draft' }])
-				}]
+				content: [
+					{
+						text: JSON.stringify([{ id: '1', title: 'Test Requirement', status: 'Draft' }])
+					}
+				]
 			});
 
 			const response = await promise;
@@ -132,9 +134,11 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 
 			// Send a valid MCP tool response
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify([{ id: '1', title: 'Test Requirement', status: 'Draft' }])
-				}]
+				content: [
+					{
+						text: JSON.stringify([{ id: '1', title: 'Test Requirement', status: 'Draft' }])
+					}
+				]
 			});
 
 			const response = await promise;
@@ -147,11 +151,14 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			const promise = client.getRequirements();
 
 			// Send an error response
-			mockWebSocket.simulateResponse({
-				code: -32000,
-				message: 'Internal server error',
-				data: { details: 'Database connection failed' }
-			}, true);
+			mockWebSocket.simulateResponse(
+				{
+					code: -32000,
+					message: 'Internal server error',
+					data: { details: 'Database connection failed' }
+				},
+				true
+			);
 
 			const response = await promise;
 			expect(response.success).toBe(false);
@@ -223,17 +230,19 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 
 			// Send response with valid requirement structure
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify([
-						{
-							id: 'REQ-001',
-							title: 'Test Requirement',
-							status: 'Draft',
-							priority: 'P1',
-							type: 'FUNC'
-						}
-					])
-				}]
+				content: [
+					{
+						text: JSON.stringify([
+							{
+								id: 'REQ-001',
+								title: 'Test Requirement',
+								status: 'Draft',
+								priority: 'P1',
+								type: 'FUNC'
+							}
+						])
+					}
+				]
 			});
 
 			const response = await promise;
@@ -262,17 +271,19 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			const promise = client.getTasks();
 
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify([
-						{
-							id: 'TASK-001',
-							title: 'Test Task',
-							status: 'Not Started',
-							priority: 'P1',
-							effort: 'M'
-						}
-					])
-				}]
+				content: [
+					{
+						text: JSON.stringify([
+							{
+								id: 'TASK-001',
+								title: 'Test Task',
+								status: 'Not Started',
+								priority: 'P1',
+								effort: 'M'
+							}
+						])
+					}
+				]
 			});
 
 			const response = await promise;
@@ -296,10 +307,13 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			for (const testCase of testCases) {
 				const promise = client.getRequirements();
 
-				mockWebSocket.simulateResponse({
-					code: testCase.code,
-					message: testCase.description
-				}, true);
+				mockWebSocket.simulateResponse(
+					{
+						code: testCase.code,
+						message: testCase.description
+					},
+					true
+				);
 
 				const response = await promise;
 				expect(response.success).toBe(false);
@@ -311,9 +325,12 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			const promise = client.getRequirements();
 
 			// Error response with minimal information
-			mockWebSocket.simulateResponse({
-				code: -32000
-			}, true);
+			mockWebSocket.simulateResponse(
+				{
+					code: -32000
+				},
+				true
+			);
 
 			const response = await promise;
 			expect(response.success).toBe(false);
@@ -327,20 +344,20 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 
 			// Make first request
 			const req1Promise = client.getRequirements();
-			
+
 			// Wait for first request to be sent and get its ID
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 			const messages1 = mockWebSocket.getSentMessages();
-			const req1Message = messages1.find(m => m.method !== 'initialize');
+			const req1Message = messages1.find((m) => m.method !== 'initialize');
 			const firstReqId = req1Message?.id;
 
 			// Make second request
 			const req2Promise = client.getTasks();
-			
+
 			// Wait for second request to be sent and get its ID
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 			const messages2 = mockWebSocket.getSentMessages();
-			const req2Message = messages2.find(m => m.method !== 'initialize' && m.id !== firstReqId);
+			const req2Message = messages2.find((m) => m.method !== 'initialize' && m.id !== firstReqId);
 			const secondReqId = req2Message?.id;
 
 			// Send responses in reverse order with correct IDs
@@ -348,20 +365,24 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 				mockWebSocket.simulateMessage({
 					jsonrpc: '2.0',
 					id: secondReqId,
-					result: { 
-						content: [{ 
-							text: JSON.stringify([{ id: 'task-1', title: 'Test Task' }]) 
-						}] 
+					result: {
+						content: [
+							{
+								text: JSON.stringify([{ id: 'task-1', title: 'Test Task' }])
+							}
+						]
 					}
 				});
 
 				mockWebSocket.simulateMessage({
 					jsonrpc: '2.0',
 					id: firstReqId,
-					result: { 
-						content: [{ 
-							text: JSON.stringify([{ id: 'req-1', title: 'Test Requirement' }]) 
-						}] 
+					result: {
+						content: [
+							{
+								text: JSON.stringify([{ id: 'req-1', title: 'Test Requirement' }])
+							}
+						]
 					}
 				});
 			});
@@ -400,9 +421,11 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			}));
 
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify(largeDataset)
-				}]
+				content: [
+					{
+						text: JSON.stringify(largeDataset)
+					}
+				]
 			});
 
 			const response = await promise;
@@ -414,9 +437,11 @@ describe('LifecycleMCPClient - Message Parsing and Validation', () => {
 			const promise = client.getRequirements();
 
 			mockWebSocket.simulateResponse({
-				content: [{
-					text: JSON.stringify([])
-				}]
+				content: [
+					{
+						text: JSON.stringify([])
+					}
+				]
 			});
 
 			const response = await promise;

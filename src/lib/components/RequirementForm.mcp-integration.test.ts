@@ -10,7 +10,7 @@ const createMockEditor = () => ({
 	destroy: vi.fn(),
 	commands: {
 		setContent: vi.fn().mockReturnThis(),
-		focus: vi.fn().mockReturnThis(),
+		focus: vi.fn().mockReturnThis()
 	},
 	chain: vi.fn().mockReturnThis(),
 	getHTML: vi.fn().mockReturnValue('<p>Test content</p>'),
@@ -18,38 +18,38 @@ const createMockEditor = () => ({
 	isActive: vi.fn().mockReturnValue(false),
 	can: vi.fn().mockReturnValue({
 		undo: vi.fn().mockReturnValue(false),
-		redo: vi.fn().mockReturnValue(false),
-	}),
+		redo: vi.fn().mockReturnValue(false)
+	})
 });
 
 vi.mock('@tiptap/core', () => ({
 	Editor: vi.fn().mockImplementation((config) => {
 		const mockEditor = createMockEditor();
-		
+
 		// Call lifecycle callbacks if provided
 		setTimeout(() => {
 			if (config.onCreate) config.onCreate();
 			if (config.onTransaction) config.onTransaction();
 			if (config.onUpdate) config.onUpdate({ editor: mockEditor });
 		}, 0);
-		
+
 		return mockEditor;
-	}),
+	})
 }));
 
 vi.mock('@tiptap/starter-kit', () => ({
-	default: { configure: vi.fn().mockReturnValue('StarterKit') },
+	default: { configure: vi.fn().mockReturnValue('StarterKit') }
 }));
 
 vi.mock('@tiptap/extension-placeholder', () => ({
-	default: { configure: vi.fn().mockReturnValue('Placeholder') },
+	default: { configure: vi.fn().mockReturnValue('Placeholder') }
 }));
 
 // Mock requirement creation service
 vi.mock('$lib/services/requirement-creation.js', () => ({
 	requirementCreationService: {
 		createRequirement: vi.fn(),
-		checkConnection: vi.fn(),
+		checkConnection: vi.fn()
 	}
 }));
 
@@ -111,8 +111,8 @@ describe('RequirementForm - MCP Integration', () => {
 			return render(RequirementForm, {
 				props: {
 					enableMcpIntegration: true,
-					...props,
-				},
+					...props
+				}
 			});
 		};
 
@@ -126,23 +126,27 @@ describe('RequirementForm - MCP Integration', () => {
 
 		it('should show connected status when connection is successful', async () => {
 			mockRequirementCreationService.checkConnection.mockResolvedValue(true);
-			
+
 			renderFormWithMcp();
 
 			await waitFor(() => {
 				expect(screen.getByText('Connected')).toBeInTheDocument();
-				expect(screen.getByText('Connected').parentElement?.querySelector('.bg-green-500')).toBeInTheDocument();
+				expect(
+					screen.getByText('Connected').parentElement?.querySelector('.bg-green-500')
+				).toBeInTheDocument();
 			});
 		});
 
 		it('should show disconnected status when connection fails', async () => {
 			mockRequirementCreationService.checkConnection.mockResolvedValue(false);
-			
+
 			renderFormWithMcp();
 
 			await waitFor(() => {
 				expect(screen.getByText('Disconnected')).toBeInTheDocument();
-				expect(screen.getByText('Disconnected').parentElement?.querySelector('.bg-red-500')).toBeInTheDocument();
+				expect(
+					screen.getByText('Disconnected').parentElement?.querySelector('.bg-red-500')
+				).toBeInTheDocument();
 			});
 		});
 
@@ -155,9 +159,9 @@ describe('RequirementForm - MCP Integration', () => {
 		it('should successfully create requirement via MCP', async () => {
 			const onSuccess = vi.fn();
 			const initialData = createValidInitialData();
-			
+
 			renderFormWithMcp({ initialData });
-			
+
 			// Add event listener for success event
 			const form = document.querySelector('form');
 			if (form) form.addEventListener('success', onSuccess);
@@ -186,11 +190,18 @@ describe('RequirementForm - MCP Integration', () => {
 
 		it('should show optimistic creation feedback', async () => {
 			// Make the service take some time to respond
-			mockRequirementCreationService.createRequirement.mockImplementation(() =>
-				new Promise(resolve => setTimeout(() => resolve({
-					success: true,
-					data: mockRequirement
-				}), 1000))
+			mockRequirementCreationService.createRequirement.mockImplementation(
+				() =>
+					new Promise((resolve) =>
+						setTimeout(
+							() =>
+								resolve({
+									success: true,
+									data: mockRequirement
+								}),
+							1000
+						)
+					)
 			);
 
 			const initialData = createValidInitialData();
@@ -210,11 +221,18 @@ describe('RequirementForm - MCP Integration', () => {
 		});
 
 		it('should show loading state on submit button', async () => {
-			mockRequirementCreationService.createRequirement.mockImplementation(() =>
-				new Promise(resolve => setTimeout(() => resolve({
-					success: true,
-					data: mockRequirement
-				}), 500))
+			mockRequirementCreationService.createRequirement.mockImplementation(
+				() =>
+					new Promise((resolve) =>
+						setTimeout(
+							() =>
+								resolve({
+									success: true,
+									data: mockRequirement
+								}),
+							500
+						)
+					)
 			);
 
 			const initialData = createValidInitialData();
@@ -311,18 +329,25 @@ describe('RequirementForm - MCP Integration', () => {
 		});
 
 		it('should prevent concurrent submissions', async () => {
-			mockRequirementCreationService.createRequirement.mockImplementation(() =>
-				new Promise(resolve => setTimeout(() => resolve({
-					success: true,
-					data: mockRequirement
-				}), 500))
+			mockRequirementCreationService.createRequirement.mockImplementation(
+				() =>
+					new Promise((resolve) =>
+						setTimeout(
+							() =>
+								resolve({
+									success: true,
+									data: mockRequirement
+								}),
+							500
+						)
+					)
 			);
 
 			const initialData = createValidInitialData();
 			renderFormWithMcp({ initialData });
 
 			const submitButton = screen.getByRole('button', { name: /Create Requirement/ });
-			
+
 			// Click submit multiple times rapidly
 			await user.click(submitButton);
 			await user.click(submitButton);
@@ -391,8 +416,8 @@ describe('RequirementForm - MCP Integration', () => {
 			return render(RequirementForm, {
 				props: {
 					enableMcpIntegration: false,
-					...props,
-				},
+					...props
+				}
 			});
 		};
 
@@ -404,7 +429,7 @@ describe('RequirementForm - MCP Integration', () => {
 
 		it('should dispatch submit event when MCP integration is disabled', async () => {
 			const onSubmit = vi.fn();
-			
+
 			const initialData = createValidInitialData();
 			renderFormWithoutMcp({ initialData });
 
@@ -416,9 +441,7 @@ describe('RequirementForm - MCP Integration', () => {
 			await user.click(submitButton);
 
 			await waitFor(() => {
-				expect(onSubmit).toHaveBeenCalledWith(
-					expect.any(SubmitEvent)
-				);
+				expect(onSubmit).toHaveBeenCalledWith(expect.any(SubmitEvent));
 			});
 
 			// Should not call MCP service
@@ -439,8 +462,8 @@ describe('RequirementForm - MCP Integration', () => {
 		const renderFormWithMcp = () => {
 			return render(RequirementForm, {
 				props: {
-					enableMcpIntegration: true,
-				},
+					enableMcpIntegration: true
+				}
 			});
 		};
 

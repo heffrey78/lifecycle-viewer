@@ -12,6 +12,7 @@
 	} from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import PushNotificationStatus from '$lib/components/PushNotificationStatus.svelte';
 	import { modalStore } from '$lib/stores/modal.js';
 
 	let projectMetrics: ProjectMetrics | null = null;
@@ -332,6 +333,9 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- WebSocket Push Notification Status -->
+		<PushNotificationStatus />
 	</div>
 {/if}
 

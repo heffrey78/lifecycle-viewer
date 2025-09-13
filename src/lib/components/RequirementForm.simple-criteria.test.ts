@@ -10,7 +10,7 @@ const mockEditor = {
 	destroy: vi.fn(),
 	commands: {
 		setContent: vi.fn().mockReturnThis(),
-		focus: vi.fn().mockReturnThis(),
+		focus: vi.fn().mockReturnThis()
 	},
 	chain: vi.fn().mockReturnThis(),
 	getHTML: vi.fn().mockReturnValue('<p>Valid content</p>'),
@@ -18,8 +18,8 @@ const mockEditor = {
 	isActive: vi.fn().mockReturnValue(false),
 	can: vi.fn().mockReturnValue({
 		undo: vi.fn().mockReturnValue(false),
-		redo: vi.fn().mockReturnValue(false),
-	}),
+		redo: vi.fn().mockReturnValue(false)
+	})
 };
 
 vi.mock('@tiptap/core', () => ({
@@ -29,15 +29,15 @@ vi.mock('@tiptap/core', () => ({
 			if (config.onUpdate) config.onUpdate({ editor: mockEditor });
 		}, 0);
 		return mockEditor;
-	}),
+	})
 }));
 
 vi.mock('@tiptap/starter-kit', () => ({
-	default: { configure: vi.fn().mockReturnValue('StarterKit') },
+	default: { configure: vi.fn().mockReturnValue('StarterKit') }
 }));
 
 vi.mock('@tiptap/extension-placeholder', () => ({
-	default: { configure: vi.fn().mockReturnValue('Placeholder') },
+	default: { configure: vi.fn().mockReturnValue('Placeholder') }
 }));
 
 describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
@@ -53,8 +53,8 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 		return render(RequirementForm, {
 			props: {
 				isSubmitting: false,
-				...props,
-			},
+				...props
+			}
 		});
 	};
 
@@ -87,7 +87,7 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 
 	it('should have remove buttons when multiple criteria exist', async () => {
 		const initialData: Partial<RequirementFormData> = {
-			acceptance_criteria: ['First criterion', 'Second criterion'],
+			acceptance_criteria: ['First criterion', 'Second criterion']
 		};
 
 		renderForm({ initialData });
@@ -98,7 +98,7 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 
 	it('should remove criterion when remove button clicked', async () => {
 		const initialData: Partial<RequirementFormData> = {
-			acceptance_criteria: ['First criterion', 'Second criterion'],
+			acceptance_criteria: ['First criterion', 'Second criterion']
 		};
 
 		renderForm({ initialData });
@@ -113,7 +113,7 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 
 	it('should have move up/down buttons for multiple criteria', () => {
 		const initialData: Partial<RequirementFormData> = {
-			acceptance_criteria: ['First criterion', 'Second criterion'],
+			acceptance_criteria: ['First criterion', 'Second criterion']
 		};
 
 		renderForm({ initialData });
@@ -144,7 +144,7 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 		// Mock editor to return valid content
 		mockEditor.getHTML
 			.mockReturnValueOnce('<p>Valid current state</p>') // current_state
-			.mockReturnValueOnce('<p>Valid desired state</p>') // desired_state  
+			.mockReturnValueOnce('<p>Valid desired state</p>') // desired_state
 			.mockReturnValueOnce('<p>Valid business value</p>'); // business_value (if needed)
 
 		const onSubmit = vi.fn();
@@ -177,7 +177,7 @@ describe('RequirementForm - Acceptance Criteria Basic Tests', () => {
 
 		// All controls should be disabled
 		expect(screen.getByText('Add Acceptance Criterion')).toBeDisabled();
-		
+
 		const textarea = screen.getByPlaceholderText(/Given.*when.*then/);
 		expect(textarea).toBeDisabled();
 	});

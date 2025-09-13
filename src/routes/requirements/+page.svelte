@@ -184,7 +184,9 @@
 		}
 	}
 
-	async function handleRequirementSuccess(event: CustomEvent<{ requirement: any; message: string }>): Promise<void> {
+	async function handleRequirementSuccess(
+		event: CustomEvent<{ requirement: any; message: string }>
+	): Promise<void> {
 		// Refresh the requirements list when a new requirement is successfully created
 		await refreshRequirements();
 		closeModal();

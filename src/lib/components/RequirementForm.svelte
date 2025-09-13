@@ -4,7 +4,13 @@
 	import RichTextEditor from './RichTextEditor.svelte';
 	import { stripHtmlForValidation } from '$lib/utils/html-sanitizer.js';
 	import { requirementCreationService } from '$lib/services/requirement-creation.js';
-	import { validationUtils, FormValidator, DebouncedValidator, type FieldValidationResult, type ValidationResult } from '$lib/validation/index.js';
+	import {
+		validationUtils,
+		FormValidator,
+		DebouncedValidator,
+		type FieldValidationResult,
+		type ValidationResult
+	} from '$lib/validation/index.js';
 	import type {
 		RequirementFormData,
 		RequirementType,
@@ -19,7 +25,11 @@
 		isSubmitting?: boolean;
 	}
 
-	let { initialData = {}, enableMcpIntegration = false, isSubmitting: isSubmittingProp = false }: Props = $props();
+	let {
+		initialData = {},
+		enableMcpIntegration = false,
+		isSubmitting: isSubmittingProp = false
+	}: Props = $props();
 
 	const dispatch = createEventDispatcher<{
 		submit: RequirementFormData;
@@ -36,10 +46,10 @@
 	let isRetryable = $state(false);
 	let submissionId = $state<string>('');
 	let optimisticRequirement = $state<Requirement | null>(null);
-	
+
 	// Combined submission state (external prop takes precedence)
 	let isSubmitting = $derived(isSubmittingProp || internalIsSubmitting);
-	
+
 	// Request debouncing
 	let submissionDebounce: NodeJS.Timeout | undefined;
 
@@ -129,7 +139,7 @@
 	// Real-time field validation
 	async function validateFieldRealTime(fieldName: string, value: any) {
 		if (!validator || !debouncedValidator) return;
-		
+
 		debouncedValidator.validateFieldDebounced(
 			fieldName,
 			value,
@@ -172,7 +182,7 @@
 			// Use the new validation system
 			try {
 				formValidationResult = await validator.validateForm(formData);
-				
+
 				// Update legacy errors object for backwards compatibility
 				errors = {};
 				if (formValidationResult.errors) {
@@ -180,7 +190,7 @@
 						errors[fieldName] = fieldErrors[0]; // Take first error
 					}
 				}
-				
+
 				return formValidationResult.isValid;
 			} catch (error) {
 				console.warn('Validation system error, falling back to legacy validation:', error);
@@ -280,7 +290,7 @@
 		if (enableMcpIntegration) {
 			// Handle MCP integration
 			internalIsSubmitting = true;
-			
+
 			// Create optimistic requirement for immediate UI feedback
 			const optimisticReq: Requirement = {
 				id: 'temp-' + currentSubmissionId,
@@ -294,8 +304,8 @@
 				business_value: formData.business_value,
 				current_state: formData.current_state,
 				desired_state: formData.desired_state,
-				acceptance_criteria: formData.acceptance_criteria?.filter(c => c.trim()) || [],
-				functional_requirements: formData.functional_requirements?.filter(r => r.trim()) || [],
+				acceptance_criteria: formData.acceptance_criteria?.filter((c) => c.trim()) || [],
+				functional_requirements: formData.functional_requirements?.filter((r) => r.trim()) || [],
 				author: formData.author || 'System',
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString(),
@@ -304,45 +314,45 @@
 			};
 
 			optimisticRequirement = optimisticReq;
-			
+
 			try {
 				const result = await requirementCreationService.createRequirement(formData);
-				
+
 				// Check if this submission is still current (prevent race conditions)
 				if (submissionId !== currentSubmissionId) {
 					// Another submission has started, ignore this result
 					return;
 				}
-				
+
 				if (result.success && result.data) {
 					successMessage = `Requirement "${result.data.title}" created successfully with ID ${result.data.id}`;
 					optimisticRequirement = null; // Clear optimistic state
-					dispatch('success', { 
-						requirement: result.data, 
-						message: successMessage 
+					dispatch('success', {
+						requirement: result.data,
+						message: successMessage
 					});
-					
+
 					// Reset form after successful creation
 					resetForm();
 				} else {
 					optimisticRequirement = null; // Clear optimistic state
 					submitError = result.error || 'Failed to create requirement';
 					isRetryable = result.isRetryable || false;
-					dispatch('error', { 
-						error: submitError, 
-						isRetryable 
+					dispatch('error', {
+						error: submitError,
+						isRetryable
 					});
 				}
 			} catch (error) {
 				// Check if this submission is still current
 				if (submissionId !== currentSubmissionId) return;
-				
+
 				optimisticRequirement = null; // Clear optimistic state
 				submitError = 'An unexpected error occurred. Please try again.';
 				isRetryable = true;
-				dispatch('error', { 
-					error: submitError, 
-					isRetryable 
+				dispatch('error', {
+					error: submitError,
+					isRetryable
 				});
 			} finally {
 				// Only update submission state if this is still the current submission
@@ -369,7 +379,7 @@
 			acceptance_criteria: [''],
 			author: ''
 		};
-		
+
 		extendedFormData = {
 			user_stories: '',
 			performance_criteria: '',
@@ -395,11 +405,11 @@
 	}
 
 	// Check connection status on mount if MCP integration is enabled
-	
+
 	onMount(async () => {
 		// Initialize form validation
 		try {
-			validator = await validationUtils.createRequirementValidator({ 
+			validator = await validationUtils.createRequirementValidator({
 				isEdit: false,
 				entityType: 'requirement'
 			});
@@ -457,7 +467,7 @@
 			formData.acceptance_criteria = [];
 		}
 		formData.acceptance_criteria = [...formData.acceptance_criteria, ''];
-		
+
 		// Focus on the new textarea after DOM updates
 		setTimeout(() => {
 			const textareas = document.querySelectorAll('fieldset textarea[placeholder*="Given"]');
@@ -490,9 +500,9 @@
 
 	function handleAcceptanceCriteriaKeydown(event: KeyboardEvent, index: number) {
 		if (!formData.acceptance_criteria) return;
-		
+
 		const target = event.target as HTMLTextAreaElement;
-		
+
 		if (event.key === 'Enter' && event.ctrlKey) {
 			// Ctrl+Enter: Add new criterion
 			event.preventDefault();
@@ -527,7 +537,12 @@
 					(textareas[index - 1] as HTMLTextAreaElement).focus();
 				}
 			}, 10);
-		} else if (event.key === 'ArrowDown' && event.ctrlKey && formData.acceptance_criteria && index < formData.acceptance_criteria.length - 1) {
+		} else if (
+			event.key === 'ArrowDown' &&
+			event.ctrlKey &&
+			formData.acceptance_criteria &&
+			index < formData.acceptance_criteria.length - 1
+		) {
 			// Ctrl+Down: Move criterion down
 			event.preventDefault();
 			moveAcceptanceCriteria(index, index + 1);
@@ -583,7 +598,9 @@
 			oninput={() => validateFieldRealTime('title', formData.title)}
 			placeholder="Enter requirement title (max 100 characters)"
 			maxlength="100"
-			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError('title')
+			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError(
+				'title'
+			)
 				? 'border-red-500'
 				: ''}"
 			style="background-color: {$currentTheme.base.background}; 
@@ -606,8 +623,19 @@
 				{#if isFieldValidating('title')}
 					<div class="w-4 h-4">
 						<svg class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
 						</svg>
 					</div>
 				{/if}
@@ -631,7 +659,9 @@
 			id="priority"
 			bind:value={formData.priority}
 			onchange={() => validateFieldRealTime('priority', formData.priority)}
-			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError('priority')
+			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError(
+				'priority'
+			)
 				? 'border-red-500'
 				: ''}"
 			style="background-color: {$currentTheme.base.background}; 
@@ -1210,12 +1240,15 @@
 	<!-- Acceptance Criteria (required for all types) -->
 	<fieldset class="space-y-2">
 		<legend class="block text-sm font-medium mb-3" style="color: {$currentTheme.base.foreground};">
-			Acceptance Criteria * ({formData.acceptance_criteria?.length || 0} {(formData.acceptance_criteria?.length || 0) === 1 ? 'criterion' : 'criteria'})
+			Acceptance Criteria * ({formData.acceptance_criteria?.length || 0}
+			{(formData.acceptance_criteria?.length || 0) === 1 ? 'criterion' : 'criteria'})
 		</legend>
 		<div class="space-y-3">
 			{#each formData.acceptance_criteria || [] as criterion, index}
 				<div class="flex gap-2 items-start">
-					<div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs flex items-center justify-center mt-2">
+					<div
+						class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs flex items-center justify-center mt-2"
+					>
 						{index + 1}
 					</div>
 					<textarea
@@ -1257,7 +1290,10 @@
 						<button
 							type="button"
 							onclick={() => removeAcceptanceCriteria(index)}
-							class="p-1 text-red-600 hover:text-red-800 transition-colors {formData.acceptance_criteria.length <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+							class="p-1 text-red-600 hover:text-red-800 transition-colors {formData
+								.acceptance_criteria.length <= 1
+								? 'opacity-50 cursor-not-allowed'
+								: ''}"
 							disabled={isSubmitting || formData.acceptance_criteria.length <= 1}
 							title="Remove acceptance criterion"
 							aria-label="Remove acceptance criterion"
@@ -1299,7 +1335,9 @@
 			bind:value={formData.author}
 			oninput={() => validateFieldRealTime('author', formData.author)}
 			placeholder="Your name or email..."
-			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError('author')
+			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError(
+				'author'
+			)
 				? 'border-red-500'
 				: ''}"
 			style="background-color: {$currentTheme.base.background}; 
@@ -1346,13 +1384,26 @@
 					<div class="flex items-start gap-2">
 						<div class="w-5 h-5 mt-0.5 flex-shrink-0">
 							<svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="opacity-75"
+									fill="currentColor"
+									d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path>
 							</svg>
 						</div>
 						<div>
 							<h4 class="text-sm font-medium text-blue-800">Creating requirement...</h4>
-							<p class="text-sm text-blue-700">"{optimisticRequirement.title}" is being created on the server.</p>
+							<p class="text-sm text-blue-700">
+								"{optimisticRequirement.title}" is being created on the server.
+							</p>
 						</div>
 					</div>
 				</div>
@@ -1362,8 +1413,16 @@
 			{#if successMessage}
 				<div class="p-3 bg-green-50 border border-green-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+						<svg
+							class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div>
 							<h4 class="text-sm font-medium text-green-800">Success!</h4>
@@ -1377,8 +1436,16 @@
 			{#if submitError}
 				<div class="p-3 bg-red-50 border border-red-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+						<svg
+							class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div class="flex-1">
 							<h4 class="text-sm font-medium text-red-800">Error</h4>
@@ -1401,13 +1468,22 @@
 			{#if connectionStatus === 'disconnected'}
 				<div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+						<svg
+							class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div>
 							<h4 class="text-sm font-medium text-yellow-800">Connection Issue</h4>
 							<p class="text-sm text-yellow-700">
-								Unable to connect to the server. Your requirement will be saved locally and can be submitted when the connection is restored.
+								Unable to connect to the server. Your requirement will be saved locally and can be
+								submitted when the connection is restored.
 							</p>
 						</div>
 					</div>
@@ -1419,7 +1495,7 @@
 	<!-- Form Actions -->
 	<div
 		class="flex justify-end space-x-3 pt-4 {enableMcpIntegration ? '' : 'border-t'}"
-		style="{enableMcpIntegration ? '' : `border-color: ${$currentTheme.base.border};`}"
+		style={enableMcpIntegration ? '' : `border-color: ${$currentTheme.base.border};`}
 	>
 		<button
 			type="button"

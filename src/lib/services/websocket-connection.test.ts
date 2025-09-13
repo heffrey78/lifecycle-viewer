@@ -275,7 +275,7 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 			// Should have initialize (id:1), notifications/initialized (no id), getRequirements (id:2), getTasks (id:3)
 			expect(messages).toHaveLength(4);
 			expect(messages[0].id).toBe(1); // initialize
-			expect(messages[2].id).toBe(2); // getRequirements 
+			expect(messages[2].id).toBe(2); // getRequirements
 			expect(messages[3].id).toBe(3); // getTasks
 		});
 	});

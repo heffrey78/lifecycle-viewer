@@ -1,20 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Search, Filter, Network, BarChart3, Calendar, Map } from 'lucide-svelte';
+	import { Search, Filter, Network, BarChart3, Calendar, Map, RefreshCw } from 'lucide-svelte';
 	import type { Requirement, Task, ArchitectureDecision } from '$lib/types/lifecycle';
 	import { currentTheme } from '$lib/theme';
+	import { LifecycleMCPClient } from '$lib/services/mcp-client';
 	import FilterPanel from './visualization/FilterPanel.svelte';
 	import LayoutControls from './visualization/LayoutControls.svelte';
 	import DiagramRenderer from './visualization/DiagramRenderer.svelte';
+	import RelationshipEditor from './visualization/RelationshipEditor.svelte';
+	import ErrorNotification from './ErrorNotification.svelte';
 
 	export let requirements: Requirement[] = [];
 	export let tasks: Task[] = [];
 	export let architectureDecisions: ArchitectureDecision[] = [];
 
+	const mcpClient = new LifecycleMCPClient();
+
 	type LayoutMode = 'network' | 'hierarchy' | 'timeline' | 'roadmap';
 	type EntityType = 'requirements' | 'tasks' | 'architecture';
 
-	let layoutMode: LayoutMode = 'network';
+	let layoutMode: LayoutMode = 'hierarchy';
 	let visibleEntityTypes: Set<EntityType> = new Set(['requirements', 'tasks', 'architecture']);
 	let searchTerm = '';
 	let statusFilters: Set<string> = new Set();
@@ -33,26 +38,115 @@
 	};
 
 	let isLoading = true;
+	let currentError = '';
+	let isRelationshipLoading = false;
 
-	onMount(async () => {
-		await loadData();
+	onMount(() => {
+		loadData();
+
+		// Add keyboard shortcuts
+		const handleKeydown = (event: KeyboardEvent) => {
+			// Ctrl/Cmd + F for search focus
+			if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+				event.preventDefault();
+				const searchInput = document.querySelector(
+					'input[placeholder*="Search"]'
+				) as HTMLInputElement;
+				if (searchInput) {
+					searchInput.focus();
+				}
+			}
+
+			// Escape to clear search
+			if (event.key === 'Escape' && searchTerm) {
+				event.preventDefault();
+				searchTerm = '';
+			}
+
+			// Number keys to toggle entity types
+			if (event.key === '1') {
+				handleEntityTypeToggle('requirements', !visibleEntityTypes.has('requirements'));
+			}
+			if (event.key === '2') {
+				handleEntityTypeToggle('tasks', !visibleEntityTypes.has('tasks'));
+			}
+			if (event.key === '3') {
+				handleEntityTypeToggle('architecture', !visibleEntityTypes.has('architecture'));
+			}
+		};
+
+		window.addEventListener('keydown', handleKeydown);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeydown);
+		};
 	});
 
 	async function loadData() {
 		try {
 			isLoading = true;
+
 			// Load data from MCP client
-			// This will be implemented to fetch actual data
-			console.log('Loading relationship data...');
+			await mcpClient.connect();
+
+			const [reqResponse, taskResponse, archResponse] = await Promise.all([
+				mcpClient.getRequirementsJson(),
+				mcpClient.getTasksJson(),
+				mcpClient.getArchitectureDecisionsJson()
+			]);
+
+			// Ensure we always have arrays, even if the response is empty or malformed
+			if (reqResponse.success && Array.isArray(reqResponse.data)) {
+				requirements = reqResponse.data;
+			} else {
+				console.warn('Requirements data is not an array:', reqResponse);
+				requirements = [];
+			}
+
+			if (taskResponse.success && Array.isArray(taskResponse.data)) {
+				tasks = taskResponse.data;
+			} else {
+				console.warn('Tasks data is not an array:', taskResponse);
+				tasks = [];
+			}
+
+			if (archResponse.success && Array.isArray(archResponse.data)) {
+				architectureDecisions = archResponse.data;
+			} else {
+				console.warn('Architecture data is not an array:', archResponse);
+				architectureDecisions = [];
+			}
+
+			console.log('Loaded data:', {
+				requirements: requirements.length,
+				tasks: tasks.length,
+				architectureDecisions: architectureDecisions.length
+			});
+
+			// Clear any previous errors on successful load
+			currentError = '';
 		} catch (error) {
 			console.error('Failed to load relationship data:', error);
+			currentError = error instanceof Error ? error.message : 'Failed to load relationship data';
+			// Fallback to empty arrays
+			requirements = [];
+			tasks = [];
+			architectureDecisions = [];
 		} finally {
 			isLoading = false;
 		}
 	}
 
-	// Filter data based on current filters
-	$: {
+	// Filter data based on current filters - trigger reactivity on filter changes
+	$: if (
+		searchTerm ||
+		visibleEntityTypes ||
+		statusFilters ||
+		priorityFilters ||
+		requirements ||
+		tasks ||
+		architectureDecisions
+	) {
 		filteredData = {
 			requirements: filterRequirements(requirements),
 			tasks: filterTasks(tasks),
@@ -62,11 +156,21 @@
 
 	function filterRequirements(reqs: Requirement[]): Requirement[] {
 		if (!visibleEntityTypes.has('requirements')) return [];
+		if (!Array.isArray(reqs)) return [];
 
-		return reqs.filter(req => {
-			// Search filter
-			if (searchTerm && !req.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-				return false;
+		return reqs.filter((req) => {
+			// Search filter - check title, ID, and status
+			if (searchTerm) {
+				const search = searchTerm.toLowerCase();
+				const matchesTitle = req.title.toLowerCase().includes(search);
+				const matchesId = req.id.toLowerCase().includes(search);
+				const matchesStatus = req.status.toLowerCase().includes(search);
+				const matchesPriority = req.priority.toLowerCase().includes(search);
+				const matchesType = req.type.toLowerCase().includes(search);
+
+				if (!matchesTitle && !matchesId && !matchesStatus && !matchesPriority && !matchesType) {
+					return false;
+				}
 			}
 
 			// Status filter
@@ -85,11 +189,21 @@
 
 	function filterTasks(taskList: Task[]): Task[] {
 		if (!visibleEntityTypes.has('tasks')) return [];
+		if (!Array.isArray(taskList)) return [];
 
-		return taskList.filter(task => {
-			// Search filter
-			if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-				return false;
+		return taskList.filter((task) => {
+			// Search filter - check title, ID, status, assignee
+			if (searchTerm) {
+				const search = searchTerm.toLowerCase();
+				const matchesTitle = task.title.toLowerCase().includes(search);
+				const matchesId = task.id.toLowerCase().includes(search);
+				const matchesStatus = task.status.toLowerCase().includes(search);
+				const matchesPriority = task.priority.toLowerCase().includes(search);
+				const matchesAssignee = task.assignee?.toLowerCase().includes(search) || false;
+
+				if (!matchesTitle && !matchesId && !matchesStatus && !matchesPriority && !matchesAssignee) {
+					return false;
+				}
 			}
 
 			// Status filter
@@ -108,11 +222,20 @@
 
 	function filterArchitectureDecisions(decisions: ArchitectureDecision[]): ArchitectureDecision[] {
 		if (!visibleEntityTypes.has('architecture')) return [];
+		if (!Array.isArray(decisions)) return [];
 
-		return decisions.filter(decision => {
-			// Search filter
-			if (searchTerm && !decision.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-				return false;
+		return decisions.filter((decision) => {
+			// Search filter - check title, ID, status, type
+			if (searchTerm) {
+				const search = searchTerm.toLowerCase();
+				const matchesTitle = decision.title.toLowerCase().includes(search);
+				const matchesId = decision.id.toLowerCase().includes(search);
+				const matchesStatus = decision.status.toLowerCase().includes(search);
+				const matchesType = decision.type.toLowerCase().includes(search);
+
+				if (!matchesTitle && !matchesId && !matchesStatus && !matchesType) {
+					return false;
+				}
 			}
 
 			// Status filter
@@ -146,6 +269,156 @@
 		statusFilters = filters.statusFilters;
 		priorityFilters = filters.priorityFilters;
 	}
+
+	let diagramRenderer: DiagramRenderer;
+
+	// Relationship editing state
+	let showRelationshipEditor = false;
+	let editingSourceNode: any = null;
+	let editingTargetNode: any = null;
+	let editingRelationship: any = null;
+
+	function handleZoomIn() {
+		if (diagramRenderer) {
+			diagramRenderer.zoomIn();
+		}
+	}
+
+	function handleZoomOut() {
+		if (diagramRenderer) {
+			diagramRenderer.zoomOut();
+		}
+	}
+
+	function handleResetView() {
+		if (diagramRenderer) {
+			diagramRenderer.resetView();
+		}
+	}
+
+	function handleNodeClick(event: CustomEvent) {
+		const { node } = event.detail;
+
+		if (editingSourceNode && !editingTargetNode) {
+			// Second click - set target and open editor
+			editingTargetNode = node;
+			if (editingSourceNode.id !== node.id) {
+				showRelationshipEditor = true;
+			} else {
+				// Clicked same node, cancel
+				editingSourceNode = null;
+			}
+		} else {
+			// First click - set source
+			editingSourceNode = node;
+			editingTargetNode = null;
+		}
+	}
+
+	async function handleRelationshipCreate(event: CustomEvent) {
+		const { sourceId, targetId, type } = event.detail;
+
+		try {
+			isRelationshipLoading = true;
+			currentError = ''; // Clear any previous errors
+			const result = await mcpClient.createRelationship(sourceId, targetId, type);
+
+			if (result.success) {
+				console.log('Relationship created successfully:', result.data);
+				currentError = ''; // Clear error on success
+				// Refresh data to show new relationship
+				await loadData();
+			} else {
+				console.error('Failed to create relationship:', result.error);
+				currentError = `Failed to create relationship: ${result.error || 'Unknown error'}`;
+			}
+		} catch (error) {
+			console.error('Error creating relationship:', error);
+			currentError =
+				error instanceof Error
+					? `Error creating relationship: ${error.message}`
+					: 'Failed to create relationship due to unexpected error';
+		} finally {
+			isRelationshipLoading = false;
+		}
+
+		// Reset editing state
+		editingSourceNode = null;
+		editingTargetNode = null;
+	}
+
+	async function handleRelationshipUpdate(event: CustomEvent) {
+		const { relationshipId, type } = event.detail;
+
+		try {
+			isRelationshipLoading = true;
+			currentError = ''; // Clear any previous errors
+			const result = await mcpClient.updateRelationship(relationshipId, type);
+
+			if (result.success) {
+				console.log('Relationship updated successfully');
+				currentError = ''; // Clear error on success
+				// Refresh data to show updated relationship
+				await loadData();
+			} else {
+				console.error('Failed to update relationship:', result.error);
+				currentError = `Failed to update relationship: ${result.error || 'Unknown error'}`;
+			}
+		} catch (error) {
+			console.error('Error updating relationship:', error);
+			currentError =
+				error instanceof Error
+					? `Error updating relationship: ${error.message}`
+					: 'Failed to update relationship due to unexpected error';
+		} finally {
+			isRelationshipLoading = false;
+		}
+
+		editingRelationship = null;
+	}
+
+	async function handleRelationshipDelete(event: CustomEvent) {
+		const { relationshipId } = event.detail;
+
+		try {
+			isRelationshipLoading = true;
+			currentError = ''; // Clear any previous errors
+			const result = await mcpClient.deleteRelationship(relationshipId);
+
+			if (result.success) {
+				console.log('Relationship deleted successfully');
+				currentError = ''; // Clear error on success
+				// Refresh data to show removed relationship
+				await loadData();
+			} else {
+				console.error('Failed to delete relationship:', result.error);
+				currentError = `Failed to delete relationship: ${result.error || 'Unknown error'}`;
+			}
+		} catch (error) {
+			console.error('Error deleting relationship:', error);
+			currentError =
+				error instanceof Error
+					? `Error deleting relationship: ${error.message}`
+					: 'Failed to delete relationship due to unexpected error';
+		} finally {
+			isRelationshipLoading = false;
+		}
+
+		editingRelationship = null;
+	}
+
+	function handleEditorClose() {
+		showRelationshipEditor = false;
+		editingSourceNode = null;
+		editingTargetNode = null;
+		editingRelationship = null;
+	}
+
+	async function manualRefresh() {
+		if (!isLoading) {
+			await loadData();
+		}
+	}
 </script>
 
 <div class="flex flex-col h-full min-h-screen">
@@ -164,9 +437,14 @@
 				<button
 					class="flex items-center space-x-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors"
 					class:opacity-50={!visibleEntityTypes.has('requirements')}
-					style="background-color: {visibleEntityTypes.has('requirements') ? $currentTheme.semantic.primary.background + '40' : 'transparent'};
-							color: {visibleEntityTypes.has('requirements') ? $currentTheme.semantic.primary.foreground : $currentTheme.base.muted};"
-					on:click={() => handleEntityTypeToggle('requirements', !visibleEntityTypes.has('requirements'))}
+					style="background-color: {visibleEntityTypes.has('requirements')
+						? $currentTheme.semantic.primary.background + '40'
+						: 'transparent'};
+							color: {visibleEntityTypes.has('requirements')
+						? $currentTheme.base.accent
+						: $currentTheme.base.muted};"
+					on:click={() =>
+						handleEntityTypeToggle('requirements', !visibleEntityTypes.has('requirements'))}
 				>
 					<div class="w-3 h-3 rounded bg-blue-500"></div>
 					<span>Requirements</span>
@@ -175,8 +453,10 @@
 				<button
 					class="flex items-center space-x-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors"
 					class:opacity-50={!visibleEntityTypes.has('tasks')}
-					style="background-color: {visibleEntityTypes.has('tasks') ? $currentTheme.semantic.primary.background + '40' : 'transparent'};
-							color: {visibleEntityTypes.has('tasks') ? $currentTheme.semantic.primary.foreground : $currentTheme.base.muted};"
+					style="background-color: {visibleEntityTypes.has('tasks')
+						? $currentTheme.semantic.primary.background + '40'
+						: 'transparent'};
+							color: {visibleEntityTypes.has('tasks') ? $currentTheme.base.accent : $currentTheme.base.muted};"
 					on:click={() => handleEntityTypeToggle('tasks', !visibleEntityTypes.has('tasks'))}
 				>
 					<div class="w-3 h-3 rounded bg-green-500"></div>
@@ -186,9 +466,14 @@
 				<button
 					class="flex items-center space-x-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors"
 					class:opacity-50={!visibleEntityTypes.has('architecture')}
-					style="background-color: {visibleEntityTypes.has('architecture') ? $currentTheme.semantic.primary.background + '40' : 'transparent'};
-							color: {visibleEntityTypes.has('architecture') ? $currentTheme.semantic.primary.foreground : $currentTheme.base.muted};"
-					on:click={() => handleEntityTypeToggle('architecture', !visibleEntityTypes.has('architecture'))}
+					style="background-color: {visibleEntityTypes.has('architecture')
+						? $currentTheme.semantic.primary.background + '40'
+						: 'transparent'};
+							color: {visibleEntityTypes.has('architecture')
+						? $currentTheme.base.accent
+						: $currentTheme.base.muted};"
+					on:click={() =>
+						handleEntityTypeToggle('architecture', !visibleEntityTypes.has('architecture'))}
 				>
 					<div class="w-3 h-3 rounded bg-purple-500"></div>
 					<span>Architecture</span>
@@ -202,20 +487,31 @@
 				<Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
 				<input
 					type="text"
-					placeholder="Search entities..."
-					class="pl-10 pr-4 py-2 rounded-lg border text-sm"
+					placeholder="Search titles, IDs, or status..."
+					class="pl-10 pr-4 py-2 rounded-lg border text-sm w-64"
 					style="background-color: {$currentTheme.base.background};
 							border-color: {$currentTheme.base.border};
 							color: {$currentTheme.base.foreground};"
 					bind:value={searchTerm}
 				/>
+				{#if searchTerm}
+					<button
+						class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+						on:click={() => (searchTerm = '')}
+						title="Clear search"
+					>
+						×
+					</button>
+				{/if}
 			</div>
 
 			<!-- Filter Toggle -->
 			<button
 				class="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border"
 				class:bg-opacity-20={showFilterPanel}
-				style="background-color: {showFilterPanel ? $currentTheme.semantic.primary.background : 'transparent'};
+				style="background-color: {showFilterPanel
+					? $currentTheme.semantic.primary.background
+					: 'transparent'};
 						border-color: {$currentTheme.base.border};
 						color: {$currentTheme.base.foreground};"
 				on:click={() => (showFilterPanel = !showFilterPanel)}
@@ -223,8 +519,36 @@
 				<Filter class="w-4 h-4" />
 				<span>Filters</span>
 			</button>
+
+			<!-- Refresh Controls -->
+			<button
+				class="p-2 rounded-lg text-sm font-medium transition-colors border"
+				style="border-color: {$currentTheme.base.border};
+						color: {$currentTheme.base.foreground};"
+				on:click={manualRefresh}
+				disabled={isLoading}
+				title="Manual refresh"
+			>
+				<RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
+			</button>
 		</div>
 	</div>
+
+	<!-- Error Notifications -->
+	{#if currentError}
+		<div class="p-4">
+			<ErrorNotification
+				error={currentError}
+				onRetry={async () => {
+					currentError = '';
+					await loadData();
+				}}
+				onDismiss={() => {
+					currentError = '';
+				}}
+			/>
+		</div>
+	{/if}
 
 	<div class="flex flex-1 overflow-hidden">
 		<!-- Filter Panel -->
@@ -252,12 +576,45 @@
 				<LayoutControls
 					{layoutMode}
 					on:layoutChange={(e) => handleLayoutChange(e.detail)}
+					on:zoomIn={handleZoomIn}
+					on:zoomOut={handleZoomOut}
+					on:resetView={handleResetView}
 				/>
 
-				<div class="text-sm" style="color: {$currentTheme.base.muted};">
-					{filteredData.requirements.length} Requirements •
-					{filteredData.tasks.length} Tasks •
-					{filteredData.architectureDecisions.length} Architecture Decisions
+				<div class="flex items-center space-x-4 text-sm" style="color: {$currentTheme.base.muted};">
+					<div>
+						{filteredData.requirements.length} Requirements •
+						{filteredData.tasks.length} Tasks •
+						{filteredData.architectureDecisions.length} Architecture Decisions
+					</div>
+
+					{#if searchTerm || statusFilters.size > 0 || priorityFilters.size > 0}
+						<div
+							class="flex items-center space-x-2 px-2 py-1 rounded text-xs"
+							style="background-color: {$currentTheme.semantic.primary.background}40;"
+						>
+							<span>Filtered</span>
+							{#if searchTerm}
+								<span
+									class="px-1 py-0.5 rounded"
+									style="background-color: {$currentTheme.base.accent}20;"
+								>
+									"{searchTerm}"
+								</span>
+							{/if}
+						</div>
+					{/if}
+
+					{#if editingSourceNode}
+						<div
+							class="flex items-center space-x-2 px-2 py-1 rounded text-xs"
+							style="background-color: #3b82f640;"
+						>
+							<span
+								>Relationship Mode: Click target node to connect to "{editingSourceNode.title}"</span
+							>
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -266,19 +623,35 @@
 				{#if isLoading}
 					<div class="flex items-center justify-center h-full">
 						<div class="text-center">
-							<div class="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
-								 style="border-color: {$currentTheme.base.accent};"></div>
+							<div
+								class="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
+								style="border-color: {$currentTheme.base.accent};"
+							></div>
 							<p style="color: {$currentTheme.base.muted};">Loading relationship data...</p>
 						</div>
 					</div>
 				{:else}
 					<DiagramRenderer
+						bind:this={diagramRenderer}
 						data={filteredData}
 						{layoutMode}
 						{visibleEntityTypes}
+						on:nodeClick={handleNodeClick}
 					/>
 				{/if}
 			</div>
 		</div>
 	</div>
+
+	<!-- Relationship Editor Modal -->
+	<RelationshipEditor
+		bind:isOpen={showRelationshipEditor}
+		sourceNode={editingSourceNode}
+		targetNode={editingTargetNode}
+		existingRelationship={editingRelationship}
+		on:create={handleRelationshipCreate}
+		on:update={handleRelationshipUpdate}
+		on:delete={handleRelationshipDelete}
+		on:close={handleEditorClose}
+	/>
 </div>

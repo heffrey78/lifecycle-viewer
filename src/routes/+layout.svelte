@@ -1,6 +1,14 @@
 <script lang="ts">
-		import { page } from '$app/stores';
-	import { Home, FileText, CheckSquare, GitBranch, Settings, Palette } from 'lucide-svelte';
+	import { page } from '$app/stores';
+	import {
+		Home,
+		FileText,
+		CheckSquare,
+		GitBranch,
+		Network,
+		Settings,
+		Palette
+	} from 'lucide-svelte';
 	import ProjectName from '$lib/components/ProjectName.svelte';
 	import { currentTheme, setTheme, defaultThemes } from '$lib/theme';
 
@@ -9,6 +17,7 @@
 		{ href: '/requirements', icon: FileText, label: 'Requirements' },
 		{ href: '/tasks', icon: CheckSquare, label: 'Tasks' },
 		{ href: '/architecture', icon: GitBranch, label: 'Architecture' },
+		{ href: '/relationships', icon: Network, label: 'Relationships' },
 		{ href: '/settings', icon: Settings, label: 'Settings' }
 	];
 
@@ -88,6 +97,8 @@
 							Tasks
 						{:else if $page.url.pathname === '/architecture'}
 							Architecture
+						{:else if $page.url.pathname === '/relationships'}
+							Relationships
 						{:else if $page.url.pathname === '/settings'}
 							Settings
 						{:else}

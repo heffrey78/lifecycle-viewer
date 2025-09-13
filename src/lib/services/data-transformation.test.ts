@@ -44,17 +44,19 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 				}, 1);
 			}
 		}
-		
+
 		// Helper method to simulate MCP tool responses
 		simulateMCPToolResponse(id: number, data: any) {
 			this.simulateMessage({
 				jsonrpc: '2.0',
 				id,
 				result: {
-					content: [{
-						type: 'text',
-						text: JSON.stringify(data)
-					}]
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify(data)
+						}
+					]
 				}
 			});
 		}
@@ -89,27 +91,27 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Send well-formed requirement data
 			ws.simulateMCPToolResponse(2, [
-						{
-							id: 'REQ-001-FUNC-00',
-							requirement_number: 1,
-							type: 'FUNC',
-							title: 'User Authentication',
-							status: 'Draft',
-							priority: 'P1',
-							current_state: 'No authentication system',
-							desired_state: 'Users can log in securely',
-							business_value: 'Secure access control',
-							risk_level: 'Medium',
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z',
-							version: 1,
-							author: 'test@example.com',
-							functional_requirements: ['Login form', 'Password validation'],
-							acceptance_criteria: ['User can log in', 'Invalid credentials rejected'],
-							task_count: 3,
-							tasks_completed: 1
-						}
-					]);
+				{
+					id: 'REQ-001-FUNC-00',
+					requirement_number: 1,
+					type: 'FUNC',
+					title: 'User Authentication',
+					status: 'Draft',
+					priority: 'P1',
+					current_state: 'No authentication system',
+					desired_state: 'Users can log in securely',
+					business_value: 'Secure access control',
+					risk_level: 'Medium',
+					created_at: '2024-01-01T00:00:00Z',
+					updated_at: '2024-01-02T00:00:00Z',
+					version: 1,
+					author: 'test@example.com',
+					functional_requirements: ['Login form', 'Password validation'],
+					acceptance_criteria: ['User can log in', 'Invalid credentials rejected'],
+					task_count: 3,
+					tasks_completed: 1
+				}
+			]);
 
 			const response = await promise;
 
@@ -161,14 +163,14 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Send malformed data
 			ws.simulateMCPToolResponse(2, [
-						{
-							// Missing required id field
-							title: 123, // Wrong type
-							status: 'InvalidStatus', // Invalid enum value
-							priority: null,
-							functional_requirements: 'not an array'
-						}
-					]);
+				{
+					// Missing required id field
+					title: 123, // Wrong type
+					status: 'InvalidStatus', // Invalid enum value
+					priority: null,
+					functional_requirements: 'not an array'
+				}
+			]);
 
 			const response = await promise;
 
@@ -182,13 +184,21 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Test array format (normal case)
 			const arrayPromise = client.getRequirements();
-			ws.simulateMCPToolResponse(2, [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }]);
+			ws.simulateMCPToolResponse(2, [
+				{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }
+			]);
 			const arrayResponse = await arrayPromise;
 			expect(Array.isArray(arrayResponse.data)).toBe(true);
 
 			// Test single item format (edge case)
 			const singlePromise = client.getRequirements();
-			ws.simulateMCPToolResponse(3, { id: 'REQ-2', title: 'Single', status: 'Draft', priority: 'P1', type: 'FUNC' });
+			ws.simulateMCPToolResponse(3, {
+				id: 'REQ-2',
+				title: 'Single',
+				status: 'Draft',
+				priority: 'P1',
+				type: 'FUNC'
+			});
 			const singleResponse = await singlePromise;
 			// Should handle both formats consistently
 			expect(singleResponse.success).toBe(true);
@@ -243,12 +253,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Test all valid effort sizes
 			ws.simulateMCPToolResponse(2, [
-						{ id: 'T1', title: 'XS Task', effort: 'XS', status: 'Not Started', priority: 'P1' },
-						{ id: 'T2', title: 'S Task', effort: 'S', status: 'Not Started', priority: 'P1' },
-						{ id: 'T3', title: 'M Task', effort: 'M', status: 'Not Started', priority: 'P1' },
-						{ id: 'T4', title: 'L Task', effort: 'L', status: 'Not Started', priority: 'P1' },
-						{ id: 'T5', title: 'XL Task', effort: 'XL', status: 'Not Started', priority: 'P1' }
-					]);
+				{ id: 'T1', title: 'XS Task', effort: 'XS', status: 'Not Started', priority: 'P1' },
+				{ id: 'T2', title: 'S Task', effort: 'S', status: 'Not Started', priority: 'P1' },
+				{ id: 'T3', title: 'M Task', effort: 'M', status: 'Not Started', priority: 'P1' },
+				{ id: 'T4', title: 'L Task', effort: 'L', status: 'Not Started', priority: 'P1' },
+				{ id: 'T5', title: 'XL Task', effort: 'XL', status: 'Not Started', priority: 'P1' }
+			]);
 
 			const response = await promise;
 
@@ -266,12 +276,12 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Test all valid statuses
 			ws.simulateMCPToolResponse(2, [
-						{ id: 'T1', title: 'Task 1', status: 'Not Started', priority: 'P1' },
-						{ id: 'T2', title: 'Task 2', status: 'In Progress', priority: 'P1' },
-						{ id: 'T3', title: 'Task 3', status: 'Blocked', priority: 'P1' },
-						{ id: 'T4', title: 'Task 4', status: 'Complete', priority: 'P1' },
-						{ id: 'T5', title: 'Task 5', status: 'Abandoned', priority: 'P1' }
-					]);
+				{ id: 'T1', title: 'Task 1', status: 'Not Started', priority: 'P1' },
+				{ id: 'T2', title: 'Task 2', status: 'In Progress', priority: 'P1' },
+				{ id: 'T3', title: 'Task 3', status: 'Blocked', priority: 'P1' },
+				{ id: 'T4', title: 'Task 4', status: 'Complete', priority: 'P1' },
+				{ id: 'T5', title: 'Task 5', status: 'Abandoned', priority: 'P1' }
+			]);
 
 			const response = await promise;
 
@@ -468,7 +478,9 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getRequirements();
 
-			ws.simulateMCPToolResponse(2, [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }]);
+			ws.simulateMCPToolResponse(2, [
+				{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }
+			]);
 
 			const response: MCPResponse<Requirement[]> = await promise;
 

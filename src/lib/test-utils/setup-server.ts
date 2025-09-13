@@ -31,7 +31,7 @@ beforeAll(() => {
 		code: number;
 		reason: string;
 		wasClean: boolean;
-		
+
 		constructor(type: string, eventInitDict?: CloseEventInit) {
 			super(type, eventInitDict);
 			this.code = eventInitDict?.code ?? 1000;
@@ -45,7 +45,7 @@ beforeAll(() => {
 		origin: string;
 		lastEventId: string;
 		source: any;
-		
+
 		constructor(type: string, eventInitDict?: MessageEventInit) {
 			super(type, eventInitDict);
 			this.data = eventInitDict?.data;
@@ -60,17 +60,17 @@ beforeAll(() => {
 		bubbles: boolean;
 		cancelable: boolean;
 		defaultPrevented: boolean = false;
-		
+
 		constructor(type: string, eventInitDict?: EventInit) {
 			this.type = type;
 			this.bubbles = eventInitDict?.bubbles ?? false;
 			this.cancelable = eventInitDict?.cancelable ?? false;
 		}
-		
+
 		preventDefault() {
 			this.defaultPrevented = true;
 		}
-		
+
 		stopPropagation() {}
 		stopImmediatePropagation() {}
 	};

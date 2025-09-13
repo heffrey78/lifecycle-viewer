@@ -46,5 +46,11 @@
 	showCloseButton={!isSubmitting}
 	on:close={handleClose}
 >
-	<RequirementForm {isSubmitting} enableMcpIntegration={true} on:submit={handleSubmit} on:cancel={handleCancel} on:success={handleSuccess} />
+	<RequirementForm
+		{isSubmitting}
+		enableMcpIntegration={true}
+		on:submit={handleSubmit}
+		on:cancel={handleCancel}
+		on:success={handleSuccess}
+	/>
 </Modal>

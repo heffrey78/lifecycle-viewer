@@ -10,7 +10,7 @@ const mockEditor = {
 	destroy: vi.fn(),
 	commands: {
 		setContent: vi.fn().mockReturnThis(),
-		focus: vi.fn().mockReturnThis(),
+		focus: vi.fn().mockReturnThis()
 	},
 	chain: vi.fn().mockReturnThis(),
 	getHTML: vi.fn(),
@@ -18,8 +18,8 @@ const mockEditor = {
 	isActive: vi.fn().mockReturnValue(false),
 	can: vi.fn().mockReturnValue({
 		undo: vi.fn().mockReturnValue(false),
-		redo: vi.fn().mockReturnValue(false),
-	}),
+		redo: vi.fn().mockReturnValue(false)
+	})
 };
 
 vi.mock('@tiptap/core', () => ({
@@ -31,19 +31,19 @@ vi.mock('@tiptap/core', () => ({
 			}
 		}, 0);
 		return mockEditor;
-	}),
+	})
 }));
 
 vi.mock('@tiptap/starter-kit', () => ({
 	default: {
-		configure: vi.fn().mockReturnValue('StarterKit'),
-	},
+		configure: vi.fn().mockReturnValue('StarterKit')
+	}
 }));
 
 vi.mock('@tiptap/extension-placeholder', () => ({
 	default: {
-		configure: vi.fn().mockReturnValue('Placeholder'),
-	},
+		configure: vi.fn().mockReturnValue('Placeholder')
+	}
 }));
 
 describe('RequirementForm - Acceptance Criteria Management', () => {
@@ -60,8 +60,8 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 		return render(RequirementForm, {
 			props: {
 				isSubmitting: false,
-				...props,
-			},
+				...props
+			}
 		});
 	};
 
@@ -78,15 +78,15 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 			expect(criteriaInputs[0]).toHaveValue('');
 
 			// Should have numbering badge for first criterion
-			const numberBadges = screen.getAllByText('1').filter(el => 
-				el.className.includes('bg-blue-100')
-			);
+			const numberBadges = screen
+				.getAllByText('1')
+				.filter((el) => el.className.includes('bg-blue-100'));
 			expect(numberBadges.length).toBeGreaterThan(0);
 		});
 
 		it('should initialize with provided acceptance criteria', () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion']
 			};
 
 			renderForm({ initialData });
@@ -162,7 +162,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 	describe('Removing Criteria', () => {
 		it('should remove criterion with remove button', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion']
 			};
 
 			renderForm({ initialData });
@@ -185,7 +185,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should remove criterion with Ctrl+Delete keyboard shortcut', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -239,7 +239,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 	describe('Reordering Criteria', () => {
 		it('should move criterion up with up arrow button', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion']
 			};
 
 			renderForm({ initialData });
@@ -258,7 +258,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should move criterion down with down arrow button', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion', 'Third criterion']
 			};
 
 			renderForm({ initialData });
@@ -277,7 +277,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should move criterion up with Ctrl+ArrowUp keyboard shortcut', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -295,7 +295,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should move criterion down with Ctrl+ArrowDown keyboard shortcut', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -313,7 +313,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should not move first criterion up', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -331,7 +331,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should not move last criterion down', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -382,11 +382,11 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should update form data when criteria content changes', async () => {
 			const onSubmit = vi.fn();
-			
+
 			// Pre-populate form with valid data to focus on testing acceptance criteria changes
 			const initialData: Partial<RequirementFormData> = {
 				type: 'FUNC',
-				title: 'Test Requirement', 
+				title: 'Test Requirement',
 				priority: 'P1',
 				current_state: 'Current state description',
 				desired_state: 'Desired state description',
@@ -394,13 +394,13 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 				author: 'test@example.com',
 				acceptance_criteria: ['Initial criterion']
 			};
-			
+
 			// Render the form without MCP integration so it uses the fallback submit dispatch
 			const { container } = renderForm({ initialData, enableMcpIntegration: false });
-			
+
 			// Add DOM event listener for the custom Svelte 'submit' event
 			container.addEventListener('submit', onSubmit);
-			
+
 			// Update the acceptance criterion content
 			const input = screen.getByPlaceholderText(/Given.*when.*then/i);
 			await user.clear(input);
@@ -408,12 +408,12 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 			const submitButton = screen.getByRole('button', { name: /Create Requirement/ });
 			await user.click(submitButton);
-			
+
 			// The event should be called, indicating successful form submission
 			await waitFor(() => {
 				expect(onSubmit).toHaveBeenCalled();
 			});
-			
+
 			// Verify that the form data was updated properly by checking the input values
 			const updatedInput = screen.getByPlaceholderText(/Given.*when.*then/i);
 			expect(updatedInput).toHaveValue('User can perform action');
@@ -423,13 +423,16 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 	describe('Accessibility', () => {
 		it('should have proper ARIA labels for buttons', () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
 
 			// Check button accessibility
-			expect(screen.getByTitle('Add acceptance criterion')).toHaveAttribute('aria-label', 'Add acceptance criterion');
+			expect(screen.getByTitle('Add acceptance criterion')).toHaveAttribute(
+				'aria-label',
+				'Add acceptance criterion'
+			);
 
 			const removeButtons = screen.getAllByTitle('Remove acceptance criterion');
 			removeButtons.forEach((button) => {
@@ -449,7 +452,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 
 		it('should have proper keyboard navigation', async () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ initialData });
@@ -465,7 +468,9 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 			expect(criteriaInputs[1]).toHaveFocus();
 
 			// Test that all criteria inputs can receive focus programmatically
-			expect(criteriaInputs.every(input => input.tabIndex >= 0 || input.tabIndex === undefined)).toBe(true);
+			expect(
+				criteriaInputs.every((input) => input.tabIndex >= 0 || input.tabIndex === undefined)
+			).toBe(true);
 		});
 
 		it('should announce content changes to screen readers', () => {
@@ -474,7 +479,8 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 			// The legend with count acts as live region for screen readers
 			const legend = screen.getByText(/Acceptance Criteria \*/);
 			expect(legend).toBeInTheDocument();
-			expect(legend.textContent).toContain('1 criterion');
+			// Match the text more flexibly, ignoring whitespace formatting
+			expect(legend.textContent?.replace(/\s+/g, ' ').trim()).toContain('1 criterion');
 		});
 	});
 
@@ -491,25 +497,32 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 				author: 'test@example.com',
 				acceptance_criteria: [''] // Empty criterion
 			};
-			
+
 			renderForm({ initialData });
 
 			const submitButton = screen.getByRole('button', { name: /Create Requirement/ });
 			await user.click(submitButton);
 
 			// Check if form validation prevents submission or shows error message
-			await waitFor(() => {
-				// Look for any red error text that might be our validation message
-				const errorElements = screen.queryAllByText(/required|empty|criterion/i);
-				expect(errorElements.length).toBeGreaterThan(0);
-			}, { timeout: 3000 });
-			
+			await waitFor(
+				() => {
+					// Look for any red error text that might be our validation message
+					const errorElements = screen.queryAllByText(/required|empty|criterion/i);
+					expect(errorElements.length).toBeGreaterThan(0);
+				},
+				{ timeout: 3000 }
+			);
+
 			// Try to find the specific error message, but don't fail if it's not exactly this text
 			try {
-				expect(screen.getByText('At least one acceptance criterion is required')).toBeInTheDocument();
+				expect(
+					screen.getByText('At least one acceptance criterion is required')
+				).toBeInTheDocument();
 			} catch {
 				// If the exact message isn't found, check for any acceptance criteria related error
-				const acceptanceCriteriaErrors = screen.queryAllByText(/acceptance.*criterion|criterion.*required/i);
+				const acceptanceCriteriaErrors = screen.queryAllByText(
+					/acceptance.*criterion|criterion.*required/i
+				);
 				expect(acceptanceCriteriaErrors.length).toBeGreaterThan(0);
 			}
 		});
@@ -527,7 +540,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 				author: 'test@example.com',
 				acceptance_criteria: ['Valid criterion', ''] // One valid, one empty
 			};
-			
+
 			const { container } = renderForm({ initialData, enableMcpIntegration: false });
 			const onSubmit = vi.fn();
 			container.addEventListener('submit', onSubmit);
@@ -539,9 +552,11 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 			await waitFor(() => {
 				expect(onSubmit).toHaveBeenCalled();
 			});
-			
+
 			// Should not show validation error since there's at least one valid criterion
-			expect(screen.queryByText(/At least one acceptance criterion is required/)).not.toBeInTheDocument();
+			expect(
+				screen.queryByText(/At least one acceptance criterion is required/)
+			).not.toBeInTheDocument();
 		});
 
 		it('should pass validation with valid criteria', async () => {
@@ -554,11 +569,11 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 				desired_state: 'Desired state description',
 				business_value: 'Business value description',
 				author: 'test@example.com',
-				acceptance_criteria: ['User can login', 'User receives feedback'],
+				acceptance_criteria: ['User can login', 'User receives feedback']
 			};
 
 			const { container } = renderForm({ initialData, enableMcpIntegration: false });
-			
+
 			// Use DOM event listener since Svelte 5 removed component.$on
 			container.addEventListener('submit', onSubmit);
 
@@ -566,11 +581,9 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 			await user.click(submitButton);
 
 			await waitFor(() => {
-				expect(onSubmit).toHaveBeenCalledWith(
-					expect.any(SubmitEvent)
-				);
+				expect(onSubmit).toHaveBeenCalledWith(expect.any(SubmitEvent));
 			});
-			
+
 			// Verify the form data was collected properly
 			expect(screen.getByDisplayValue('Test Requirement')).toBeInTheDocument();
 		});
@@ -579,7 +592,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 	describe('Disabled State', () => {
 		it('should disable all controls when form is submitting', () => {
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: ['First criterion', 'Second criterion'],
+				acceptance_criteria: ['First criterion', 'Second criterion']
 			};
 
 			renderForm({ isSubmitting: true, initialData });
@@ -614,7 +627,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 		it('should handle large numbers of criteria efficiently', async () => {
 			const largeCriteria = Array.from({ length: 50 }, (_, i) => `Criterion ${i + 1}`);
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: largeCriteria,
+				acceptance_criteria: largeCriteria
 			};
 
 			renderForm({ initialData });
@@ -654,7 +667,7 @@ describe('RequirementForm - Acceptance Criteria Management', () => {
 		it('should maintain focus and scroll position during operations', async () => {
 			const largeCriteria = Array.from({ length: 20 }, (_, i) => `Criterion ${i + 1}`);
 			const initialData: Partial<RequirementFormData> = {
-				acceptance_criteria: largeCriteria,
+				acceptance_criteria: largeCriteria
 			};
 
 			renderForm({ initialData });

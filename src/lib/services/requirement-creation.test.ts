@@ -8,7 +8,9 @@ vi.mock('./lifecycle-mcp-client.js', () => ({
 	mcpClient: {
 		isConnected: vi.fn(),
 		connect: vi.fn(),
-		createRequirement: vi.fn()
+		requirements: {
+			createRequirement: vi.fn()
+		}
 	}
 }));
 
@@ -19,7 +21,7 @@ const mockMcpClient = vi.mocked(mcpClient);
 
 describe('RequirementCreationService', () => {
 	let service: RequirementCreationService;
-	
+
 	const mockFormData: RequirementFormData = {
 		type: 'FUNC',
 		title: 'Test Requirement',
@@ -63,7 +65,7 @@ describe('RequirementCreationService', () => {
 		vi.clearAllMocks();
 		mockMcpClient.isConnected.mockReturnValue(true);
 		mockMcpClient.connect.mockResolvedValue(undefined);
-		mockMcpClient.createRequirement.mockResolvedValue(mockSuccessResponse);
+		mockMcpClient.requirements.createRequirement.mockResolvedValue(mockSuccessResponse);
 	});
 
 	afterEach(() => {
@@ -73,9 +75,9 @@ describe('RequirementCreationService', () => {
 	describe('Form Validation', () => {
 		it('should reject empty title', async () => {
 			const invalidData = { ...mockFormData, title: '' };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Title is required');
 			expect(result.isRetryable).toBe(false);
@@ -83,54 +85,54 @@ describe('RequirementCreationService', () => {
 
 		it('should reject empty current state', async () => {
 			const invalidData = { ...mockFormData, current_state: '' };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Current state is required');
 		});
 
 		it('should reject empty desired state', async () => {
 			const invalidData = { ...mockFormData, desired_state: '' };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Desired state is required');
 		});
 
 		it('should reject empty acceptance criteria', async () => {
 			const invalidData = { ...mockFormData, acceptance_criteria: [] };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('At least one acceptance criterion is required');
 		});
 
 		it('should reject acceptance criteria with only empty strings', async () => {
 			const invalidData = { ...mockFormData, acceptance_criteria: ['', '  ', '\t'] };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('At least one acceptance criterion is required');
 		});
 
 		it('should require business value for business requirements', async () => {
 			const invalidData = { ...mockFormData, type: 'BUS', business_value: '' };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Business value is required');
 		});
 
 		it('should reject titles over 100 characters', async () => {
 			const invalidData = { ...mockFormData, title: 'A'.repeat(101) };
-			
+
 			const result = await service.createRequirement(invalidData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Title must be 100 characters or less');
 		});
@@ -142,10 +144,10 @@ describe('RequirementCreationService', () => {
 				...mockFormData,
 				acceptance_criteria: ['Valid criteria', '', 'Another criteria', '  ']
 			};
-			
+
 			await service.createRequirement(dataWithEmptyItems);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					acceptance_criteria: ['Valid criteria', 'Another criteria']
 				})
@@ -157,10 +159,10 @@ describe('RequirementCreationService', () => {
 				...mockFormData,
 				functional_requirements: ['Valid requirement', '', 'Another requirement']
 			};
-			
+
 			await service.createRequirement(dataWithEmptyItems);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					functional_requirements: ['Valid requirement', 'Another requirement']
 				})
@@ -169,10 +171,10 @@ describe('RequirementCreationService', () => {
 
 		it('should default author to "System" if empty', async () => {
 			const dataWithoutAuthor = { ...mockFormData, author: '' };
-			
+
 			await service.createRequirement(dataWithoutAuthor);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					author: 'System'
 				})
@@ -186,10 +188,10 @@ describe('RequirementCreationService', () => {
 				business_value: '\tBusiness Value\n',
 				author: '  Author Name  '
 			};
-			
+
 			await service.createRequirement(dataWithWhitespace);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					title: 'Test Title',
 					business_value: 'Business Value',
@@ -203,9 +205,9 @@ describe('RequirementCreationService', () => {
 		it('should handle disconnected client', async () => {
 			mockMcpClient.isConnected.mockReturnValue(false);
 			mockMcpClient.connect.mockRejectedValue(new Error('Connection failed'));
-			
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('Unable to connect to the server');
 			expect(result.isRetryable).toBe(true);
@@ -214,17 +216,17 @@ describe('RequirementCreationService', () => {
 		it('should attempt to connect if not connected', async () => {
 			mockMcpClient.isConnected.mockReturnValue(false);
 			mockMcpClient.connect.mockResolvedValue(undefined);
-			
+
 			await service.createRequirement(mockFormData);
-			
+
 			expect(mockMcpClient.connect).toHaveBeenCalled();
 		});
 
 		it('should check connection status', async () => {
 			mockMcpClient.isConnected.mockReturnValue(true);
-			
+
 			const isConnected = await service.checkConnection();
-			
+
 			expect(isConnected).toBe(true);
 			expect(mockMcpClient.isConnected).toHaveBeenCalled();
 		});
@@ -236,22 +238,22 @@ describe('RequirementCreationService', () => {
 				success: false,
 				error: 'Server error occurred'
 			};
-			mockMcpClient.createRequirement.mockResolvedValue(errorResponse);
-			
+			mockMcpClient.requirements.createRequirement.mockResolvedValue(errorResponse);
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toBe('Server error occurred');
 		});
 
 		it('should handle network timeout errors', async () => {
 			// Mock a slow response that will be timed out by the service
-			mockMcpClient.createRequirement.mockImplementation(() => 
-				new Promise(resolve => setTimeout(resolve, 2000)) // Takes 2 seconds, timeout is 500ms
+			mockMcpClient.requirements.createRequirement.mockImplementation(
+				() => new Promise((resolve) => setTimeout(resolve, 2000)) // Takes 2 seconds, timeout is 500ms
 			);
-			
+
 			const result = await service.createRequirement(mockFormData, { timeout: 500, retries: 1 });
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('timed out');
 			expect(result.isRetryable).toBe(true);
@@ -262,10 +264,10 @@ describe('RequirementCreationService', () => {
 				success: false,
 				error: 'UNIQUE constraint failed: requirements.title'
 			};
-			mockMcpClient.createRequirement.mockResolvedValue(errorResponse);
-			
+			mockMcpClient.requirements.createRequirement.mockResolvedValue(errorResponse);
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('A requirement with this title already exists');
 		});
@@ -275,10 +277,10 @@ describe('RequirementCreationService', () => {
 				success: false,
 				error: 'Invalid data: title is required'
 			};
-			mockMcpClient.createRequirement.mockResolvedValue(errorResponse);
-			
+			mockMcpClient.requirements.createRequirement.mockResolvedValue(errorResponse);
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('The provided data is invalid');
 		});
@@ -288,10 +290,10 @@ describe('RequirementCreationService', () => {
 				success: false,
 				error: 'Permission denied: not authorized to create requirements'
 			};
-			mockMcpClient.createRequirement.mockResolvedValue(errorResponse);
-			
+			mockMcpClient.requirements.createRequirement.mockResolvedValue(errorResponse);
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('You do not have permission to create requirements');
 		});
@@ -301,10 +303,10 @@ describe('RequirementCreationService', () => {
 				code: -32603,
 				message: 'Internal error'
 			};
-			mockMcpClient.createRequirement.mockRejectedValue(jsonRpcError);
-			
+			mockMcpClient.requirements.createRequirement.mockRejectedValue(jsonRpcError);
+
 			const result = await service.createRequirement(mockFormData, { retries: 1 });
-			
+
 			expect(result.success).toBe(false);
 			expect(result.isRetryable).toBe(true);
 		}, 10000);
@@ -314,10 +316,10 @@ describe('RequirementCreationService', () => {
 				code: -32602,
 				message: 'Invalid params'
 			};
-			mockMcpClient.createRequirement.mockRejectedValue(jsonRpcError);
-			
+			mockMcpClient.requirements.createRequirement.mockRejectedValue(jsonRpcError);
+
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(false);
 			expect(result.isRetryable).toBe(false);
 		});
@@ -325,15 +327,15 @@ describe('RequirementCreationService', () => {
 
 	describe('Retry Mechanism', () => {
 		it('should retry on retryable errors', async () => {
-			mockMcpClient.createRequirement
+			mockMcpClient.requirements.createRequirement
 				.mockRejectedValueOnce(new Error('Network error'))
 				.mockRejectedValueOnce(new Error('Network error'))
 				.mockResolvedValue(mockSuccessResponse);
-			
+
 			const result = await service.createRequirement(mockFormData, { retries: 2 });
-			
+
 			expect(result.success).toBe(true);
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledTimes(3);
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledTimes(3);
 		});
 
 		it('should not retry non-retryable errors', async () => {
@@ -341,32 +343,32 @@ describe('RequirementCreationService', () => {
 				code: -32602,
 				message: 'Invalid params'
 			};
-			mockMcpClient.createRequirement.mockRejectedValue(validationError);
-			
+			mockMcpClient.requirements.createRequirement.mockRejectedValue(validationError);
+
 			const result = await service.createRequirement(mockFormData, { retries: 3 });
-			
+
 			expect(result.success).toBe(false);
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledTimes(1);
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledTimes(1);
 		});
 
 		it('should respect retry limit', async () => {
-			mockMcpClient.createRequirement.mockRejectedValue(new Error('Network error'));
-			
+			mockMcpClient.requirements.createRequirement.mockRejectedValue(new Error('Network error'));
+
 			const result = await service.createRequirement(mockFormData, { retries: 2 });
-			
+
 			expect(result.success).toBe(false);
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledTimes(3); // initial + 2 retries
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledTimes(3); // initial + 2 retries
 		});
 
 		it('should use exponential backoff for retries', async () => {
 			const startTime = Date.now();
-			mockMcpClient.createRequirement.mockRejectedValue(new Error('Network error'));
-			
+			mockMcpClient.requirements.createRequirement.mockRejectedValue(new Error('Network error'));
+
 			await service.createRequirement(mockFormData, { retries: 2 });
-			
+
 			const endTime = Date.now();
 			const elapsed = endTime - startTime;
-			
+
 			// Should have waited at least 1000ms + 2000ms = 3000ms total for backoff
 			expect(elapsed).toBeGreaterThan(3000);
 		});
@@ -374,23 +376,23 @@ describe('RequirementCreationService', () => {
 
 	describe('Timeout Handling', () => {
 		it('should timeout long-running operations', async () => {
-			mockMcpClient.createRequirement.mockImplementation(() => 
-				new Promise(resolve => setTimeout(resolve, 2000)) // Takes 2 seconds
+			mockMcpClient.requirements.createRequirement.mockImplementation(
+				() => new Promise((resolve) => setTimeout(resolve, 2000)) // Takes 2 seconds
 			);
-			
+
 			const result = await service.createRequirement(mockFormData, { timeout: 500, retries: 0 });
-			
+
 			expect(result.success).toBe(false);
 			expect(result.error).toContain('timed out');
 		});
 
 		it('should not timeout fast operations', async () => {
-			mockMcpClient.createRequirement.mockImplementation(() =>
+			mockMcpClient.requirements.createRequirement.mockImplementation(() =>
 				Promise.resolve(mockSuccessResponse)
 			);
-			
+
 			const result = await service.createRequirement(mockFormData, { timeout: 1000 });
-			
+
 			expect(result.success).toBe(true);
 		});
 	});
@@ -398,7 +400,7 @@ describe('RequirementCreationService', () => {
 	describe('Successful Creation', () => {
 		it('should return success result on successful creation', async () => {
 			const result = await service.createRequirement(mockFormData);
-			
+
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual(mockSuccessResponse.data);
 			expect(result.error).toBeUndefined();
@@ -406,8 +408,8 @@ describe('RequirementCreationService', () => {
 
 		it('should call MCP client with correct parameters', async () => {
 			await service.createRequirement(mockFormData);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith({
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith({
 				type: 'FUNC',
 				title: 'Test Requirement',
 				priority: 'P1',
@@ -432,10 +434,10 @@ describe('RequirementCreationService', () => {
 				desired_state: 'Desired state',
 				acceptance_criteria: ['One criteria']
 			};
-			
+
 			const result = await service.createRequirement(minimalData);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					business_value: undefined,
 					risk_level: undefined,
@@ -452,12 +454,12 @@ describe('RequirementCreationService', () => {
 				...mockFormData,
 				title: 'Second Requirement'
 			});
-			
+
 			const [result1, result2] = await Promise.all([promise1, promise2]);
-			
+
 			expect(result1.success).toBe(true);
 			expect(result2.success).toBe(true);
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledTimes(2);
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledTimes(2);
 		});
 
 		it('should handle empty arrays gracefully', async () => {
@@ -466,10 +468,10 @@ describe('RequirementCreationService', () => {
 				functional_requirements: [],
 				acceptance_criteria: ['Valid criteria'] // At least one required
 			};
-			
+
 			await service.createRequirement(dataWithEmptyArrays);
-			
-			expect(mockMcpClient.createRequirement).toHaveBeenCalledWith(
+
+			expect(mockMcpClient.requirements.createRequirement).toHaveBeenCalledWith(
 				expect.objectContaining({
 					functional_requirements: undefined
 				})

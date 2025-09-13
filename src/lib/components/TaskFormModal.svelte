@@ -39,7 +39,7 @@
 		<AlertTriangle class="w-16 h-16 text-yellow-500 mb-4" />
 		<h3 class="text-lg font-semibold text-gray-900 mb-2">Task Form Not Yet Implemented</h3>
 		<p class="text-gray-600 mb-6">
-			The task creation form is coming soon! This feature will be available once TASK-0008-00-00 
+			The task creation form is coming soon! This feature will be available once TASK-0008-00-00
 			(Implement Task Creation Form) is completed.
 		</p>
 		<div class="flex gap-3">
