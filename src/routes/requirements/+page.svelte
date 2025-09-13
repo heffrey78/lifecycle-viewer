@@ -11,6 +11,7 @@
 	import { Search, Filter, Plus, Eye, Edit, Trash2, AlertTriangle } from 'lucide-svelte';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
+	import RequirementFormModal from '$lib/components/RequirementFormModal.svelte';
 	import {
 		currentTheme,
 		getStatusColorClasses,
@@ -22,6 +23,10 @@
 	let filteredRequirements: Requirement[] = [];
 	let loading = true;
 	let error = '';
+
+	// Modal state
+	let isModalOpen = false;
+	let isSubmitting = false;
 
 	// Filters
 	let searchText = '';
@@ -136,11 +141,53 @@
 		console.log('Editing requirement:', id);
 	}
 
+	// Modal handlers
+	function openNewRequirementModal(): void {
+		isModalOpen = true;
+	}
+
+	function closeModal(): void {
+		isModalOpen = false;
+		isSubmitting = false;
+	}
+
+	async function handleCreateRequirement(event: CustomEvent<any>): Promise<void> {
+		isSubmitting = true;
+		try {
+			// The RequirementForm component will handle the actual creation
+			// When successful, we'll get a success event which should refresh the list
+			await refreshRequirements();
+			closeModal();
+		} catch (error) {
+			console.error('Failed to create requirement:', error);
+			// The form will handle showing the error
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	async function refreshRequirements(): Promise<void> {
+		try {
+			const response = await mcpClient.requirements.getRequirementsJson();
+			if (response.success) {
+				requirements = response.data!;
+			}
+		} catch (e) {
+			console.error('Failed to refresh requirements:', e);
+		}
+	}
+
 	async function deleteRequirement(id: string): Promise<void> {
 		if (confirm('Are you sure you want to delete this requirement?')) {
 			// Implement delete functionality
 			console.log('Deleting requirement:', id);
 		}
+	}
+
+	async function handleRequirementSuccess(event: CustomEvent<{ requirement: any; message: string }>): Promise<void> {
+		// Refresh the requirements list when a new requirement is successfully created
+		await refreshRequirements();
+		closeModal();
 	}
 </script>
 
@@ -156,6 +203,7 @@
 			<p class="text-gray-600">Manage and track project requirements</p>
 		</div>
 		<button
+			onclick={openNewRequirementModal}
 			class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 		>
 			<Plus class="w-4 h-4 mr-2" />
@@ -224,7 +272,7 @@
 				<p class="text-sm text-gray-600">
 					Showing {filteredRequirements.length} of {requirements.length} requirements
 				</p>
-				<button on:click={clearFilters} class="text-sm text-blue-600 hover:text-blue-800">
+				<button onclick={clearFilters} class="text-sm text-blue-600 hover:text-blue-800">
 					Clear Filters
 				</button>
 			</div>
@@ -341,21 +389,21 @@
 				{:else if column.key === 'actions'}
 					<div class="flex items-center justify-end space-x-2">
 						<button
-							on:click={() => viewRequirement(row.id)}
+							onclick={() => viewRequirement(row.id)}
 							class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
 							title="View Details"
 						>
 							<Eye class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => editRequirement(row.id)}
+							onclick={() => editRequirement(row.id)}
 							class="p-1 text-gray-400 hover:text-orange-600 transition-colors"
 							title="Edit"
 						>
 							<Edit class="w-4 h-4" />
 						</button>
 						<button
-							on:click={() => deleteRequirement(row.id)}
+							onclick={() => deleteRequirement(row.id)}
 							class="p-1 text-gray-400 hover:text-red-600 transition-colors"
 							title="Delete"
 						>
@@ -403,3 +451,12 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Requirement Creation Modal -->
+<RequirementFormModal
+	isOpen={isModalOpen}
+	{isSubmitting}
+	on:close={closeModal}
+	on:create={handleCreateRequirement}
+	on:success={handleRequirementSuccess}
+/>
