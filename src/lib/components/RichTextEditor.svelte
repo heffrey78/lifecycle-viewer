@@ -100,8 +100,13 @@
 	});
 
 	onDestroy(() => {
-		if (editor) {
-			editor.destroy();
+		if (editor && typeof editor.destroy === 'function') {
+			try {
+				editor.destroy();
+			} catch (error) {
+				// Ignore destruction errors in test environments
+				console.warn('Editor destruction warning:', error);
+			}
 		}
 	});
 
@@ -160,11 +165,15 @@
 
 	// Helper functions for toolbar state
 	const isActive = $derived((format: string, options?: object) => {
-		return (typeof editor?.isActive === 'function') ? editor.isActive(format, options) : false;
+		return typeof editor?.isActive === 'function' ? editor.isActive(format, options) : false;
 	});
 
-	const canUndo = $derived.by(() => (typeof editor?.can === 'function') ? editor.can().undo() : false);
-	const canRedo = $derived.by(() => (typeof editor?.can === 'function') ? editor.can().redo() : false);
+	const canUndo = $derived.by(() =>
+		typeof editor?.can === 'function' ? editor.can().undo() : false
+	);
+	const canRedo = $derived.by(() =>
+		typeof editor?.can === 'function' ? editor.can().redo() : false
+	);
 </script>
 
 <!-- Fallback textarea if editor fails -->
@@ -196,7 +205,8 @@
 		<!-- Toolbar -->
 		<div
 			class="flex flex-wrap items-center gap-1 p-2 border-b"
-			style="border-color: {$currentTheme.base.border}; background-color: {$currentTheme.base.background};"
+			style="border-color: {$currentTheme.base.border}; background-color: {$currentTheme.base
+				.background};"
 			role="toolbar"
 			aria-label="Rich text formatting toolbar"
 		>
