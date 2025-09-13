@@ -33,7 +33,7 @@ export class ConnectionManager {
 	}
 
 	private isRecoverableError(error: any): boolean {
-		if (typeof error === 'object' && error.code) {
+		if (typeof error === 'object' && error !== null && error.code) {
 			if (error.code >= -32099 && error.code <= -32000) return true;
 			if (error.code === -32603) return true;
 			if (error.code === -32000) return true;
@@ -52,7 +52,7 @@ export class ConnectionManager {
 	}
 
 	private sanitizeErrorMessage(error: any): string {
-		if (typeof error === 'object' && error.message) {
+		if (typeof error === 'object' && error !== null && error.message) {
 			let message = error.message;
 
 			message = message.replace(/\/[^\s]*\.(js|ts|json|py|etc)\b/g, '[file]');
