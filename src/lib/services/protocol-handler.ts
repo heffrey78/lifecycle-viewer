@@ -51,11 +51,11 @@ export class ProtocolHandler {
 			return error;
 		}
 		if (error && typeof error === 'object') {
-			if (error.message) {
-				return error.message;
-			}
 			if (error.code && typeof error.code === 'number') {
 				return `Error ${error.code}: ${error.message || 'Unknown error'}`;
+			}
+			if (error.message) {
+				return error.message;
 			}
 		}
 		return String(error);
