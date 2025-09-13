@@ -50,6 +50,10 @@ coverage/
 # Test files
 test-db-switch.js
 
+# Playwright test reports and results
+playwright-report/
+test-results/
+
 # Temporary files
 *.tmp
 *.temp
