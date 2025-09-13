@@ -120,7 +120,10 @@ export class TestEnvironment {
 							);
 						}
 
-						this.mockWebSocket.simulateMessage(response);
+						// Check if mockWebSocket still exists (not cleaned up)
+						if (this.mockWebSocket) {
+							this.mockWebSocket.simulateMessage(response);
+						}
 					}
 				}, MOCK_DELAYS.NETWORK);
 			} catch (error) {

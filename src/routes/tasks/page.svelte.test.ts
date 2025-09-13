@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render } from 'vitest-browser-svelte';
+import { render, screen } from '@testing-library/svelte';
 import TasksPage from './+page.svelte';
 
 // Mock the MCP client

@@ -353,15 +353,15 @@ describe('ConnectionManager', () => {
 		});
 
 		it('should not retry non-recoverable errors', async () => {
+			// Mock connection to throw a non-recoverable error
+			vi.spyOn(connectionManager, 'connect').mockRejectedValue({ 
+				code: -32602, 
+				message: 'Invalid params' 
+			});
+
 			const connectPromise = connectionManager.connectWithRetry(mockOnMessage);
-			const mockWs = (connectionManager as any).ws as MockWebSocket;
 
-			// Simulate non-recoverable error (invalid params)
-			setTimeout(() => {
-				mockWs.simulateError();
-			}, 0);
-
-			await expect(connectPromise).rejects.toThrow();
+			await expect(connectPromise).rejects.toThrow('Connection failed after 1 attempts: Invalid params');
 
 			// Should not have retry events for non-recoverable errors
 			const retryEvents = events.filter((e) => e.type === 'retry');
@@ -399,25 +399,24 @@ describe('ConnectionManager', () => {
 		});
 
 		it('should reset retry attempts on successful connection', async () => {
-			// First connection fails
-			let attemptCount = 0;
-			connectionManager.connect = vi.fn().mockImplementation((onMessage) => {
-				attemptCount++;
-				if (attemptCount === 1) {
-					return Promise.reject({ code: -32603 });
+			// Mock the delay method to resolve immediately
+			vi.spyOn(connectionManager as any, 'delay').mockResolvedValue(undefined);
+
+			// Mock connect method to fail once, then succeed
+			let callCount = 0;
+			vi.spyOn(connectionManager, 'connect').mockImplementation(async (onMessage) => {
+				callCount++;
+				if (callCount === 1) {
+					throw { code: -32603, message: 'Internal error' }; // Recoverable error
 				}
-				// Second attempt succeeds
-				const mockWs = (connectionManager as any).ws as MockWebSocket;
-				if (mockWs) {
-					setTimeout(() => mockWs.simulateOpen(), 0);
-				}
+				// Second call succeeds
 				return Promise.resolve();
 			});
 
+			// This should retry once and then succeed
 			await connectionManager.connectWithRetry(mockOnMessage);
 
-			await vi.runAllTimersAsync();
-
+			// Retry attempts should be reset to 0 after successful connection
 			expect(connectionManager.getRetryAttempts()).toBe(0);
 		});
 	});

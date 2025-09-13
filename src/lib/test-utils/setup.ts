@@ -70,6 +70,46 @@ beforeAll(() => {
 	vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
+// Mock TipTap Editor globally for all tests
+const createMockEditor = () => ({
+	destroy: vi.fn(),
+	commands: {
+		setContent: vi.fn().mockReturnThis(),
+		focus: vi.fn().mockReturnThis(),
+	},
+	chain: vi.fn().mockReturnThis(),
+	getHTML: vi.fn().mockReturnValue('<p>Test content</p>'),
+	setEditable: vi.fn(),
+	isActive: vi.fn().mockReturnValue(false),
+	can: vi.fn().mockReturnValue({
+		undo: vi.fn().mockReturnValue(false),
+		redo: vi.fn().mockReturnValue(false),
+	}),
+});
+
+vi.mock('@tiptap/core', () => ({
+	Editor: vi.fn().mockImplementation((config) => {
+		const mockEditor = createMockEditor();
+		
+		// Call lifecycle callbacks if provided
+		setTimeout(() => {
+			if (config?.onCreate) config.onCreate();
+			if (config?.onTransaction) config.onTransaction();
+			if (config?.onUpdate) config.onUpdate({ editor: mockEditor });
+		}, 0);
+		
+		return mockEditor;
+	}),
+}));
+
+vi.mock('@tiptap/starter-kit', () => ({
+	default: { configure: vi.fn().mockReturnValue('StarterKit') },
+}));
+
+vi.mock('@tiptap/extension-placeholder', () => ({
+	default: { configure: vi.fn().mockReturnValue('Placeholder') },
+}));
+
 // Global test utilities
 export function createMockEvent(type: string, options: any = {}): Event {
 	return new Event(type, { bubbles: true, cancelable: true, ...options });

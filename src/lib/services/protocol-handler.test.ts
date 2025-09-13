@@ -53,7 +53,8 @@ describe('ProtocolHandler', () => {
 	let mockConnectionManager: MockConnectionManager;
 
 	beforeEach(() => {
-		vi.useFakeTimers();
+		// Note: Using real timers for now to avoid async timing issues
+		// vi.useFakeTimers();
 		mockConnectionManager = new MockConnectionManager();
 		protocolHandler = new ProtocolHandler(mockConnectionManager as any as ConnectionManager);
 	});
@@ -67,7 +68,24 @@ describe('ProtocolHandler', () => {
 		it('should connect to server if not already connected', async () => {
 			mockConnectionManager.setConnected(false);
 
-			await protocolHandler.initialize();
+			const initPromise = protocolHandler.initialize();
+
+			// Give the initialization request time to be sent
+			await new Promise(resolve => setImmediate(resolve));
+
+			// Simulate successful initialization response
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: {
+						protocolVersion: '2024-11-05',
+						capabilities: { tools: {} }
+					}
+				});
+			}, 0);
+
+			await initPromise;
 
 			expect(mockConnectionManager.connectWithRetry).toHaveBeenCalled();
 		});
@@ -75,8 +93,24 @@ describe('ProtocolHandler', () => {
 		it('should not reconnect if already connected', async () => {
 			mockConnectionManager.setConnected(true);
 
-			await protocolHandler.initialize();
-			await protocolHandler.initialize(); // Second call
+			const initPromise1 = protocolHandler.initialize();
+			
+			// Simulate initialization response for first call
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: {
+						protocolVersion: '2024-11-05',
+						capabilities: { tools: {} }
+					}
+				});
+			}, 0);
+			
+			await initPromise1;
+			
+			// Second call should not require another response since already initialized
+			await protocolHandler.initialize(); 
 
 			expect(mockConnectionManager.connectWithRetry).toHaveBeenCalledTimes(1);
 		});
@@ -102,14 +136,16 @@ describe('ProtocolHandler', () => {
 			});
 
 			// Simulate successful initialization response
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: {
-					protocolVersion: '2024-11-05',
-					capabilities: { tools: {} }
-				}
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: {
+						protocolVersion: '2024-11-05',
+						capabilities: { tools: {} }
+					}
+				});
+			}, 0);
 
 			await initPromise;
 
@@ -121,14 +157,19 @@ describe('ProtocolHandler', () => {
 		});
 
 		it('should handle initialization timeout', async () => {
-			mockConnectionManager.setConnected(false);
+			vi.useFakeTimers();
+			try {
+				mockConnectionManager.setConnected(false);
 
-			const initPromise = protocolHandler.initialize();
+				const initPromise = protocolHandler.initialize();
 
-			// Fast-forward past initialization timeout (10 seconds)
-			vi.advanceTimersByTime(11000);
+				// Fast-forward past initialization timeout (10 seconds)
+				vi.advanceTimersByTime(11000);
 
-			await expect(initPromise).rejects.toThrow('MCP initialization timeout');
+				await expect(initPromise).rejects.toThrow('MCP initialization timeout');
+			} finally {
+				vi.useRealTimers();
+			}
 		});
 
 		it('should handle initialization errors', async () => {
@@ -137,11 +178,13 @@ describe('ProtocolHandler', () => {
 			const initPromise = protocolHandler.initialize();
 
 			// Simulate error response
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				error: { code: -32603, message: 'Internal error' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					error: { code: -32603, message: 'Internal error' }
+				});
+			}, 0);
 
 			await expect(initPromise).rejects.toEqual({
 				code: -32603,
@@ -154,11 +197,13 @@ describe('ProtocolHandler', () => {
 
 			// First initialization
 			const initPromise1 = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise1;
 
 			// Second initialization should return immediately
@@ -174,11 +219,14 @@ describe('ProtocolHandler', () => {
 		beforeEach(async () => {
 			// Initialize protocol handler
 			const initPromise = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			// Use setTimeout to simulate async message in next tick
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise;
 			vi.clearAllMocks();
 		});
@@ -197,34 +245,43 @@ describe('ProtocolHandler', () => {
 			});
 
 			// Simulate response
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: { success: true }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					result: { success: true }
+				});
+			}, 0);
 
 			const result = await requestPromise;
 			expect(result).toEqual({ success: true });
 		});
 
 		it('should handle request timeout', async () => {
-			const requestPromise = protocolHandler.sendRequest('test_method');
+			vi.useFakeTimers();
+			try {
+				const requestPromise = protocolHandler.sendRequest('test_method');
 
-			// Fast-forward past request timeout (30 seconds)
-			vi.advanceTimersByTime(31000);
+				// Fast-forward past request timeout (30 seconds)
+				vi.advanceTimersByTime(31000);
 
-			await expect(requestPromise).rejects.toThrow('Request timeout');
+				await expect(requestPromise).rejects.toThrow('Request timeout');
+			} finally {
+				vi.useRealTimers();
+			}
 		});
 
 		it('should handle request errors', async () => {
 			const requestPromise = protocolHandler.sendRequest('test_method');
 
 			// Simulate error response
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				error: { code: -32601, message: 'Method not found' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					error: { code: -32601, message: 'Method not found' }
+				});
+			}, 0);
 
 			await expect(requestPromise).rejects.toEqual({
 				code: -32601,
@@ -247,17 +304,19 @@ describe('ProtocolHandler', () => {
 			);
 
 			// Respond to requests out of order
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 3,
-				result: { data: 'response2' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 3,
+					result: { data: 'response2' }
+				});
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: { data: 'response1' }
-			});
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					result: { data: 'response1' }
+				});
+			}, 0);
 
 			const [result1, result2] = await Promise.all([request1Promise, request2Promise]);
 			expect(result1).toEqual({ data: 'response1' });
@@ -287,11 +346,14 @@ describe('ProtocolHandler', () => {
 		beforeEach(async () => {
 			// Initialize protocol handler
 			const initPromise = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			// Use setTimeout to simulate async message in next tick
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise;
 		});
 
@@ -349,11 +411,14 @@ describe('ProtocolHandler', () => {
 		beforeEach(async () => {
 			// Initialize and create pending requests
 			const initPromise = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			// Use setTimeout to simulate async message in next tick
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise;
 
 			protocolHandler.sendRequest('test1');
@@ -404,11 +469,14 @@ describe('ProtocolHandler', () => {
 	describe('Response Processing', () => {
 		beforeEach(async () => {
 			const initPromise = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			// Use setTimeout to simulate async message in next tick
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise;
 		});
 
@@ -438,17 +506,19 @@ describe('ProtocolHandler', () => {
 		it('should handle non-JSON text content', async () => {
 			const responsePromise = protocolHandler.sendRequestWithResponse('test_method');
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					content: [
-						{
-							text: 'plain text response'
-						}
-					]
-				}
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					result: {
+						content: [
+							{
+								text: 'plain text response'
+							}
+						]
+					}
+				});
+			}, 0);
 
 			const response = await responsePromise;
 			expect(response).toEqual({
@@ -460,13 +530,15 @@ describe('ProtocolHandler', () => {
 		it('should handle content without text property', async () => {
 			const responsePromise = protocolHandler.sendRequestWithResponse('test_method');
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					content: [{ data: 'direct data' }]
-				}
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					result: {
+						content: [{ data: 'direct data' }]
+					}
+				});
+			}, 0);
 
 			const response = await responsePromise;
 			expect(response).toEqual({
@@ -478,11 +550,13 @@ describe('ProtocolHandler', () => {
 		it('should handle direct result without content wrapper', async () => {
 			const responsePromise = protocolHandler.sendRequestWithResponse('test_method');
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: { data: 'direct result' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					result: { data: 'direct result' }
+				});
+			}, 0);
 
 			const response = await responsePromise;
 			expect(response).toEqual({
@@ -494,11 +568,13 @@ describe('ProtocolHandler', () => {
 		it('should format errors in sendRequestWithResponse', async () => {
 			const responsePromise = protocolHandler.sendRequestWithResponse('test_method');
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				error: { code: -32601, message: 'Method not found' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 2,
+					error: { code: -32601, message: 'Method not found' }
+				});
+			}, 0);
 
 			const response = await responsePromise;
 			expect(response).toEqual({
@@ -547,11 +623,13 @@ describe('ProtocolHandler', () => {
 
 			expect(protocolHandler.isInitialized()).toBe(false);
 
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 
 			await initPromise;
 
@@ -561,11 +639,13 @@ describe('ProtocolHandler', () => {
 		it('should require both connection and initialization', async () => {
 			// Initialize first
 			const initPromise = protocolHandler.initialize();
-			mockConnectionManager.simulateMessage({
-				jsonrpc: '2.0',
-				id: 1,
-				result: { protocolVersion: '2024-11-05' }
-			});
+			setTimeout(() => {
+				mockConnectionManager.simulateMessage({
+					jsonrpc: '2.0',
+					id: 1,
+					result: { protocolVersion: '2024-11-05' }
+				});
+			}, 0);
 			await initPromise;
 
 			expect(protocolHandler.isInitialized()).toBe(true);

@@ -8,15 +8,24 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 	// Mock WebSocket for data transformation testing
 	class DataTransformWebSocket {
+		static CONNECTING = 0;
 		static OPEN = 1;
+		static CLOSING = 2;
+		static CLOSED = 3;
 
-		public readyState = DataTransformWebSocket.OPEN;
+		public readyState = DataTransformWebSocket.CONNECTING;
 		public onopen: ((event: Event) => void) | null = null;
 		public onclose: ((event: Event) => void) | null = null;
 		public onmessage: ((event: MessageEvent) => void) | null = null;
 		public onerror: ((event: Event) => void) | null = null;
 
-		constructor(url: string) {}
+		constructor(url: string) {
+			// Simulate connection opening
+			setTimeout(() => {
+				this.readyState = DataTransformWebSocket.OPEN;
+				this.onopen?.(new Event('open'));
+			}, 1);
+		}
 
 		send(data: string) {
 			const message = JSON.parse(data);
@@ -34,6 +43,20 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 					});
 				}, 1);
 			}
+		}
+		
+		// Helper method to simulate MCP tool responses
+		simulateMCPToolResponse(id: number, data: any) {
+			this.simulateMessage({
+				jsonrpc: '2.0',
+				id,
+				result: {
+					content: [{
+						type: 'text',
+						text: JSON.stringify(data)
+					}]
+				}
+			});
 		}
 
 		close() {}
@@ -65,12 +88,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 			const promise = client.getRequirements();
 
 			// Send well-formed requirement data
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
+			ws.simulateMCPToolResponse(2, [
 						{
 							id: 'REQ-001-FUNC-00',
 							requirement_number: 1,
@@ -91,9 +109,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 							task_count: 3,
 							tasks_completed: 1
 						}
-					]
-				}
-			});
+					]);
 
 			const response = await promise;
 
@@ -116,23 +132,16 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 			const promise = client.getRequirements();
 
 			// Send minimal requirement data
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'REQ-002',
-							title: 'Basic Requirement',
-							status: 'Draft',
-							priority: 'P2',
-							type: 'FUNC'
-							// Missing many optional fields
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'REQ-002',
+					title: 'Basic Requirement',
+					status: 'Draft',
+					priority: 'P2',
+					type: 'FUNC'
+					// Missing many optional fields
 				}
-			});
+			]);
 
 			const response = await promise;
 
@@ -151,12 +160,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 			const promise = client.getRequirements();
 
 			// Send malformed data
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
+			ws.simulateMCPToolResponse(2, [
 						{
 							// Missing required id field
 							title: 123, // Wrong type
@@ -164,9 +168,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 							priority: null,
 							functional_requirements: 'not an array'
 						}
-					]
-				}
-			});
+					]);
 
 			const response = await promise;
 
@@ -180,27 +182,13 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			// Test array format (normal case)
 			const arrayPromise = client.getRequirements();
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }]
-				}
-			});
+			ws.simulateMCPToolResponse(2, [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }]);
 			const arrayResponse = await arrayPromise;
 			expect(Array.isArray(arrayResponse.data)).toBe(true);
 
 			// Test single item format (edge case)
 			const singlePromise = client.getRequirements();
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 3,
-				result: {
-					success: true,
-					data: { id: 'REQ-2', title: 'Single', status: 'Draft', priority: 'P1', type: 'FUNC' }
-				}
-			});
+			ws.simulateMCPToolResponse(3, { id: 'REQ-2', title: 'Single', status: 'Draft', priority: 'P1', type: 'FUNC' });
 			const singleResponse = await singlePromise;
 			// Should handle both formats consistently
 			expect(singleResponse.success).toBe(true);
@@ -213,32 +201,25 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getTasks();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'TASK-001-00-00',
-							task_number: 1,
-							subtask_number: 0,
-							title: 'Implement Login Form',
-							status: 'In Progress',
-							priority: 'P1',
-							effort: 'M',
-							user_story: 'As a user, I want to log in',
-							assignee: 'dev@example.com',
-							requirement_ids: ['REQ-001-FUNC-00'],
-							acceptance_criteria: ['Form validates input', 'Submits to backend'],
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z',
-							github_issue_number: 123,
-							github_issue_url: 'https://github.com/repo/issues/123'
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'TASK-001-00-00',
+					task_number: 1,
+					subtask_number: 0,
+					title: 'Implement Login Form',
+					status: 'In Progress',
+					priority: 'P1',
+					effort: 'M',
+					user_story: 'As a user, I want to log in',
+					assignee: 'dev@example.com',
+					requirement_ids: ['REQ-001-FUNC-00'],
+					acceptance_criteria: ['Form validates input', 'Submits to backend'],
+					created_at: '2024-01-01T00:00:00Z',
+					updated_at: '2024-01-02T00:00:00Z',
+					github_issue_number: 123,
+					github_issue_url: 'https://github.com/repo/issues/123'
 				}
-			});
+			]);
 
 			const response = await promise;
 
@@ -261,20 +242,13 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 			const promise = client.getTasks();
 
 			// Test all valid effort sizes
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
+			ws.simulateMCPToolResponse(2, [
 						{ id: 'T1', title: 'XS Task', effort: 'XS', status: 'Not Started', priority: 'P1' },
 						{ id: 'T2', title: 'S Task', effort: 'S', status: 'Not Started', priority: 'P1' },
 						{ id: 'T3', title: 'M Task', effort: 'M', status: 'Not Started', priority: 'P1' },
 						{ id: 'T4', title: 'L Task', effort: 'L', status: 'Not Started', priority: 'P1' },
 						{ id: 'T5', title: 'XL Task', effort: 'XL', status: 'Not Started', priority: 'P1' }
-					]
-				}
-			});
+					]);
 
 			const response = await promise;
 
@@ -291,20 +265,13 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 			const promise = client.getTasks();
 
 			// Test all valid statuses
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
+			ws.simulateMCPToolResponse(2, [
 						{ id: 'T1', title: 'Task 1', status: 'Not Started', priority: 'P1' },
 						{ id: 'T2', title: 'Task 2', status: 'In Progress', priority: 'P1' },
 						{ id: 'T3', title: 'Task 3', status: 'Blocked', priority: 'P1' },
 						{ id: 'T4', title: 'Task 4', status: 'Complete', priority: 'P1' },
 						{ id: 'T5', title: 'Task 5', status: 'Abandoned', priority: 'P1' }
-					]
-				}
-			});
+					]);
 
 			const response = await promise;
 
@@ -320,32 +287,25 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getArchitectureDecisions();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'ADR-001-00-00',
-							title: 'Use React for Frontend',
-							status: 'Accepted',
-							context: 'Need to choose frontend framework',
-							decision: 'We will use React',
-							consequences: {
-								positive: ['Large community', 'Good tooling'],
-								negative: ['Learning curve', 'Bundle size']
-							},
-							considered_options: ['React', 'Vue', 'Angular'],
-							decision_drivers: ['Team expertise', 'Ecosystem'],
-							requirement_ids: ['REQ-001'],
-							authors: ['architect@example.com'],
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z'
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'ADR-001-00-00',
+					title: 'Use React for Frontend',
+					status: 'Accepted',
+					context: 'Need to choose frontend framework',
+					decision: 'We will use React',
+					consequences: {
+						positive: ['Large community', 'Good tooling'],
+						negative: ['Learning curve', 'Bundle size']
+					},
+					considered_options: ['React', 'Vue', 'Angular'],
+					decision_drivers: ['Team expertise', 'Ecosystem'],
+					requirement_ids: ['REQ-001'],
+					authors: ['architect@example.com'],
+					created_at: '2024-01-01T00:00:00Z',
+					updated_at: '2024-01-02T00:00:00Z'
 				}
-			});
+			]);
 
 			const response = await promise;
 
@@ -427,25 +387,18 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getRequirements();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'REQ-001',
-							title: 'Test',
-							status: 'Draft',
-							priority: 'P1',
-							type: 'FUNC',
-							task_count: '5', // String instead of number
-							tasks_completed: '2', // String instead of number
-							requirement_number: '1' // String instead of number
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'REQ-001',
+					title: 'Test',
+					status: 'Draft',
+					priority: 'P1',
+					type: 'FUNC',
+					task_count: '5', // String instead of number
+					tasks_completed: '2', // String instead of number
+					requirement_number: '1' // String instead of number
 				}
-			});
+			]);
 
 			const response = await promise;
 			expect(response.success).toBe(true);
@@ -461,24 +414,17 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getTasks();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'TASK-001',
-							title: 'Test Task',
-							status: 'Complete',
-							priority: 'P1',
-							created_at: '2024-01-01T00:00:00Z', // Valid ISO date
-							updated_at: 'invalid-date', // Invalid date
-							completed_at: '2024-01-02T10:30:00Z' // Valid ISO date
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'TASK-001',
+					title: 'Test Task',
+					status: 'Complete',
+					priority: 'P1',
+					created_at: '2024-01-01T00:00:00Z', // Valid ISO date
+					updated_at: 'invalid-date', // Invalid date
+					completed_at: '2024-01-02T10:30:00Z' // Valid ISO date
 				}
-			});
+			]);
 
 			const response = await promise;
 			expect(response.success).toBe(true);
@@ -494,25 +440,18 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getRequirements();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [
-						{
-							id: 'REQ-001',
-							title: 'Test',
-							status: 'Draft',
-							priority: 'P1',
-							type: 'FUNC',
-							functional_requirements: 'single string instead of array',
-							acceptance_criteria: ['valid', 'array'],
-							nonfunctional_requirements: null // null instead of array
-						}
-					]
+			ws.simulateMCPToolResponse(2, [
+				{
+					id: 'REQ-001',
+					title: 'Test',
+					status: 'Draft',
+					priority: 'P1',
+					type: 'FUNC',
+					functional_requirements: 'single string instead of array',
+					acceptance_criteria: ['valid', 'array'],
+					nonfunctional_requirements: null // null instead of array
 				}
-			});
+			]);
 
 			const response = await promise;
 			expect(response.success).toBe(true);
@@ -529,15 +468,7 @@ describe('LifecycleMCPClient - Data Transformation and Type Safety', () => {
 
 			const promise = client.getRequirements();
 
-			ws.simulateMessage({
-				jsonrpc: '2.0',
-				id: 2,
-				result: {
-					success: true,
-					data: [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }],
-					message: 'Operation completed successfully'
-				}
-			});
+			ws.simulateMCPToolResponse(2, [{ id: 'REQ-1', title: 'Test', status: 'Draft', priority: 'P1', type: 'FUNC' }]);
 
 			const response: MCPResponse<Requirement[]> = await promise;
 

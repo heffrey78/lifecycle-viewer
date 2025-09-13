@@ -24,7 +24,14 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 
 		constructor(url: string) {
 			this.url = url;
-			// Immediately simulate connection success for basic tests
+			// Check for invalid URLs and simulate failure
+			if (url === 'invalid-url') {
+				setTimeout(() => {
+					this.onerror?.(new Event('error'));
+				}, 1);
+				return;
+			}
+			// Immediately simulate connection success for valid URLs
 			setTimeout(() => {
 				this.readyState = TestWebSocket.OPEN;
 				this.onopen?.(new Event('open'));
@@ -133,15 +140,19 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 			// Access the WebSocket instance to check messages
 			const ws = (client as any).ws as TestWebSocket;
 
-			// The connect process should have sent an initialize message
+			// The connect process should have sent initialize and initialized messages
 			const messages = ws.getMessages();
-			expect(messages).toHaveLength(1);
+			expect(messages).toHaveLength(2);
 
 			const initMessage = messages[0];
 			expect(initMessage.jsonrpc).toBe('2.0');
 			expect(initMessage.method).toBe('initialize');
 			expect(initMessage.id).toBeDefined();
 			expect(typeof initMessage.id).toBe('number');
+
+			const notifyMessage = messages[1];
+			expect(notifyMessage.jsonrpc).toBe('2.0');
+			expect(notifyMessage.method).toBe('notifications/initialized');
 		});
 
 		it('should handle response messages correctly', async () => {
@@ -209,7 +220,9 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 		it('should reject requests when not connected', async () => {
 			expect(client.isConnected()).toBe(false);
 
-			await expect(client.getRequirements()).rejects.toThrow('Client not connected');
+			const response = await client.getRequirements();
+			expect(response.success).toBe(false);
+			expect(response.error).toBe('Not connected to MCP server');
 		});
 
 		it('should accept requests when connected', async () => {
@@ -259,10 +272,11 @@ describe('LifecycleMCPClient - WebSocket Core Connection Tests', () => {
 			await Promise.all([promise1, promise2]);
 
 			const messages = ws.getMessages();
-			// Should have initialize (id:1), getRequirements (id:2), getTasks (id:3)
-			expect(messages).toHaveLength(3);
-			expect(messages[1].id).toBe(2);
-			expect(messages[2].id).toBe(3);
+			// Should have initialize (id:1), notifications/initialized (no id), getRequirements (id:2), getTasks (id:3)
+			expect(messages).toHaveLength(4);
+			expect(messages[0].id).toBe(1); // initialize
+			expect(messages[2].id).toBe(2); // getRequirements 
+			expect(messages[3].id).toBe(3); // getTasks
 		});
 	});
 
