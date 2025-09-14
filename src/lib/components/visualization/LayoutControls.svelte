@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Network, BarChart3, Calendar, Map, ZoomIn, ZoomOut, RotateCcw } from 'lucide-svelte';
+	import { Network, BarChart3, Calendar, Map } from 'lucide-svelte';
 	import { currentTheme } from '$lib/theme';
 
 	export let layoutMode: 'network' | 'hierarchy' | 'timeline' | 'roadmap' = 'network';
 
 	const dispatch = createEventDispatcher<{
 		layoutChange: 'network' | 'hierarchy' | 'timeline' | 'roadmap';
-		zoomIn: void;
-		zoomOut: void;
-		resetView: void;
 	}>();
 
 	const layoutModes = [
@@ -45,17 +42,6 @@
 		}
 	}
 
-	function handleZoomIn() {
-		dispatch('zoomIn');
-	}
-
-	function handleZoomOut() {
-		dispatch('zoomOut');
-	}
-
-	function handleResetView() {
-		dispatch('resetView');
-	}
 </script>
 
 <div class="flex items-center justify-between">
@@ -80,34 +66,4 @@
 		{/each}
 	</div>
 
-	<div class="flex items-center space-x-1">
-		<div class="w-px h-6" style="background-color: {$currentTheme.base.border};"></div>
-
-		<button
-			class="p-2 rounded-lg transition-colors hover:bg-opacity-10"
-			style="color: {$currentTheme.base.foreground};"
-			title="Zoom In"
-			on:click={handleZoomIn}
-		>
-			<ZoomIn class="w-4 h-4" />
-		</button>
-
-		<button
-			class="p-2 rounded-lg transition-colors hover:bg-opacity-10"
-			style="color: {$currentTheme.base.foreground};"
-			title="Zoom Out"
-			on:click={handleZoomOut}
-		>
-			<ZoomOut class="w-4 h-4" />
-		</button>
-
-		<button
-			class="p-2 rounded-lg transition-colors hover:bg-opacity-10"
-			style="color: {$currentTheme.base.foreground};"
-			title="Reset View"
-			on:click={handleResetView}
-		>
-			<RotateCcw class="w-4 h-4" />
-		</button>
-	</div>
 </div>

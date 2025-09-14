@@ -11,6 +11,7 @@
 	} from 'lucide-svelte';
 	import ProjectName from '$lib/components/ProjectName.svelte';
 	import { currentTheme, setTheme, defaultThemes } from '$lib/theme';
+	import { browser } from '$app/environment';
 
 	const navItems = [
 		{ href: '/', icon: Home, label: 'Dashboard' },
@@ -27,6 +28,7 @@
 		setTheme(themeId);
 		showThemeDropdown = false;
 	}
+
 </script>
 
 <div
@@ -168,3 +170,4 @@
 		</main>
 	</div>
 </div>
+

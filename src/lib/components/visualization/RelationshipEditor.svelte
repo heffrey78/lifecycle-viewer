@@ -9,6 +9,7 @@
 	export let targetNode: DiagramNode | null = null;
 	export let existingRelationship: any = null;
 
+
 	const dispatch = createEventDispatcher<{
 		close: void;
 		create: { sourceId: string; targetId: string; type: string };
@@ -78,6 +79,7 @@
 	}
 
 	function handleClose() {
+		console.log('🚪 RelationshipEditor handleClose() called');
 		isOpen = false;
 		showDeleteConfirm = false;
 		dispatch('close');
@@ -106,7 +108,8 @@
 		return { valid: true };
 	}
 
-	$: validation = validateRelationship();
+	// Only run validation when modal is open and we have the required props
+	$: validation = isOpen && sourceNode && targetNode ? validateRelationship() : { valid: false };
 </script>
 
 {#if isOpen}
@@ -129,7 +132,10 @@
 					</h3>
 				</div>
 				<button
-					on:click={handleClose}
+					on:click={() => {
+						console.log('🚪 X button clicked');
+						handleClose();
+					}}
 					class="p-1 rounded hover:bg-opacity-10"
 					style="color: {$currentTheme.base.muted};"
 				>
@@ -250,7 +256,10 @@
 
 				<div class="flex space-x-2">
 					<button
-						on:click={handleClose}
+						on:click={() => {
+							console.log('🚪 Cancel button clicked');
+							handleClose();
+						}}
 						class="px-4 py-2 border rounded text-sm transition-colors"
 						style="border-color: {$currentTheme.base.border}; color: {$currentTheme.base
 							.foreground};"

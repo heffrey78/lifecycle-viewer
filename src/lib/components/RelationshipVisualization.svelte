@@ -7,8 +7,10 @@
 	import FilterPanel from './visualization/FilterPanel.svelte';
 	import LayoutControls from './visualization/LayoutControls.svelte';
 	import DiagramRenderer from './visualization/DiagramRenderer.svelte';
+	import SvelteFlowVisualization from './visualization/SvelteFlowVisualization.svelte';
 	import RelationshipEditor from './visualization/RelationshipEditor.svelte';
 	import ErrorNotification from './ErrorNotification.svelte';
+	import { featureFlags } from '$lib/stores/feature-flags';
 
 	export let requirements: Requirement[] = [];
 	export let tasks: Task[] = [];
@@ -271,30 +273,15 @@
 	}
 
 	let diagramRenderer: DiagramRenderer;
+	let svelteFlowVisualization: SvelteFlowVisualization;
 
 	// Relationship editing state
 	let showRelationshipEditor = false;
 	let editingSourceNode: any = null;
 	let editingTargetNode: any = null;
 	let editingRelationship: any = null;
+	let isOpeningRelationshipEditor = false;
 
-	function handleZoomIn() {
-		if (diagramRenderer) {
-			diagramRenderer.zoomIn();
-		}
-	}
-
-	function handleZoomOut() {
-		if (diagramRenderer) {
-			diagramRenderer.zoomOut();
-		}
-	}
-
-	function handleResetView() {
-		if (diagramRenderer) {
-			diagramRenderer.resetView();
-		}
-	}
 
 	function handleNodeClick(event: CustomEvent) {
 		const { node } = event.detail;
@@ -324,7 +311,6 @@
 			const result = await mcpClient.createRelationship(sourceId, targetId, type);
 
 			if (result.success) {
-				console.log('Relationship created successfully:', result.data);
 				currentError = ''; // Clear error on success
 				// Refresh data to show new relationship
 				await loadData();
@@ -409,6 +395,16 @@
 
 	function handleEditorClose() {
 		showRelationshipEditor = false;
+		isOpeningRelationshipEditor = false;
+
+		// If we were creating a new relationship via drag-to-connect, remove the temporary edge
+		if (editingSourceNode && editingTargetNode && $featureFlags.dragToConnectRelationships) {
+			// Signal to SvelteFlowVisualization to remove the temporary edge
+			if (svelteFlowVisualization?.removeTemporaryEdge) {
+				svelteFlowVisualization.removeTemporaryEdge(editingSourceNode.id, editingTargetNode.id);
+			}
+		}
+
 		editingSourceNode = null;
 		editingTargetNode = null;
 		editingRelationship = null;
@@ -419,9 +415,33 @@
 			await loadData();
 		}
 	}
+
+	// Helper function to find entity by ID from filtered data
+	function findEntityById(id: string): Requirement | Task | ArchitectureDecision | null {
+		// Check requirements first
+		const requirement = filteredData.requirements.find(req => req.id === id);
+		if (requirement) return requirement;
+
+		// Check tasks
+		const task = filteredData.tasks.find(t => t.id === id);
+		if (task) return task;
+
+		// Check architecture decisions
+		const architecture = filteredData.architectureDecisions.find(arch => arch.id === id);
+		if (architecture) return architecture;
+
+		return null;
+	}
+
+	// Helper function to determine entity type for DiagramNode
+	function getEntityTypeFromEntity(entity: Requirement | Task | ArchitectureDecision): string {
+		if ('current_state' in entity) return 'requirement';
+		if ('effort' in entity) return 'task';
+		return 'architecture';
+	}
 </script>
 
-<div class="flex flex-col h-full min-h-screen">
+<div class="flex flex-col h-full">
 	<!-- Header Controls -->
 	<div
 		class="flex items-center justify-between p-4 border-b"
@@ -576,9 +596,6 @@
 				<LayoutControls
 					{layoutMode}
 					on:layoutChange={(e) => handleLayoutChange(e.detail)}
-					on:zoomIn={handleZoomIn}
-					on:zoomOut={handleZoomOut}
-					on:resetView={handleResetView}
 				/>
 
 				<div class="flex items-center space-x-4 text-sm" style="color: {$currentTheme.base.muted};">
@@ -631,13 +648,61 @@
 						</div>
 					</div>
 				{:else}
-					<DiagramRenderer
-						bind:this={diagramRenderer}
-						data={filteredData}
-						{layoutMode}
-						{visibleEntityTypes}
-						on:nodeClick={handleNodeClick}
-					/>
+					{#if $featureFlags.useSvelteFlow}
+						<SvelteFlowVisualization
+							bind:this={svelteFlowVisualization}
+							data={filteredData}
+							{layoutMode}
+							{visibleEntityTypes}
+							on:nodeClick={handleNodeClick}
+							on:edgeClick={(event) => console.log('Edge clicked:', event.detail)}
+							on:relationshipCreate={(event) => {
+								if ($featureFlags.dragToConnectRelationships && !isOpeningRelationshipEditor) {
+									isOpeningRelationshipEditor = true;
+
+									// Find the actual nodes from the filtered data to create proper DiagramNode objects
+									const sourceEntity = findEntityById(event.detail.source);
+									const targetEntity = findEntityById(event.detail.target);
+
+									if (sourceEntity && targetEntity) {
+										// Create DiagramNode objects that RelationshipEditor expects
+										editingSourceNode = {
+											id: sourceEntity.id,
+											title: sourceEntity.title,
+											type: getEntityTypeFromEntity(sourceEntity)
+										};
+										editingTargetNode = {
+											id: targetEntity.id,
+											title: targetEntity.title,
+											type: getEntityTypeFromEntity(targetEntity)
+										};
+
+										// Add small delay to prevent immediate closure
+										setTimeout(() => {
+											showRelationshipEditor = true;
+											isOpeningRelationshipEditor = false;
+										}, 100);
+									} else {
+										console.warn('❌ Could not find entities for relationship:', {
+											sourceId: event.detail.source,
+											targetId: event.detail.target,
+											sourceEntity,
+											targetEntity
+										});
+										isOpeningRelationshipEditor = false;
+									}
+								}
+							}}
+						/>
+					{:else}
+						<DiagramRenderer
+							bind:this={diagramRenderer}
+							data={filteredData}
+							{layoutMode}
+							{visibleEntityTypes}
+							on:nodeClick={handleNodeClick}
+						/>
+					{/if}
 				{/if}
 			</div>
 		</div>

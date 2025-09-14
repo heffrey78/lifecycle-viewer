@@ -647,22 +647,104 @@ export class LifecycleMCPClient {
 		type: string
 	): Promise<MCPResponse<{ id: string }>> {
 		try {
-			// In the lifecycle-mcp system, relationships are created implicitly through entity creation
-			// For visualization purposes, we'll return success since relationships are managed
-			// automatically when entities are created with requirement_ids, parent_task_id, etc.
+			console.log('Creating relationship:', { sourceId, targetId, type });
 
-			console.log('Relationship creation requested:', { sourceId, targetId, type });
-			console.log(
-				'Note: Relationships are managed implicitly through entity creation in lifecycle-mcp'
-			);
+			// Use the new relationship handler from lifecycle-mcp
+			const result = await this.sendRequest('create_relationship', {
+				source_id: sourceId,
+				target_id: targetId,
+				relationship_type: type
+			});
 
-			// Simulate relationship creation for visualization feedback
-			const relationshipId = `${sourceId}-${targetId}-${type}`;
+			console.log('Raw create_relationship response:', result);
 
-			return {
-				success: true,
-				data: { id: relationshipId }
-			};
+			// Handle MCP server response structure
+			if (result && typeof result === 'object' && 'content' in result) {
+				const content = (result as any).content;
+				if (Array.isArray(content) && content.length > 0) {
+					const responseText = content[0]?.text || '';
+					if (responseText.includes('success') || responseText.includes('created')) {
+						return {
+							success: true,
+							data: { id: `${sourceId}-${targetId}-${type}` }
+						};
+					} else {
+						return { success: false, error: responseText };
+					}
+				}
+			}
+
+			// Fallback for unexpected response format
+			return { success: false, error: 'Unexpected response format from server' };
+		} catch (error) {
+			console.error('Error in createRelationship:', error);
+			return { success: false, error: this.extractErrorMessage(error) };
+		}
+	}
+
+	async getAllRelationships(): Promise<MCPResponse<any[]>> {
+		try {
+			const result = await this.sendRequest('query_all_relationships', {});
+
+			console.log('Raw getAllRelationships response:', result);
+
+			// Handle MCP server response structure
+			if (result && typeof result === 'object' && 'content' in result) {
+				const content = (result as any).content;
+				if (Array.isArray(content) && content.length > 0) {
+					const responseText = content[0]?.text || '';
+
+					// Parse JSON from the result content
+					if (responseText.includes('```json')) {
+						const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+						if (jsonMatch) {
+							const relationships = JSON.parse(jsonMatch[1]);
+							return { success: true, data: relationships };
+						}
+					}
+
+					// Handle plain JSON response
+					if (responseText.startsWith('[') || responseText.startsWith('{')) {
+						try {
+							const relationships = JSON.parse(responseText);
+							return { success: true, data: Array.isArray(relationships) ? relationships : [relationships] };
+						} catch (parseError) {
+							console.warn('Failed to parse relationships JSON:', parseError);
+						}
+					}
+				}
+				return { success: true, data: [] };
+			}
+
+			// Fallback for unexpected response format
+			return { success: false, error: 'Unexpected response format from server' };
+		} catch (error) {
+			return { success: false, error: this.extractErrorMessage(error) };
+		}
+	}
+
+	async deleteRelationship(sourceId: string, targetId: string, type?: string): Promise<MCPResponse<boolean>> {
+		try {
+			const result = await this.sendRequest('delete_relationship', {
+				source_id: sourceId,
+				target_id: targetId,
+				relationship_type: type
+			});
+
+			console.log('Raw deleteRelationship response:', result);
+
+			// Handle MCP server response structure
+			if (result && typeof result === 'object' && 'content' in result) {
+				const content = (result as any).content;
+				if (Array.isArray(content) && content.length > 0) {
+					const responseText = content[0]?.text || '';
+					const success = responseText.includes('success') || responseText.includes('deleted');
+					return { success, data: success };
+				}
+			}
+
+			// Fallback for unexpected response format
+			return { success: false, error: 'Unexpected response format from server' };
 		} catch (error) {
 			return { success: false, error: this.extractErrorMessage(error) };
 		}
@@ -707,18 +789,6 @@ export class LifecycleMCPClient {
 		}
 	}
 
-	async deleteRelationship(relationshipId: string): Promise<MCPResponse<boolean>> {
-		try {
-			console.log('Deleting relationship:', { relationshipId });
-
-			// Simulate API delay
-			await this.delay(100);
-
-			return { success: true, data: true };
-		} catch (error) {
-			return { success: false, error: this.extractErrorMessage(error) };
-		}
-	}
 
 	// Get relationships from existing entity data structure
 	async getEntityRelationships(): Promise<

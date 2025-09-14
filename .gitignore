@@ -58,3 +58,8 @@ test-results/
 *.tmp
 *.temp
 .cache/
+
+# POC and temporary files
+POC-*.md
+performance-baseline.*
+poc-*.*

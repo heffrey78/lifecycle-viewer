@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Database, FolderOpen, Save, AlertCircle, CheckCircle } from 'lucide-svelte';
+	import { Database, FolderOpen, Save, AlertCircle, CheckCircle, Settings } from 'lucide-svelte';
 	import { mcpClient } from '$lib/services/lifecycle-mcp-client.js';
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
+	import FeatureFlagAdmin from '$lib/components/FeatureFlagAdmin.svelte';
 
 	let currentDatabase = '';
 	let selectedDatabase = '';
@@ -223,6 +224,17 @@
 					<li>• All requirements, tasks, and architecture decisions are project-specific</li>
 					<li>• The file must exist and be a valid SQLite database</li>
 				</ul>
+			</div>
+		</div>
+
+		<!-- Feature Flags Section -->
+		<div class="mt-8">
+			<h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+				<Settings class="w-5 h-5 mr-2" />
+				Feature Flags
+			</h2>
+			<div class="border border-gray-200 rounded-lg p-4">
+				<FeatureFlagAdmin />
 			</div>
 		</div>
 	</div>
