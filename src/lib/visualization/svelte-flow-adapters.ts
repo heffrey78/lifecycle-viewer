@@ -30,6 +30,14 @@ function getEntityType(entity: Requirement | Task | ArchitectureDecision): Entit
 	return 'architecture';
 }
 
+// Entity type detection from ID
+function getEntityTypeFromId(entityId: string): EntityType {
+	if (entityId.startsWith('REQ-')) return 'requirement';
+	if (entityId.startsWith('TASK-')) return 'task';
+	if (entityId.startsWith('ADR-') || entityId.startsWith('TDD-')) return 'architecture';
+	return 'requirement'; // default fallback
+}
+
 // Node position calculation for different layout modes
 export function calculateNodePosition(
 	entity: Requirement | Task | ArchitectureDecision,
@@ -214,6 +222,7 @@ export function buildSvelteFlowGraph(
 		requirements: Requirement[];
 		tasks: Task[];
 		architectureDecisions: ArchitectureDecision[];
+		relationships?: any[];
 	},
 	layoutMode: 'network' | 'hierarchy' | 'timeline' | 'roadmap' = 'network',
 	visibleEntityTypes: Set<'requirements' | 'tasks' | 'architecture'> = new Set(['requirements', 'tasks', 'architecture'])
@@ -259,23 +268,27 @@ export function buildSvelteFlowGraph(
 		});
 	}
 
-	// Create edges based on actual relationships from MCP data
-	// Tasks contain requirement_ids that link them to requirements
-	if (visibleEntityTypes.has('requirements') && visibleEntityTypes.has('tasks')) {
-		data.tasks.forEach((task) => {
-			// Check if task has requirement relationships
-			// Note: The MCP system stores relationships, but we need to extract them from the entity data
-			// For now, we'll need to implement a proper relationship extraction method
-			// TODO: Implement proper relationship data fetching from MCP trace methods
-		});
-	}
+	// Create edges based on relationships from unified relationships table
+	if (data.relationships && Array.isArray(data.relationships)) {
+		data.relationships.forEach((relationship) => {
+			const sourceId = relationship.source || relationship.source_id;
+			const targetId = relationship.target || relationship.target_id;
+			const relType = relationship.type || relationship.relationship_type;
 
-	// Parent-child task relationships
-	if (visibleEntityTypes.has('tasks')) {
-		data.tasks.forEach((task) => {
-			if (task.parent_task_id) {
-				// Create edge from parent task to child task
-				edges.push(transformToSvelteFlowEdge(task.parent_task_id, task.id, 'depends'));
+			// Only create edges for visible entity types
+			const sourceEntityType = getEntityTypeFromId(sourceId);
+			const targetEntityType = getEntityTypeFromId(targetId);
+
+			const sourceVisible = (sourceEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
+								 (sourceEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
+								 (sourceEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
+
+			const targetVisible = (targetEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
+								 (targetEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
+								 (targetEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
+
+			if (sourceVisible && targetVisible && sourceId && targetId && relType) {
+				edges.push(transformToSvelteFlowEdge(sourceId, targetId, relType));
 			}
 		});
 	}

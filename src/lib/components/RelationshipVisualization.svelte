@@ -16,6 +16,8 @@
 	export let tasks: Task[] = [];
 	export let architectureDecisions: ArchitectureDecision[] = [];
 
+	let relationships: any[] = [];
+
 	const mcpClient = new LifecycleMCPClient();
 
 	type LayoutMode = 'network' | 'hierarchy' | 'timeline' | 'roadmap';
@@ -33,10 +35,12 @@
 		requirements: Requirement[];
 		tasks: Task[];
 		architectureDecisions: ArchitectureDecision[];
+		relationships: any[];
 	} = {
 		requirements: [],
 		tasks: [],
-		architectureDecisions: []
+		architectureDecisions: [],
+		relationships: []
 	};
 
 	let isLoading = true;
@@ -91,10 +95,11 @@
 			// Load data from MCP client
 			await mcpClient.connect();
 
-			const [reqResponse, taskResponse, archResponse] = await Promise.all([
+			const [reqResponse, taskResponse, archResponse, relationshipsResponse] = await Promise.all([
 				mcpClient.getRequirementsJson(),
 				mcpClient.getTasksJson(),
-				mcpClient.getArchitectureDecisionsJson()
+				mcpClient.getArchitectureDecisionsJson(),
+				mcpClient.getAllRelationships()
 			]);
 
 			// Ensure we always have arrays, even if the response is empty or malformed
@@ -119,10 +124,18 @@
 				architectureDecisions = [];
 			}
 
+			if (relationshipsResponse.success && Array.isArray(relationshipsResponse.data)) {
+				relationships = relationshipsResponse.data;
+			} else {
+				console.warn('Relationships data is not an array:', relationshipsResponse);
+				relationships = [];
+			}
+
 			console.log('Loaded data:', {
 				requirements: requirements.length,
 				tasks: tasks.length,
-				architectureDecisions: architectureDecisions.length
+				architectureDecisions: architectureDecisions.length,
+				relationships: relationships.length
 			});
 
 			// Clear any previous errors on successful load
@@ -147,12 +160,14 @@
 		priorityFilters ||
 		requirements ||
 		tasks ||
-		architectureDecisions
+		architectureDecisions ||
+		relationships
 	) {
 		filteredData = {
 			requirements: filterRequirements(requirements),
 			tasks: filterTasks(tasks),
-			architectureDecisions: filterArchitectureDecisions(architectureDecisions)
+			architectureDecisions: filterArchitectureDecisions(architectureDecisions),
+			relationships: relationships || []
 		};
 	}
 

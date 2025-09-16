@@ -12,6 +12,7 @@
 		requirements: Requirement[];
 		tasks: Task[];
 		architectureDecisions: ArchitectureDecision[];
+		relationships?: any[];
 	};
 	export let layoutMode: 'network' | 'hierarchy' | 'timeline' | 'roadmap';
 	export let visibleEntityTypes: Set<'requirements' | 'tasks' | 'architecture'>;
