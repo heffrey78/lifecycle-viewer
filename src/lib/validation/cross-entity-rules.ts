@@ -8,15 +8,31 @@ export const crossEntityRules = {
 	/**
 	 * Validate that requirements exist and are in proper state for task creation
 	 */
-	validateRequirementForTask: async (requirementIds: string[]): Promise<string | null> => {
-		if (!mcpClient.isConnected()) {
-			console.warn('MCP client not connected, skipping requirement validation');
-			return null;
-		}
-
+	validateRequirementForTask: async (requirementIds: string[], context?: any): Promise<string | null> => {
 		try {
+			const validStates = ['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'];
 			const invalidRequirements = [];
 			const notFoundRequirements = [];
+
+		// If we have requirements in context, use those instead of making API calls
+		if (context?.availableRequirements && Array.isArray(context.availableRequirements)) {
+			for (const id of requirementIds) {
+				const requirement = context.availableRequirements.find((req: any) => req.id === id);
+				if (!requirement) {
+					notFoundRequirements.push(id);
+					continue;
+				}
+
+				if (!validStates.includes(requirement.status)) {
+					invalidRequirements.push(`${requirement.title} (${requirement.status})`);
+				}
+			}
+		} else {
+			// Fallback to API calls if no context data available
+			if (!mcpClient.isConnected()) {
+				console.warn('MCP client not connected, skipping requirement validation');
+				return null;
+			}
 
 			for (const id of requirementIds) {
 				const result = await mcpClient.getRequirementDetails(id);
@@ -26,23 +42,22 @@ export const crossEntityRules = {
 				}
 
 				const requirement = result.data;
-				const validStates = ['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'];
-
 				if (!validStates.includes(requirement.status)) {
 					invalidRequirements.push(`${requirement.title} (${requirement.status})`);
 				}
 			}
+		}
 
-			// Return specific error messages
-			if (notFoundRequirements.length > 0) {
-				return `Requirements not found: ${notFoundRequirements.join(', ')}`;
-			}
+		// Return specific error messages
+		if (notFoundRequirements.length > 0) {
+			return `Requirements not found: ${notFoundRequirements.join(', ')}`;
+		}
 
-			if (invalidRequirements.length > 0) {
-				return `Cannot create tasks for requirements in invalid states: ${invalidRequirements.join(', ')}. Requirements must be Approved or later.`;
-			}
+		if (invalidRequirements.length > 0) {
+			return `Cannot create tasks for requirements in invalid states: ${invalidRequirements.join(', ')}. Requirements must be Approved or later.`;
+		}
 
-			return null;
+		return null;
 		} catch (error) {
 			console.warn('Requirement validation failed:', error);
 			return null; // Graceful degradation

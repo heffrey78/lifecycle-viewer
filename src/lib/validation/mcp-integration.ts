@@ -61,7 +61,7 @@ export class MCPValidationService {
 
 			// Requirement status validation for task creation
 			if (fieldName === 'requirement_ids' && Array.isArray(value) && value.length > 0) {
-				result = await this.crossEntityRules.validateRequirementForTask(value);
+				result = await this.crossEntityRules.validateRequirementForTask(value, context);
 			}
 
 			// Priority validation for proper values
@@ -103,15 +103,15 @@ export class MCPValidationService {
 			switch (entityType) {
 				case 'requirement':
 					const reqResult = await mcpClient.getRequirements();
-					existingEntities = reqResult.success ? reqResult.data : [];
+					existingEntities = reqResult.success && Array.isArray(reqResult.data) ? reqResult.data : [];
 					break;
 				case 'task':
 					const taskResult = await mcpClient.getTasks();
-					existingEntities = taskResult.success ? taskResult.data : [];
+					existingEntities = taskResult.success && Array.isArray(taskResult.data) ? taskResult.data : [];
 					break;
 				case 'architecture':
 					const archResult = await mcpClient.getArchitectureDecisions();
-					existingEntities = archResult.success ? archResult.data : [];
+					existingEntities = archResult.success && Array.isArray(archResult.data) ? archResult.data : [];
 					break;
 			}
 

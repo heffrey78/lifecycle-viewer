@@ -558,6 +558,40 @@
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-6">
+	<!-- MCP Connection Status (when enabled) -->
+	{#if enableMcpIntegration}
+		<div class="mb-4">
+			<div class="flex items-center space-x-2 text-sm">
+				<div class="flex items-center space-x-1">
+					{#if connectionStatus === 'checking'}
+						<div class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"></div>
+						<span class="text-gray-600">Checking connection...</span>
+					{:else if connectionStatus === 'connected'}
+						<div class="h-3 w-3 bg-green-500 rounded-full"></div>
+						<span class="text-green-600">Connected to MCP Server</span>
+					{:else}
+						<div class="h-3 w-3 bg-red-500 rounded-full"></div>
+						<span class="text-red-600">Disconnected from MCP Server</span>
+						<button
+							onclick={async () => {
+								connectionStatus = 'checking';
+								try {
+									const isConnected = await requirementCreationService.checkConnection();
+									connectionStatus = isConnected ? 'connected' : 'disconnected';
+								} catch (error) {
+									connectionStatus = 'disconnected';
+								}
+							}}
+							class="ml-2 text-blue-600 hover:text-blue-800 underline"
+						>
+							Retry
+						</button>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<!-- Requirement Type Selection -->
 	<div class="space-y-2">
 		<label
@@ -1355,29 +1389,9 @@
 		{/if}
 	</div>
 
-	<!-- MCP Connection Status (when enabled) -->
+	<!-- Submission Feedback (when MCP integration enabled) -->
 	{#if enableMcpIntegration}
-		<div class="space-y-3 pt-4 border-t" style="border-color: {$currentTheme.base.border};">
-			<div class="flex items-center gap-2 text-sm">
-				<span style="color: {$currentTheme.base.muted};">Server Status:</span>
-				{#if connectionStatus === 'checking'}
-					<div class="flex items-center gap-2">
-						<div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-						<span class="text-yellow-600">Checking connection...</span>
-					</div>
-				{:else if connectionStatus === 'connected'}
-					<div class="flex items-center gap-2">
-						<div class="w-2 h-2 bg-green-500 rounded-full"></div>
-						<span class="text-green-600">Connected</span>
-					</div>
-				{:else}
-					<div class="flex items-center gap-2">
-						<div class="w-2 h-2 bg-red-500 rounded-full"></div>
-						<span class="text-red-600">Disconnected</span>
-					</div>
-				{/if}
-			</div>
-
+		<div class="space-y-3">
 			<!-- Optimistic Creation Feedback -->
 			{#if optimisticRequirement && isSubmitting}
 				<div class="p-3 bg-blue-50 border border-blue-200 rounded-md">

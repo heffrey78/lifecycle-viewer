@@ -43,6 +43,13 @@ export class FormValidator {
 	}
 
 	/**
+	 * Update the validation context with new data
+	 */
+	updateContext(newContext: ValidationContext): void {
+		this.context = { ...this.context, ...newContext };
+	}
+
+	/**
 	 * Validate a single field value
 	 */
 	async validateField(

@@ -1,18 +1,22 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import Modal from './Modal.svelte';
-	import { AlertTriangle } from 'lucide-svelte';
+	import TaskForm from './TaskForm.svelte';
+	import type { TaskFormData, Task } from '$lib/types/lifecycle';
 
 	interface Props {
 		isOpen?: boolean;
 		isSubmitting?: boolean;
+		initialData?: Partial<TaskFormData>;
 	}
 
-	let { isOpen = false, isSubmitting = false }: Props = $props();
+	let { isOpen = false, isSubmitting = false, initialData = {} }: Props = $props();
 
 	const dispatch = createEventDispatcher<{
 		close: void;
-		create: any; // Will be TaskFormData when TaskForm is implemented
+		create: TaskFormData;
+		success: { task: Task; message: string };
+		error: { error: string; isRetryable: boolean };
 	}>();
 
 	function handleClose() {
@@ -24,32 +28,40 @@
 	function handleCancel() {
 		handleClose();
 	}
+
+	function handleSubmit(event: CustomEvent<TaskFormData>) {
+		dispatch('create', event.detail);
+	}
+
+	function handleSuccess(event: CustomEvent<{ task: Task; message: string }>) {
+		dispatch('success', event.detail);
+		// Close modal after successful creation
+		setTimeout(() => handleClose(), 1500);
+	}
+
+	function handleError(event: CustomEvent<{ error: string; isRetryable: boolean }>) {
+		dispatch('error', event.detail);
+	}
 </script>
 
 <Modal
 	{isOpen}
 	title="Create New Task"
-	size="md"
+	size="lg"
 	closeOnBackdrop={!isSubmitting}
 	closeOnEscape={!isSubmitting}
 	showCloseButton={!isSubmitting}
 	on:close={handleClose}
 >
-	<div class="flex flex-col items-center justify-center p-8 text-center">
-		<AlertTriangle class="w-16 h-16 text-yellow-500 mb-4" />
-		<h3 class="text-lg font-semibold text-gray-900 mb-2">Task Form Not Yet Implemented</h3>
-		<p class="text-gray-600 mb-6">
-			The task creation form is coming soon! This feature will be available once TASK-0008-00-00
-			(Implement Task Creation Form) is completed.
-		</p>
-		<div class="flex gap-3">
-			<button
-				type="button"
-				onclick={handleCancel}
-				class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-			>
-				Close
-			</button>
-		</div>
+	<div class="p-6">
+		<TaskForm
+			{initialData}
+			enableMcpIntegration={true}
+			{isSubmitting}
+			on:submit={handleSubmit}
+			on:cancel={handleCancel}
+			on:success={handleSuccess}
+			on:error={handleError}
+		/>
 	</div>
 </Modal>

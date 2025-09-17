@@ -192,6 +192,16 @@
 		}
 	}
 
+	async function handleTaskSuccess(event: CustomEvent<{ task: Task; message: string }>): Promise<void> {
+		try {
+			// Refresh the task list to show the new task
+			await refreshTasks();
+			closeModal();
+		} catch (error) {
+			console.error('Failed to refresh tasks after creation:', error);
+		}
+	}
+
 	async function refreshTasks(): Promise<void> {
 		try {
 			const response = await mcpClient.tasks.getTasksJson();
@@ -464,4 +474,5 @@
 	{isSubmitting}
 	on:close={closeModal}
 	on:create={handleCreateTask}
+	on:success={handleTaskSuccess}
 />

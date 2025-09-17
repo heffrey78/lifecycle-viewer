@@ -280,6 +280,17 @@ export interface RequirementFormData {
 	author?: string;
 }
 
+export interface TaskFormData {
+	title: string;
+	priority: Priority;
+	effort?: EffortSize;
+	user_story?: string;
+	acceptance_criteria?: string[];
+	assignee?: string;
+	requirement_ids: string[];
+	parent_task_id?: string;
+}
+
 export interface CreateRequirementParams {
 	type: RequirementType;
 	title: string;

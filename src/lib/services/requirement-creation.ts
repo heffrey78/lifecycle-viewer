@@ -1,7 +1,7 @@
 // Service layer for requirement creation with MCP integration
 // Handles data transformation, error handling, and retry logic
 
-import { mcpClient } from './lifecycle-mcp-client.js';
+import { mcpClient } from './mcp-client.js';
 import type {
 	RequirementFormData,
 	CreateRequirementParams,

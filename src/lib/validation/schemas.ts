@@ -180,8 +180,10 @@ export const taskSchema: ValidationSchema = {
 		required: false,
 		custom: (value: string[]) => {
 			if (value && Array.isArray(value)) {
-				for (const criteria of value) {
-					if (typeof criteria !== 'string' || criteria.length < 5) {
+				// Filter out empty strings to allow for user interaction
+				const nonEmptyCriteria = value.filter(criteria => criteria && criteria.trim() !== '');
+				for (const criteria of nonEmptyCriteria) {
+					if (typeof criteria !== 'string' || criteria.trim().length < 5) {
 						return 'Each acceptance criterion must be at least 5 characters';
 					}
 				}
@@ -196,9 +198,23 @@ export const taskSchema: ValidationSchema = {
 				return 'At least one requirement must be selected';
 			}
 			for (const id of value) {
-				if (!id.match(/^REQ-\d{4}-[A-Z]{2,4}-\d{2}$/)) {
+				if (!id.match(/^REQ-\d{4}-[A-Z]{2,5}-\d{2}$/)) {
 					return 'Invalid requirement ID format (expected: REQ-XXXX-TYPE-XX)';
 				}
+			}
+			return null;
+		}
+	},
+	parent_task_id: {
+		required: false,
+		custom: (value: string | undefined) => {
+			// Empty string, undefined, or null is valid (no parent task)
+			if (!value || value === '' || value === undefined || value === null) {
+				return null;
+			}
+			// If a value is provided, it should be a valid task ID format
+			if (!value.match(/^TASK-\d{4}-\d{2}-\d{2}$/)) {
+				return 'Invalid task ID format (expected: TASK-XXXX-XX-XX)';
 			}
 			return null;
 		}
@@ -288,7 +304,7 @@ export const architectureSchema: ValidationSchema = {
 				return 'At least one requirement must be linked';
 			}
 			for (const id of value) {
-				if (!id.match(/^REQ-\d{4}-[A-Z]{2,4}-\d{2}$/)) {
+				if (!id.match(/^REQ-\d{4}-[A-Z]{2,5}-\d{2}$/)) {
 					return 'Invalid requirement ID format (expected: REQ-XXXX-TYPE-XX)';
 				}
 			}

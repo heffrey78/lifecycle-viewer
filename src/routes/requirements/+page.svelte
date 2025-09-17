@@ -34,12 +34,14 @@
 	let typeFilter: RequirementType | '' = '';
 	let priorityFilter: Priority | '' = '';
 
+
 	onMount(async () => {
 		try {
 			// Connect to MCP server if not already connected
 			if (!mcpClient.isConnected()) {
 				await mcpClient.connect();
 			}
+
 
 			const response = await mcpClient.requirements.getRequirementsJson();
 			if (response.success) {
@@ -51,6 +53,7 @@
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 			requirements = [];
+			connectionStatus = 'disconnected';
 			// filteredRequirements will be automatically updated by the reactive statement
 		} finally {
 			loading = false;
@@ -198,6 +201,7 @@
 </svelte:head>
 
 <div class="space-y-6">
+
 	<!-- Header with Actions -->
 	<div class="flex items-center justify-between">
 		<div>
