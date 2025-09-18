@@ -12,6 +12,9 @@
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
 	import RequirementFormModal from '$lib/components/RequirementFormModal.svelte';
+	import EntityDetailModal from '$lib/components/EntityDetailModal.svelte';
+	import EntityEditModal from '$lib/components/EntityEditModal.svelte';
+	import ConfirmationDialog from '$lib/components/ConfirmationDialog.svelte';
 	import {
 		currentTheme,
 		getStatusColorClasses,
@@ -19,20 +22,24 @@
 		getRiskColorClasses
 	} from '$lib/theme';
 
-	let requirements: Requirement[] = [];
-	let filteredRequirements: Requirement[] = [];
-	let loading = true;
-	let error = '';
+	let requirements = $state<Requirement[]>([]);
+	let loading = $state(true);
+	let error = $state('');
 
 	// Modal state
-	let isModalOpen = false;
-	let isSubmitting = false;
+	let isModalOpen = $state(false);
+	let isSubmitting = $state(false);
+
+	// Entity operation modals
+	let viewModal = $state({ isOpen: false, entityId: '' });
+	let editModal = $state({ isOpen: false, entity: null as Requirement | null });
+	let deleteModal = $state({ isOpen: false, entityId: '', entityTitle: '' });
 
 	// Filters
-	let searchText = '';
-	let statusFilter: RequirementStatus | '' = '';
-	let typeFilter: RequirementType | '' = '';
-	let priorityFilter: Priority | '' = '';
+	let searchText = $state('');
+	let statusFilter = $state<RequirementStatus | ''>('');
+	let typeFilter = $state<RequirementType | ''>('');
+	let priorityFilter = $state<Priority | ''>('');
 
 
 	onMount(async () => {
@@ -60,8 +67,8 @@
 		}
 	});
 
-	// Filter requirements based on current filters - explicitly list dependencies to ensure reactivity
-	$: filteredRequirements = requirements.filter((req) => {
+	// Filter requirements based on current filters using $derived
+	const filteredRequirements = $derived(requirements.filter((req) => {
 		const matchesSearch =
 			!searchText ||
 			req.title.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -73,12 +80,12 @@
 		const matchesPriority = !priorityFilter || req.priority === priorityFilter;
 
 		return matchesSearch && matchesStatus && matchesType && matchesPriority;
-	});
+	}));
 
 	// Theme-aware color functions using centralized theme system
-	$: getStatusColor = (status: RequirementStatus) => getStatusColorClasses(status, $currentTheme);
-	$: getPriorityColor = (priority: Priority) => getPriorityColorClasses(priority, $currentTheme);
-	$: getRiskColor = (risk: string) => getRiskColorClasses(risk as any, $currentTheme);
+	const getStatusColor = $derived((status: RequirementStatus) => getStatusColorClasses(status, $currentTheme));
+	const getPriorityColor = $derived((priority: Priority) => getPriorityColorClasses(priority, $currentTheme));
+	const getRiskColor = $derived((risk: string) => getRiskColorClasses(risk as any, $currentTheme));
 
 	function getCompletionPercentage(req: Requirement): number {
 		if (req.task_count === 0) return 0;
@@ -134,14 +141,14 @@
 	}
 
 	async function viewRequirement(id: string): Promise<void> {
-		// Navigate to requirement detail view
-		// This would be implemented with SvelteKit routing
-		console.log('Viewing requirement:', id);
+		viewModal = { isOpen: true, entityId: id };
 	}
 
 	async function editRequirement(id: string): Promise<void> {
-		// Navigate to requirement edit form
-		console.log('Editing requirement:', id);
+		const requirement = requirements.find(r => r.id === id);
+		if (requirement) {
+			editModal = { isOpen: true, entity: requirement };
+		}
 	}
 
 	// Modal handlers
@@ -181,9 +188,13 @@
 	}
 
 	async function deleteRequirement(id: string): Promise<void> {
-		if (confirm('Are you sure you want to delete this requirement?')) {
-			// Implement delete functionality
-			console.log('Deleting requirement:', id);
+		const requirement = requirements.find(r => r.id === id);
+		if (requirement) {
+			deleteModal = {
+				isOpen: true,
+				entityId: id,
+				entityTitle: requirement.title
+			};
 		}
 	}
 
@@ -193,6 +204,57 @@
 		// Refresh the requirements list when a new requirement is successfully created
 		await refreshRequirements();
 		closeModal();
+	}
+
+	// Entity modal handlers
+	function handleViewClose() {
+		viewModal = { isOpen: false, entityId: '' };
+	}
+
+	function handleEditFromView(event: CustomEvent<{ entityType: string; entityId: string }>) {
+		// Close view modal and open edit modal
+		viewModal = { isOpen: false, entityId: '' };
+		const requirement = requirements.find(r => r.id === event.detail.entityId);
+		if (requirement) {
+			editModal = { isOpen: true, entity: requirement };
+		}
+	}
+
+	function handleDeleteFromView(event: CustomEvent<{ entityType: string; entityId: string }>) {
+		// Close view modal and open delete modal
+		viewModal = { isOpen: false, entityId: '' };
+		const requirement = requirements.find(r => r.id === event.detail.entityId);
+		if (requirement) {
+			deleteModal = {
+				isOpen: true,
+				entityId: event.detail.entityId,
+				entityTitle: requirement.title
+			};
+		}
+	}
+
+	function handleEditClose() {
+		editModal = { isOpen: false, entity: null };
+	}
+
+	async function handleEditSuccess(event: CustomEvent<{ entity: Requirement; message: string }>) {
+		console.log('Requirement updated:', event.detail);
+		editModal = { isOpen: false, entity: null };
+		await refreshRequirements();
+	}
+
+	function handleDeleteClose() {
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
+	}
+
+	function handleDeleteConfirm() {
+		// Since delete operations aren't supported by MCP server, show informative message
+		alert(
+			'Delete operation is not currently supported by the lifecycle management system. ' +
+			'This feature may be added in a future version. ' +
+			'For now, you can update the requirement status to "Deprecated" instead.'
+		);
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
 </script>
 
@@ -465,4 +527,38 @@
 	on:close={closeModal}
 	on:create={handleCreateRequirement}
 	on:success={handleRequirementSuccess}
+/>
+
+<!-- Entity Detail Modal -->
+<EntityDetailModal
+	isOpen={viewModal.isOpen}
+	entityType="requirement"
+	entityId={viewModal.entityId}
+	on:close={handleViewClose}
+	on:edit={handleEditFromView}
+	on:delete={handleDeleteFromView}
+/>
+
+<!-- Entity Edit Modal -->
+{#if editModal.entity}
+	<EntityEditModal
+		isOpen={editModal.isOpen}
+		entityType="requirement"
+		entity={editModal.entity}
+		on:close={handleEditClose}
+		on:success={handleEditSuccess}
+	/>
+{/if}
+
+<!-- Delete Confirmation Modal -->
+<ConfirmationDialog
+	isOpen={deleteModal.isOpen}
+	title="Delete Not Supported"
+	message="Delete operations are not currently supported by the lifecycle management system. You can update the requirement status to 'Deprecated' instead."
+	confirmText="Understood"
+	cancelText="Close"
+	variant="info"
+	on:confirm={handleDeleteConfirm}
+	on:cancel={handleDeleteClose}
+	on:close={handleDeleteClose}
 />

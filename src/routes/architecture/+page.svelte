@@ -5,6 +5,9 @@
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
 	import ADRFormModal from '$lib/components/ADRFormModal.svelte';
+	import EntityDetailModal from '$lib/components/EntityDetailModal.svelte';
+	import EntityEditModal from '$lib/components/EntityEditModal.svelte';
+	import ConfirmationDialog from '$lib/components/ConfirmationDialog.svelte';
 	import { currentTheme, getArchitectureStatusColorClasses } from '$lib/theme';
 
 	let architectureDecisions = $state<any[]>([]);
@@ -12,6 +15,11 @@
 	let error = $state('');
 	let isModalOpen = $state(false);
 	let isSubmitting = $state(false);
+
+	// Entity operation modals
+	let viewModal = $state({ isOpen: false, entityId: '' });
+	let editModal = $state({ isOpen: false, entity: null as any });
+	let deleteModal = $state({ isOpen: false, entityId: '', entityTitle: '' });
 
 	// Filters
 	let searchText = $state('');
@@ -91,16 +99,20 @@
 	}
 
 	async function viewDecision(id: string): Promise<void> {
-		console.log('Viewing architecture decision:', id);
+		viewModal = { isOpen: true, entityId: id };
 	}
 
 	async function editDecision(id: string): Promise<void> {
-		console.log('Editing architecture decision:', id);
+		const decision = architectureDecisions.find(d => d.id === id);
+		if (decision) {
+			editModal = { isOpen: true, entity: decision };
+		}
 	}
 
 	async function deleteDecision(id: string): Promise<void> {
-		if (confirm('Are you sure you want to delete this architecture decision?')) {
-			console.log('Deleting architecture decision:', id);
+		const decision = architectureDecisions.find(d => d.id === id);
+		if (decision) {
+			deleteModal = { isOpen: true, entityId: id, entityTitle: decision.title };
 		}
 	}
 
@@ -162,6 +174,51 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	// Entity modal handlers
+	function handleViewModalClose(): void {
+		viewModal = { isOpen: false, entityId: '' };
+	}
+
+	function handleEditModalClose(): void {
+		editModal = { isOpen: false, entity: null };
+	}
+
+	function handleEditModalEdit(event: CustomEvent<{ entityType: string; entityId: string }>): void {
+		const decision = architectureDecisions.find(d => d.id === event.detail.entityId);
+		if (decision) {
+			viewModal = { isOpen: false, entityId: '' };
+			editModal = { isOpen: true, entity: decision };
+		}
+	}
+
+	function handleEditModalDelete(event: CustomEvent<{ entityType: string; entityId: string }>): void {
+		const decision = architectureDecisions.find(d => d.id === event.detail.entityId);
+		if (decision) {
+			viewModal = { isOpen: false, entityId: '' };
+			deleteModal = { isOpen: true, entityId: decision.id, entityTitle: decision.title };
+		}
+	}
+
+	async function handleEditModalSuccess(event: CustomEvent<{ entity: any; message: string }>): Promise<void> {
+		try {
+			await refreshDecisions();
+			editModal = { isOpen: false, entity: null };
+		} catch (error) {
+			console.error('Failed to refresh decisions after update:', error);
+		}
+	}
+
+	function handleDeleteModalClose(): void {
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
+	}
+
+	function handleDeleteModalConfirm(): void {
+		// Since delete operations are not supported by the MCP server,
+		// we show an informative message and suggest alternatives
+		alert('Delete operations are not supported by the lifecycle management system.\n\nTo remove an architecture decision from active use, consider:\n• Setting status to "Deprecated"\n• Moving to a "Superseded" state\n• Creating a new ADR that supersedes this one');
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
 </script>
 
@@ -367,4 +424,34 @@
 	on:create={handleCreateADR}
 	on:success={handleADRSuccess}
 	on:error={handleADRError}
+/>
+
+<!-- Entity Operation Modals -->
+<EntityDetailModal
+	isOpen={viewModal.isOpen}
+	entityType="architecture"
+	entityId={viewModal.entityId}
+	on:close={handleViewModalClose}
+	on:edit={handleEditModalEdit}
+	on:delete={handleEditModalDelete}
+/>
+
+<EntityEditModal
+	isOpen={editModal.isOpen}
+	entityType="architecture"
+	entity={editModal.entity}
+	on:close={handleEditModalClose}
+	on:success={handleEditModalSuccess}
+/>
+
+<ConfirmationDialog
+	isOpen={deleteModal.isOpen}
+	title="Delete Architecture Decision"
+	message="This operation is not supported by the lifecycle management system. Architecture decisions cannot be permanently deleted."
+	confirmText="Understood"
+	cancelText="Close"
+	variant="info"
+	on:close={handleDeleteModalClose}
+	on:cancel={handleDeleteModalClose}
+	on:confirm={handleDeleteModalConfirm}
 />

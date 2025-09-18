@@ -22,6 +22,9 @@
 	import ErrorNotification from '$lib/components/ErrorNotification.svelte';
 	import SortableTable from '$lib/components/SortableTable.svelte';
 	import TaskFormModal from '$lib/components/TaskFormModal.svelte';
+	import EntityDetailModal from '$lib/components/EntityDetailModal.svelte';
+	import EntityEditModal from '$lib/components/EntityEditModal.svelte';
+	import ConfirmationDialog from '$lib/components/ConfirmationDialog.svelte';
 	import {
 		currentTheme,
 		getTaskStatusColorClasses,
@@ -29,20 +32,24 @@
 		getEffortColorClasses
 	} from '$lib/theme';
 
-	let tasks: Task[] = [];
-	let filteredTasks: Task[] = [];
-	let loading = true;
-	let error = '';
+	let tasks = $state<Task[]>([]);
+	let loading = $state(true);
+	let error = $state('');
 
 	// Modal state
-	let isModalOpen = false;
-	let isSubmitting = false;
+	let isModalOpen = $state(false);
+	let isSubmitting = $state(false);
+
+	// Entity operation modals
+	let viewModal = $state({ isOpen: false, entityId: '' });
+	let editModal = $state({ isOpen: false, entity: null as Task | null });
+	let deleteModal = $state({ isOpen: false, entityId: '', entityTitle: '' });
 
 	// Filters
-	let searchText = '';
-	let statusFilter: TaskStatus | '' = '';
-	let priorityFilter: Priority | '' = '';
-	let assigneeFilter = '';
+	let searchText = $state('');
+	let statusFilter = $state<TaskStatus | ''>('');
+	let priorityFilter = $state<Priority | ''>('');
+	let assigneeFilter = $state('');
 
 	onMount(async () => {
 		try {
@@ -67,8 +74,8 @@
 		}
 	});
 
-	// Filter tasks based on current filters - explicitly list dependencies to ensure reactivity
-	$: filteredTasks = tasks.filter((task) => {
+	// Filter tasks based on current filters using $derived
+	const filteredTasks = $derived(tasks.filter((task) => {
 		const matchesSearch =
 			!searchText ||
 			task.title.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -80,12 +87,12 @@
 		const matchesAssignee = !assigneeFilter || task.assignee?.includes(assigneeFilter);
 
 		return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
-	});
+	}));
 
 	// Theme-aware color functions using centralized theme system
-	$: getStatusColor = (status: TaskStatus) => getTaskStatusColorClasses(status, $currentTheme);
-	$: getPriorityColor = (priority: Priority) => getPriorityColorClasses(priority, $currentTheme);
-	$: getEffortColor = (effort: EffortSize) => getEffortColorClasses(effort, $currentTheme);
+	const getStatusColor = $derived((status: TaskStatus) => getTaskStatusColorClasses(status, $currentTheme));
+	const getPriorityColor = $derived((priority: Priority) => getPriorityColorClasses(priority, $currentTheme));
+	const getEffortColor = $derived((effort: EffortSize) => getEffortColorClasses(effort, $currentTheme));
 
 	function formatAssignee(email?: string): string {
 		if (!email) return 'Unassigned';
@@ -152,19 +159,23 @@
 	];
 
 	// Get unique assignees for filter
-	$: uniqueAssignees = [...new Set(tasks.map((t) => t.assignee).filter(Boolean))];
+	const uniqueAssignees = $derived([...new Set(tasks.map((t) => t.assignee).filter(Boolean))]);
 
 	async function viewTask(id: string): Promise<void> {
-		console.log('Viewing task:', id);
+		viewModal = { isOpen: true, entityId: id };
 	}
 
 	async function editTask(id: string): Promise<void> {
-		console.log('Editing task:', id);
+		const task = tasks.find(t => t.id === id);
+		if (task) {
+			editModal = { isOpen: true, entity: task };
+		}
 	}
 
 	async function deleteTask(id: string): Promise<void> {
-		if (confirm('Are you sure you want to delete this task?')) {
-			console.log('Deleting task:', id);
+		const task = tasks.find(t => t.id === id);
+		if (task) {
+			deleteModal = { isOpen: true, entityId: id, entityTitle: task.title };
 		}
 	}
 
@@ -211,6 +222,51 @@
 		} catch (e) {
 			console.error('Failed to refresh tasks:', e);
 		}
+	}
+
+	// Entity modal handlers
+	function handleViewModalClose(): void {
+		viewModal = { isOpen: false, entityId: '' };
+	}
+
+	function handleEditModalClose(): void {
+		editModal = { isOpen: false, entity: null };
+	}
+
+	function handleEditModalEdit(event: CustomEvent<{ entityType: string; entityId: string }>): void {
+		const task = tasks.find(t => t.id === event.detail.entityId);
+		if (task) {
+			viewModal = { isOpen: false, entityId: '' };
+			editModal = { isOpen: true, entity: task };
+		}
+	}
+
+	function handleEditModalDelete(event: CustomEvent<{ entityType: string; entityId: string }>): void {
+		const task = tasks.find(t => t.id === event.detail.entityId);
+		if (task) {
+			viewModal = { isOpen: false, entityId: '' };
+			deleteModal = { isOpen: true, entityId: task.id, entityTitle: task.title };
+		}
+	}
+
+	async function handleEditModalSuccess(event: CustomEvent<{ entity: Task; message: string }>): Promise<void> {
+		try {
+			await refreshTasks();
+			editModal = { isOpen: false, entity: null };
+		} catch (error) {
+			console.error('Failed to refresh tasks after update:', error);
+		}
+	}
+
+	function handleDeleteModalClose(): void {
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
+	}
+
+	function handleDeleteModalConfirm(): void {
+		// Since delete operations are not supported by the MCP server,
+		// we show an informative message and suggest alternatives
+		alert('Delete operations are not supported by the lifecycle management system.\n\nTo remove a task from active work, consider:\n• Setting status to "Abandoned"\n• Moving to a "Deprecated" state if available\n• Archiving through external project management tools');
+		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
 </script>
 
@@ -475,4 +531,34 @@
 	on:close={closeModal}
 	on:create={handleCreateTask}
 	on:success={handleTaskSuccess}
+/>
+
+<!-- Entity Operation Modals -->
+<EntityDetailModal
+	isOpen={viewModal.isOpen}
+	entityType="task"
+	entityId={viewModal.entityId}
+	on:close={handleViewModalClose}
+	on:edit={handleEditModalEdit}
+	on:delete={handleEditModalDelete}
+/>
+
+<EntityEditModal
+	isOpen={editModal.isOpen}
+	entityType="task"
+	entity={editModal.entity}
+	on:close={handleEditModalClose}
+	on:success={handleEditModalSuccess}
+/>
+
+<ConfirmationDialog
+	isOpen={deleteModal.isOpen}
+	title="Delete Task"
+	message="This operation is not supported by the lifecycle management system. Tasks cannot be permanently deleted."
+	confirmText="Understood"
+	cancelText="Close"
+	variant="info"
+	on:close={handleDeleteModalClose}
+	on:cancel={handleDeleteModalClose}
+	on:confirm={handleDeleteModalConfirm}
 />
