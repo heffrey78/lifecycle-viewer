@@ -11,6 +11,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let isModalOpen = $state(false);
+	let isSubmitting = $state(false);
 
 	// Filters
 	let searchText = $state('');
@@ -108,15 +109,39 @@
 	}
 
 	function closeModal(): void {
-		isModalOpen = false;
+		if (!isSubmitting) {
+			isModalOpen = false;
+		}
 	}
 
 	async function handleCreateADR(event: CustomEvent<any>): Promise<void> {
-		console.log('Creating new ADR:', event.detail);
-		// TODO: Implement ADR creation when ADRForm is available
-		isModalOpen = false;
-		// Refresh the list when ADR creation is implemented
-		// await refreshDecisions();
+		isSubmitting = true;
+		try {
+			// The form will handle the actual creation via MCP
+			// This is a placeholder for any additional page-level logic
+			console.log('ADR creation initiated:', event.detail);
+		} catch (error) {
+			console.error('Failed to create ADR:', error);
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	async function handleADRSuccess(event: CustomEvent<{ adr: any; message: string }>): Promise<void> {
+		try {
+			console.log('ADR created successfully:', event.detail);
+			// Refresh the architecture decisions list
+			await refreshDecisions();
+			// Modal will close automatically via the ADRFormModal component
+		} catch (error) {
+			console.error('Failed to refresh decisions after creation:', error);
+		}
+	}
+
+	async function handleADRError(event: CustomEvent<{ error: string; isRetryable: boolean }>): Promise<void> {
+		console.error('ADR creation failed:', event.detail);
+		// Error is already handled by the form component
+		// Could add page-level error notification here if needed
 	}
 
 	async function refreshDecisions(): Promise<void> {
@@ -335,4 +360,11 @@
 </div>
 
 <!-- ADR Form Modal -->
-<ADRFormModal bind:isOpen={isModalOpen} on:close={closeModal} on:create={handleCreateADR} />
+<ADRFormModal
+	isOpen={isModalOpen}
+	{isSubmitting}
+	on:close={closeModal}
+	on:create={handleCreateADR}
+	on:success={handleADRSuccess}
+	on:error={handleADRError}
+/>

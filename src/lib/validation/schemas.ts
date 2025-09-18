@@ -310,6 +310,33 @@ export const architectureSchema: ValidationSchema = {
 			}
 			return null;
 		}
+	},
+	consequences: {
+		required: false,
+		custom: (value: { good?: string[]; bad?: string[]; neutral?: string[] }) => {
+			if (value && typeof value === 'object') {
+				const checkArray = (arr: string[] | undefined, type: string) => {
+					if (arr && Array.isArray(arr)) {
+						for (const item of arr) {
+							if (typeof item === 'string' && item.trim() && item.length < 5) {
+								return `Each ${type} consequence must be at least 5 characters`;
+							}
+						}
+					}
+					return null;
+				};
+
+				const goodError = checkArray(value.good, 'good');
+				if (goodError) return goodError;
+
+				const badError = checkArray(value.bad, 'bad');
+				if (badError) return badError;
+
+				const neutralError = checkArray(value.neutral, 'neutral');
+				if (neutralError) return neutralError;
+			}
+			return null;
+		}
 	}
 };
 

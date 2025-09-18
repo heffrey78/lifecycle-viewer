@@ -291,6 +291,22 @@ export interface TaskFormData {
 	parent_task_id?: string;
 }
 
+export interface ADRFormData {
+	type: ArchitectureType;
+	title: string;
+	context: string;
+	decision_outcome: string;
+	authors: string[];
+	decision_drivers?: string[];
+	considered_options?: string[];
+	consequences?: {
+		good?: string[];
+		bad?: string[];
+		neutral?: string[];
+	};
+	requirement_ids: string[];
+}
+
 export interface CreateRequirementParams {
 	type: RequirementType;
 	title: string;
