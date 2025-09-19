@@ -166,7 +166,7 @@
 	});
 </script>
 
-<div style="width: 100%; height: 500px;" class="relative">
+<div style="width: 100%; height: 100%;" class="relative">
 	{#if $featureFlags.useSvelteFlow}
 
 
