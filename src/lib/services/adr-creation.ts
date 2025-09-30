@@ -58,7 +58,7 @@ export class ADRCreationService {
 	 */
 	private sanitizeArray(arr: string[]): string[] {
 		if (!Array.isArray(arr)) return [];
-		return arr.map(item => this.sanitizeInput(item)).filter(item => item.length > 0);
+		return arr.map((item) => this.sanitizeInput(item)).filter((item) => item.length > 0);
 	}
 
 	/**
@@ -102,7 +102,7 @@ export class ADRCreationService {
 		}
 
 		// Validate considered options (minimum 2 for ADR)
-		const validOptions = formData.considered_options?.filter(option => option.trim()) || [];
+		const validOptions = formData.considered_options?.filter((option) => option.trim()) || [];
 		if (validOptions.length < 2) {
 			throw new Error('At least 2 considered options are required for ADR');
 		}
@@ -114,32 +114,42 @@ export class ADRCreationService {
 			type: formData.type,
 			context: this.sanitizeInput(formData.context),
 			decision: this.sanitizeInput(formData.decision_outcome),
-			authors: formData.authors.filter(author => author.trim()).map(author => author.trim()),
+			authors: formData.authors.filter((author) => author.trim()).map((author) => author.trim()),
 			decision_drivers: formData.decision_drivers?.length
 				? this.sanitizeArray(formData.decision_drivers)
 				: undefined,
 			considered_options: formData.considered_options?.length
 				? this.sanitizeArray(formData.considered_options)
 				: undefined,
-			consequences: formData.consequences ? {
-				good: formData.consequences.good?.length ? this.sanitizeArray(formData.consequences.good) : undefined,
-				bad: formData.consequences.bad?.length ? this.sanitizeArray(formData.consequences.bad) : undefined,
-				neutral: formData.consequences.neutral?.length ? this.sanitizeArray(formData.consequences.neutral) : undefined
-			} : undefined
+			consequences: formData.consequences
+				? {
+						good: formData.consequences.good?.length
+							? this.sanitizeArray(formData.consequences.good)
+							: undefined,
+						bad: formData.consequences.bad?.length
+							? this.sanitizeArray(formData.consequences.bad)
+							: undefined,
+						neutral: formData.consequences.neutral?.length
+							? this.sanitizeArray(formData.consequences.neutral)
+							: undefined
+					}
+				: undefined
 		};
 
 		// Remove undefined values
-		Object.keys(params).forEach(key => {
+		Object.keys(params).forEach((key) => {
 			if (params[key] === undefined) {
 				delete params[key];
 			}
 		});
 
 		// Clean up consequences object if all sub-arrays are undefined
-		if (params.consequences &&
+		if (
+			params.consequences &&
 			!params.consequences.good &&
 			!params.consequences.bad &&
-			!params.consequences.neutral) {
+			!params.consequences.neutral
+		) {
 			delete params.consequences;
 		}
 
@@ -152,7 +162,7 @@ export class ADRCreationService {
 	async checkConnection(): Promise<boolean> {
 		try {
 			// If not connected, try to connect first
-			if (!await mcpClient.isConnected()) {
+			if (!(await mcpClient.isConnected())) {
 				await mcpClient.connect();
 			}
 			return await mcpClient.isConnected();
@@ -168,7 +178,7 @@ export class ADRCreationService {
 	async getApprovedRequirements(): Promise<MCPResponse<Requirement[]>> {
 		try {
 			// Connect if not already connected
-			if (!await mcpClient.isConnected()) {
+			if (!(await mcpClient.isConnected())) {
 				await mcpClient.connect();
 			}
 
@@ -178,7 +188,7 @@ export class ADRCreationService {
 			if (response.success && response.data) {
 				// Filter for approved statuses client-side
 				const approvedStatuses = ['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'];
-				const filteredRequirements = response.data.filter(req =>
+				const filteredRequirements = response.data.filter((req) =>
 					approvedStatuses.includes(req.status)
 				);
 
@@ -212,7 +222,7 @@ export class ADRCreationService {
 			const now = Date.now();
 			if (now - this.lastSubmission < this.minInterval) {
 				const waitTime = this.minInterval - (now - this.lastSubmission);
-				await new Promise(resolve => setTimeout(resolve, waitTime));
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
 			}
 			this.lastSubmission = Date.now();
 		}
@@ -226,7 +236,7 @@ export class ADRCreationService {
 				const params = this.transformFormData(formData);
 
 				// Connect if not already connected
-				if (!await mcpClient.isConnected()) {
+				if (!(await mcpClient.isConnected())) {
 					await mcpClient.connect();
 				}
 
@@ -264,13 +274,14 @@ export class ADRCreationService {
 				// Wait before retry (exponential backoff)
 				if (attempt < maxAttempts) {
 					const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-					await new Promise(resolve => setTimeout(resolve, delay));
+					await new Promise((resolve) => setTimeout(resolve, delay));
 				}
 			}
 		}
 
 		// Determine if error is retryable
-		const isRetryable = lastError &&
+		const isRetryable =
+			lastError &&
 			!lastError.message.includes('validation') &&
 			!lastError.message.includes('required') &&
 			!lastError.message.includes('invalid') &&

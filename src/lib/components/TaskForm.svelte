@@ -82,7 +82,11 @@
 
 	// Priority options
 	const priorityOptions: { value: Priority; label: string; description: string }[] = [
-		{ value: 'P0', label: 'P0 - Critical', description: 'Critical/blocking issues requiring immediate attention' },
+		{
+			value: 'P0',
+			label: 'P0 - Critical',
+			description: 'Critical/blocking issues requiring immediate attention'
+		},
 		{ value: 'P1', label: 'P1 - High', description: 'High priority features and important fixes' },
 		{ value: 'P2', label: 'P2 - Medium', description: 'Standard features and improvements' },
 		{ value: 'P3', label: 'P3 - Low', description: 'Nice-to-have features and minor enhancements' }
@@ -100,12 +104,12 @@
 	// Computed properties
 	let isFormValid = $derived(
 		formValidationResult?.isValid &&
-		formData.title.trim().length > 0 &&
-		formData.requirement_ids.length > 0
+			formData.title.trim().length > 0 &&
+			formData.requirement_ids.length > 0
 	);
 
 	let hasValidationErrors = $derived(
-		Object.values(fieldValidationResults).some(result => !result.isValid)
+		Object.values(fieldValidationResults).some((result) => !result.isValid)
 	);
 
 	// Initialize form
@@ -231,7 +235,7 @@
 	// Requirement selection
 	function toggleRequirement(requirementId: string) {
 		if (formData.requirement_ids.includes(requirementId)) {
-			formData.requirement_ids = formData.requirement_ids.filter(id => id !== requirementId);
+			formData.requirement_ids = formData.requirement_ids.filter((id) => id !== requirementId);
 		} else {
 			formData.requirement_ids = [...formData.requirement_ids, requirementId];
 		}
@@ -369,7 +373,9 @@
 			<div class="flex items-center space-x-2 text-sm">
 				<div class="flex items-center space-x-1">
 					{#if connectionStatus === 'checking'}
-						<div class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"></div>
+						<div
+							class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"
+						></div>
 						<span class="text-gray-600">Checking connection...</span>
 					{:else if connectionStatus === 'connected'}
 						<div class="h-3 w-3 bg-green-500 rounded-full"></div>
@@ -389,7 +395,11 @@
 			<div class="flex">
 				<div class="flex-shrink-0">
 					<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+						<path
+							fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+							clip-rule="evenodd"
+						/>
 					</svg>
 				</div>
 				<div class="ml-3">
@@ -405,13 +415,19 @@
 			<div class="flex">
 				<div class="flex-shrink-0">
 					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+						<path
+							fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+							clip-rule="evenodd"
+						/>
 					</svg>
 				</div>
 				<div class="ml-3">
 					<p class="text-sm text-red-800">{submitError}</p>
 					{#if isRetryable}
-						<p class="text-xs text-red-600 mt-1">Please try again. If the problem persists, check your connection.</p>
+						<p class="text-xs text-red-600 mt-1">
+							Please try again. If the problem persists, check your connection.
+						</p>
 					{/if}
 				</div>
 			</div>
@@ -490,9 +506,7 @@
 			on:change={(e) => handleUserStoryChange(e.detail)}
 			data-testid="task-user-story"
 		/>
-		<p class="mt-1 text-sm text-gray-500">
-			Describe the task from the user's perspective
-		</p>
+		<p class="mt-1 text-sm text-gray-500">Describe the task from the user's perspective</p>
 	</div>
 
 	<!-- Assignee -->
@@ -507,7 +521,8 @@
 			on:input={handleAssigneeChange}
 			placeholder="assignee@company.com"
 			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-			class:border-red-500={fieldValidationResults.assignee && !fieldValidationResults.assignee.isValid}
+			class:border-red-500={fieldValidationResults.assignee &&
+				!fieldValidationResults.assignee.isValid}
 			data-testid="task-assignee"
 		/>
 		{#if fieldValidationResults.assignee && !fieldValidationResults.assignee.isValid}
@@ -519,22 +534,28 @@
 
 	<!-- Requirements Selection -->
 	<div>
-		<label class="block text-sm font-medium text-gray-700 mb-1">
-			Linked Requirements *
-		</label>
+		<label class="block text-sm font-medium text-gray-700 mb-1"> Linked Requirements * </label>
 		{#if loadingRequirements}
 			<div class="flex items-center space-x-2 py-2">
-				<div class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"></div>
+				<div
+					class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"
+				></div>
 				<span class="text-sm text-gray-600">Loading requirements...</span>
 			</div>
 		{:else if availableRequirements.length === 0}
 			<div class="border border-gray-300 rounded-md p-4 text-center text-gray-500">
-				No approved requirements available. Requirements must be in 'Approved' status or later to create tasks.
+				No approved requirements available. Requirements must be in 'Approved' status or later to
+				create tasks.
 			</div>
 		{:else}
-			<div class="border border-gray-300 rounded-md max-h-48 overflow-y-auto" data-testid="requirements-selection">
+			<div
+				class="border border-gray-300 rounded-md max-h-48 overflow-y-auto"
+				data-testid="requirements-selection"
+			>
 				{#each availableRequirements as requirement}
-					<label class="flex items-start space-x-3 p-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0">
+					<label
+						class="flex items-start space-x-3 p-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0"
+					>
 						<input
 							type="checkbox"
 							checked={formData.requirement_ids.includes(requirement.id)}
@@ -544,7 +565,9 @@
 						/>
 						<div class="flex-1 min-w-0">
 							<p class="text-sm font-medium text-gray-900">{requirement.title}</p>
-							<p class="text-xs text-gray-500">{requirement.id} • {requirement.status} • {requirement.priority}</p>
+							<p class="text-xs text-gray-500">
+								{requirement.id} • {requirement.status} • {requirement.priority}
+							</p>
 						</div>
 					</label>
 				{/each}
@@ -564,7 +587,9 @@
 		</label>
 		{#if loadingTasks}
 			<div class="flex items-center space-x-2 py-2">
-				<div class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"></div>
+				<div
+					class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"
+				></div>
 				<span class="text-sm text-gray-600">Loading tasks...</span>
 			</div>
 		{:else}
@@ -581,17 +606,13 @@
 				{/each}
 			</select>
 		{/if}
-		<p class="mt-1 text-sm text-gray-500">
-			Select a parent task to create a subtask
-		</p>
+		<p class="mt-1 text-sm text-gray-500">Select a parent task to create a subtask</p>
 	</div>
 
 	<!-- Acceptance Criteria -->
 	<div>
 		<div class="flex items-center justify-between mb-2">
-			<label class="block text-sm font-medium text-gray-700">
-				Acceptance Criteria
-			</label>
+			<label class="block text-sm font-medium text-gray-700"> Acceptance Criteria </label>
 			<button
 				type="button"
 				on:click={addAcceptanceCriterion}
@@ -619,7 +640,12 @@
 							data-testid={`remove-criterion-${index}`}
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
 							</svg>
 						</button>
 					{/if}
@@ -646,7 +672,9 @@
 		>
 			{#if isSubmitting}
 				<div class="flex items-center space-x-2">
-					<div class="animate-spin h-4 w-4 border border-white border-t-transparent rounded-full"></div>
+					<div
+						class="animate-spin h-4 w-4 border border-white border-t-transparent rounded-full"
+					></div>
 					<span>Creating Task...</span>
 				</div>
 			{:else}

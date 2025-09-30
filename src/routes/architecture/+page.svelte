@@ -103,14 +103,14 @@
 	}
 
 	async function editDecision(id: string): Promise<void> {
-		const decision = architectureDecisions.find(d => d.id === id);
+		const decision = architectureDecisions.find((d) => d.id === id);
 		if (decision) {
 			editModal = { isOpen: true, entity: decision };
 		}
 	}
 
 	async function deleteDecision(id: string): Promise<void> {
-		const decision = architectureDecisions.find(d => d.id === id);
+		const decision = architectureDecisions.find((d) => d.id === id);
 		if (decision) {
 			deleteModal = { isOpen: true, entityId: id, entityTitle: decision.title };
 		}
@@ -139,7 +139,9 @@
 		}
 	}
 
-	async function handleADRSuccess(event: CustomEvent<{ adr: any; message: string }>): Promise<void> {
+	async function handleADRSuccess(
+		event: CustomEvent<{ adr: any; message: string }>
+	): Promise<void> {
 		try {
 			console.log('ADR created successfully:', event.detail);
 			// Refresh the architecture decisions list
@@ -150,7 +152,9 @@
 		}
 	}
 
-	async function handleADRError(event: CustomEvent<{ error: string; isRetryable: boolean }>): Promise<void> {
+	async function handleADRError(
+		event: CustomEvent<{ error: string; isRetryable: boolean }>
+	): Promise<void> {
 		console.error('ADR creation failed:', event.detail);
 		// Error is already handled by the form component
 		// Could add page-level error notification here if needed
@@ -186,22 +190,26 @@
 	}
 
 	function handleEditModalEdit(event: CustomEvent<{ entityType: string; entityId: string }>): void {
-		const decision = architectureDecisions.find(d => d.id === event.detail.entityId);
+		const decision = architectureDecisions.find((d) => d.id === event.detail.entityId);
 		if (decision) {
 			viewModal = { isOpen: false, entityId: '' };
 			editModal = { isOpen: true, entity: decision };
 		}
 	}
 
-	function handleEditModalDelete(event: CustomEvent<{ entityType: string; entityId: string }>): void {
-		const decision = architectureDecisions.find(d => d.id === event.detail.entityId);
+	function handleEditModalDelete(
+		event: CustomEvent<{ entityType: string; entityId: string }>
+	): void {
+		const decision = architectureDecisions.find((d) => d.id === event.detail.entityId);
 		if (decision) {
 			viewModal = { isOpen: false, entityId: '' };
 			deleteModal = { isOpen: true, entityId: decision.id, entityTitle: decision.title };
 		}
 	}
 
-	async function handleEditModalSuccess(event: CustomEvent<{ entity: any; message: string }>): Promise<void> {
+	async function handleEditModalSuccess(
+		event: CustomEvent<{ entity: any; message: string }>
+	): Promise<void> {
 		try {
 			await refreshDecisions();
 			editModal = { isOpen: false, entity: null };
@@ -217,7 +225,9 @@
 	function handleDeleteModalConfirm(): void {
 		// Since delete operations are not supported by the MCP server,
 		// we show an informative message and suggest alternatives
-		alert('Delete operations are not supported by the lifecycle management system.\n\nTo remove an architecture decision from active use, consider:\n• Setting status to "Deprecated"\n• Moving to a "Superseded" state\n• Creating a new ADR that supersedes this one');
+		alert(
+			'Delete operations are not supported by the lifecycle management system.\n\nTo remove an architecture decision from active use, consider:\n• Setting status to "Deprecated"\n• Moving to a "Superseded" state\n• Creating a new ADR that supersedes this one'
+		);
 		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
 </script>

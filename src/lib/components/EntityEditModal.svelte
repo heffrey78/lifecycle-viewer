@@ -50,21 +50,54 @@
 			'Validated',
 			'Deprecated'
 		],
-		task: [
-			'Not Started',
-			'In Progress',
-			'Blocked',
-			'Complete',
-			'Abandoned'
-		],
-		architecture: [
-			'Draft',
-			'Under Review',
-			'Approved',
-			'Implemented',
-			'Deprecated'
-		]
+		task: ['Not Started', 'In Progress', 'Blocked', 'Complete', 'Abandoned'],
+		architecture: ['Draft', 'Under Review', 'Approved', 'Implemented', 'Deprecated']
 	};
+
+	// Valid transitions for each entity type and status
+	const validTransitions = {
+		requirement: {
+			Draft: ['Under Review'],
+			'Under Review': ['Approved', 'Draft'],
+			Approved: ['Architecture', 'Ready'],
+			Architecture: ['Ready'],
+			Ready: ['Implemented'],
+			Implemented: ['Validated'],
+			Validated: ['Deprecated'],
+			Deprecated: []
+		},
+		task: {
+			'Not Started': ['In Progress'],
+			'In Progress': ['Blocked', 'Complete'],
+			Blocked: ['In Progress', 'Abandoned'],
+			Complete: ['Abandoned'],
+			Abandoned: []
+		},
+		architecture: {
+			Draft: ['Under Review'],
+			'Under Review': ['Approved', 'Draft'],
+			Approved: ['Implemented'],
+			Implemented: ['Deprecated'],
+			Deprecated: []
+		}
+	};
+
+	// Get valid next states for current entity
+	function getValidNextStates(): string[] {
+		if (!entity) return [];
+		const currentStatus = entity.status;
+		const transitions = validTransitions[entityType];
+		return transitions[currentStatus] || [];
+	}
+
+	// Enhanced error message with suggestions
+	function getEnhancedErrorMessage(originalError: string): string {
+		const validNextStates = getValidNextStates();
+		if (validNextStates.length > 0) {
+			return `${originalError}. Valid transitions from "${entity?.status}": ${validNextStates.join(', ')}`;
+		}
+		return `${originalError}. No further transitions available from "${entity?.status}".`;
+	}
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
@@ -120,7 +153,8 @@
 					message: `${capitalizeFirst(entityType)} updated successfully`
 				});
 			} else {
-				error = response.error || `Failed to update ${entityType}`;
+				const originalError = response.error || `Failed to update ${entityType}`;
+				error = getEnhancedErrorMessage(originalError);
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : `Failed to update ${entityType}`;
@@ -148,7 +182,8 @@
 	const hasChanges = $derived(() => {
 		if (!entity) return false;
 		const statusChanged = newStatus !== entity.status;
-		const assigneeChanged = entityType === 'task' && newAssignee !== ((entity as Task).assignee || '');
+		const assigneeChanged =
+			entityType === 'task' && newAssignee !== ((entity as Task).assignee || '');
 		return statusChanged || assigneeChanged || comment.trim() !== '';
 	});
 </script>
@@ -173,9 +208,7 @@
 
 		<!-- Status Field -->
 		<div>
-			<label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-				Status *
-			</label>
+			<label for="status" class="block text-sm font-medium text-gray-700 mb-2"> Status * </label>
 			<select
 				id="status"
 				bind:value={newStatus}
@@ -187,6 +220,19 @@
 					<option value={option}>{option}</option>
 				{/each}
 			</select>
+
+			{#if entity}
+				{@const validNextStates = getValidNextStates()}
+				{#if validNextStates.length > 0}
+					<p class="text-xs text-blue-600 mt-1">
+						💡 Valid transitions from "{entity.status}": {validNextStates.join(', ')}
+					</p>
+				{:else}
+					<p class="text-xs text-gray-500 mt-1">
+						ℹ️ No further transitions available from "{entity.status}"
+					</p>
+				{/if}
+			{/if}
 		</div>
 
 		<!-- Assignee Field (Tasks only) -->
@@ -209,9 +255,7 @@
 
 		<!-- Comment Field -->
 		<div>
-			<label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
-				Comment
-			</label>
+			<label for="comment" class="block text-sm font-medium text-gray-700 mb-2"> Comment </label>
 			<textarea
 				id="comment"
 				bind:value={comment}
@@ -224,7 +268,9 @@
 
 		<!-- Error Message -->
 		{#if error}
-			<div class="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+			<div
+				class="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"
+			>
 				<AlertCircle class="w-5 h-5 flex-shrink-0" />
 				<span class="text-sm">{error}</span>
 			</div>
@@ -246,7 +292,9 @@
 				class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
 			>
 				{#if isSubmitting}
-					<div class="animate-spin h-4 w-4 border border-white border-t-transparent rounded-full"></div>
+					<div
+						class="animate-spin h-4 w-4 border border-white border-t-transparent rounded-full"
+					></div>
 					<span>Updating...</span>
 				{:else}
 					<Save class="w-4 h-4" />

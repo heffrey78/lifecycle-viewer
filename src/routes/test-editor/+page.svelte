@@ -5,7 +5,9 @@
 
 	let content = $state('');
 
-	const sanitizedContent = $derived(content ? sanitizePresets.rich(content) : '<em>No content yet...</em>');
+	const sanitizedContent = $derived(
+		content ? sanitizePresets.rich(content) : '<em>No content yet...</em>'
+	);
 </script>
 
 <div class="container mx-auto p-6">
@@ -41,7 +43,7 @@
 			<div
 				class="p-4 border rounded-lg"
 				style="border-color: {$currentTheme.base.border}; background-color: {$currentTheme.base
-					.surface};"
+					.background};"
 			>
 				{@html sanitizedContent}
 			</div>

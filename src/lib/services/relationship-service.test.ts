@@ -64,19 +64,21 @@ class MockWebSocket {
 					jsonrpc: '2.0',
 					id: request.id,
 					result: {
-						content: [{
-							text: JSON.stringify({
-								success: true,
-								data: {
-									id: 'REL-001',
-									source_type: 'requirement',
-									source_id: args.source_id,
-									target_type: 'task',
-									target_id: args.target_id,
-									relationship_type: args.relationship_type
-								}
-							})
-						}]
+						content: [
+							{
+								text: JSON.stringify({
+									success: true,
+									data: {
+										id: 'REL-001',
+										source_type: 'requirement',
+										source_id: args.source_id,
+										target_type: 'task',
+										target_id: args.target_id,
+										relationship_type: args.relationship_type
+									}
+								})
+							}
+						]
 					}
 				};
 			case 'delete_relationship':
@@ -84,12 +86,14 @@ class MockWebSocket {
 					jsonrpc: '2.0',
 					id: request.id,
 					result: {
-						content: [{
-							text: JSON.stringify({
-								success: true,
-								data: true
-							})
-						}]
+						content: [
+							{
+								text: JSON.stringify({
+									success: true,
+									data: true
+								})
+							}
+						]
 					}
 				};
 			case 'query_all_relationships':
@@ -97,29 +101,31 @@ class MockWebSocket {
 					jsonrpc: '2.0',
 					id: request.id,
 					result: {
-						content: [{
-							text: JSON.stringify({
-								success: true,
-								data: [
-									{
-										id: 'REL-001',
-										source_type: 'requirement',
-										source_id: 'REQ-001-FUNC-00',
-										target_type: 'task',
-										target_id: 'TASK-001-00-00',
-										relationship_type: 'implements'
-									},
-									{
-										id: 'REL-002',
-										source_type: 'task',
-										source_id: 'TASK-001-00-00',
-										target_type: 'task',
-										target_id: 'TASK-002-00-00',
-										relationship_type: 'depends'
-									}
-								]
-							})
-						}]
+						content: [
+							{
+								text: JSON.stringify({
+									success: true,
+									data: [
+										{
+											id: 'REL-001',
+											source_type: 'requirement',
+											source_id: 'REQ-001-FUNC-00',
+											target_type: 'task',
+											target_id: 'TASK-001-00-00',
+											relationship_type: 'implements'
+										},
+										{
+											id: 'REL-002',
+											source_type: 'task',
+											source_id: 'TASK-001-00-00',
+											target_type: 'task',
+											target_id: 'TASK-002-00-00',
+											relationship_type: 'depends'
+										}
+									]
+								})
+							}
+						]
 					}
 				};
 			case 'get_entity_relationships':
@@ -127,21 +133,23 @@ class MockWebSocket {
 					jsonrpc: '2.0',
 					id: request.id,
 					result: {
-						content: [{
-							text: JSON.stringify({
-								success: true,
-								data: [
-									{
-										id: 'REL-001',
-										source_type: 'requirement',
-										source_id: 'REQ-001-FUNC-00',
-										target_type: 'task',
-										target_id: 'TASK-001-00-00',
-										relationship_type: 'implements'
-									}
-								]
-							})
-						}]
+						content: [
+							{
+								text: JSON.stringify({
+									success: true,
+									data: [
+										{
+											id: 'REL-001',
+											source_type: 'requirement',
+											source_id: 'REQ-001-FUNC-00',
+											target_type: 'task',
+											target_id: 'TASK-001-00-00',
+											relationship_type: 'implements'
+										}
+									]
+								})
+							}
+						]
 					}
 				};
 			default:
@@ -176,7 +184,11 @@ describe('Relationship System - Unified Table Integration', () => {
 
 	describe('Relationship Creation', () => {
 		it('should create relationship with unified table format', async () => {
-			const result = await client.createRelationship('REQ-001-FUNC-00', 'TASK-001-00-00', 'implements');
+			const result = await client.createRelationship(
+				'REQ-001-FUNC-00',
+				'TASK-001-00-00',
+				'implements'
+			);
 
 			expect(result.success).toBe(true);
 			expect(result.data).toMatchObject({
@@ -190,7 +202,18 @@ describe('Relationship System - Unified Table Integration', () => {
 		});
 
 		it('should handle valid relationship types', async () => {
-			const validTypes = ['implements', 'addresses', 'depends', 'blocks', 'informs', 'requires', 'parent', 'refines', 'conflicts', 'relates'];
+			const validTypes = [
+				'implements',
+				'addresses',
+				'depends',
+				'blocks',
+				'informs',
+				'requires',
+				'parent',
+				'refines',
+				'conflicts',
+				'relates'
+			];
 
 			for (const type of validTypes) {
 				const result = await client.createRelationship('REQ-001-FUNC-00', 'TASK-001-00-00', type);
@@ -201,7 +224,11 @@ describe('Relationship System - Unified Table Integration', () => {
 
 		it('should detect entity types from IDs', async () => {
 			// Test requirement -> task
-			let result = await client.createRelationship('REQ-001-FUNC-00', 'TASK-001-00-00', 'implements');
+			let result = await client.createRelationship(
+				'REQ-001-FUNC-00',
+				'TASK-001-00-00',
+				'implements'
+			);
 			expect(result.data.source_type).toBe('requirement');
 			expect(result.data.target_type).toBe('task');
 
@@ -214,7 +241,11 @@ describe('Relationship System - Unified Table Integration', () => {
 
 	describe('Relationship Deletion', () => {
 		it('should delete relationships by source and target', async () => {
-			const result = await client.deleteRelationship('REQ-001-FUNC-00', 'TASK-001-00-00', 'implements');
+			const result = await client.deleteRelationship(
+				'REQ-001-FUNC-00',
+				'TASK-001-00-00',
+				'implements'
+			);
 
 			expect(result.success).toBe(true);
 			expect(result.data).toBe(true);
@@ -238,14 +269,16 @@ describe('Relationship System - Unified Table Integration', () => {
 			expect(result.data.length).toBeGreaterThan(0);
 
 			// Verify unified table structure
-			result.data.forEach(relationship => {
+			result.data.forEach((relationship) => {
 				expect(relationship).toMatchObject({
 					id: expect.stringMatching(/^REL-/),
 					source_type: expect.stringMatching(/^(requirement|task|architecture)$/),
 					source_id: expect.any(String),
 					target_type: expect.stringMatching(/^(requirement|task|architecture)$/),
 					target_id: expect.any(String),
-					relationship_type: expect.stringMatching(/^(implements|addresses|depends|blocks|informs|requires|parent|refines|conflicts|relates)$/)
+					relationship_type: expect.stringMatching(
+						/^(implements|addresses|depends|blocks|informs|requires|parent|refines|conflicts|relates)$/
+					)
 				});
 			});
 		});
@@ -257,9 +290,10 @@ describe('Relationship System - Unified Table Integration', () => {
 			expect(Array.isArray(result.data)).toBe(true);
 
 			// All relationships should involve the specified entity
-			result.data.forEach(relationship => {
-				const involvesEntity = relationship.source_id === 'REQ-001-FUNC-00' ||
-									 relationship.target_id === 'REQ-001-FUNC-00';
+			result.data.forEach((relationship) => {
+				const involvesEntity =
+					relationship.source_id === 'REQ-001-FUNC-00' ||
+					relationship.target_id === 'REQ-001-FUNC-00';
 				expect(involvesEntity).toBe(true);
 			});
 		});
@@ -273,7 +307,7 @@ describe('Relationship System - Unified Table Integration', () => {
 			expect(relationships.success).toBe(true);
 
 			// Verify no relationships have legacy structure
-			relationships.data.forEach(relationship => {
+			relationships.data.forEach((relationship) => {
 				expect(relationship).not.toHaveProperty('parent_task_id');
 				expect(relationship).toHaveProperty('source_type');
 				expect(relationship).toHaveProperty('target_type');
@@ -288,7 +322,7 @@ describe('Relationship System - Unified Table Integration', () => {
 
 			// Verify we have cross-entity-type relationships
 			const entityTypes = new Set();
-			relationships.data.forEach(rel => {
+			relationships.data.forEach((rel) => {
 				entityTypes.add(rel.source_type);
 				entityTypes.add(rel.target_type);
 			});
@@ -328,14 +362,16 @@ describe('Relationship System - Unified Table Integration', () => {
 			// Simulate multiple relationship operations
 			const promises = [];
 			for (let i = 0; i < 10; i++) {
-				promises.push(client.createRelationship(`REQ-${i}-FUNC-00`, `TASK-${i}-00-00`, 'implements'));
+				promises.push(
+					client.createRelationship(`REQ-${i}-FUNC-00`, `TASK-${i}-00-00`, 'implements')
+				);
 			}
 
 			const results = await Promise.all(promises);
 			const endTime = Date.now();
 
 			// All operations should succeed
-			results.forEach(result => {
+			results.forEach((result) => {
 				expect(result.success).toBe(true);
 			});
 
@@ -364,7 +400,7 @@ describe('Relationship Visualization Integration', () => {
 		expect(Array.isArray(relationships.data)).toBe(true);
 
 		// Verify data structure matches SvelteFlow requirements
-		relationships.data.forEach(relationship => {
+		relationships.data.forEach((relationship) => {
 			// Should have source and target for edge creation
 			expect(relationship.source_id).toBeDefined();
 			expect(relationship.target_id).toBeDefined();
@@ -393,9 +429,10 @@ describe('Relationship Visualization Integration', () => {
 		expect(Array.isArray(entityRelationships.data)).toBe(true);
 
 		// All relationships should involve the target entity
-		entityRelationships.data.forEach(relationship => {
-			const involvesEntity = relationship.source_id === 'REQ-001-FUNC-00' ||
-								 relationship.target_id === 'REQ-001-FUNC-00';
+		entityRelationships.data.forEach((relationship) => {
+			const involvesEntity =
+				relationship.source_id === 'REQ-001-FUNC-00' ||
+				relationship.target_id === 'REQ-001-FUNC-00';
 			expect(involvesEntity).toBe(true);
 		});
 	});

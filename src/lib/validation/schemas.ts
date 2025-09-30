@@ -181,7 +181,7 @@ export const taskSchema: ValidationSchema = {
 		custom: (value: string[]) => {
 			if (value && Array.isArray(value)) {
 				// Filter out empty strings to allow for user interaction
-				const nonEmptyCriteria = value.filter(criteria => criteria && criteria.trim() !== '');
+				const nonEmptyCriteria = value.filter((criteria) => criteria && criteria.trim() !== '');
 				for (const criteria of nonEmptyCriteria) {
 					if (typeof criteria !== 'string' || criteria.trim().length < 5) {
 						return 'Each acceptance criterion must be at least 5 characters';

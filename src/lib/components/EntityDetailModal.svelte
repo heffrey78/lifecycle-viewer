@@ -109,36 +109,42 @@
 		const status = entity.status;
 
 		if (type === 'requirement') {
-			return {
-				'Draft': 'text-red-700 bg-red-100 border-red-300',
-				'Under Review': 'text-yellow-700 bg-yellow-100 border-yellow-300',
-				'Approved': 'text-blue-700 bg-blue-100 border-blue-300',
-				'Architecture': 'text-purple-700 bg-purple-100 border-purple-300',
-				'Ready': 'text-green-700 bg-green-100 border-green-300',
-				'Implemented': 'text-emerald-700 bg-emerald-100 border-emerald-300',
-				'Validated': 'text-teal-700 bg-teal-100 border-teal-300',
-				'Deprecated': 'text-gray-700 bg-gray-100 border-gray-300'
-			}[status] || 'text-gray-700 bg-gray-100 border-gray-300';
+			return (
+				{
+					Draft: 'text-red-700 bg-red-100 border-red-300',
+					'Under Review': 'text-yellow-700 bg-yellow-100 border-yellow-300',
+					Approved: 'text-blue-700 bg-blue-100 border-blue-300',
+					Architecture: 'text-purple-700 bg-purple-100 border-purple-300',
+					Ready: 'text-green-700 bg-green-100 border-green-300',
+					Implemented: 'text-emerald-700 bg-emerald-100 border-emerald-300',
+					Validated: 'text-teal-700 bg-teal-100 border-teal-300',
+					Deprecated: 'text-gray-700 bg-gray-100 border-gray-300'
+				}[status] || 'text-gray-700 bg-gray-100 border-gray-300'
+			);
 		}
 
 		if (type === 'task') {
-			return {
-				'Not Started': 'text-gray-700 bg-gray-100 border-gray-300',
-				'In Progress': 'text-blue-700 bg-blue-100 border-blue-300',
-				'Blocked': 'text-red-700 bg-red-100 border-red-300',
-				'Complete': 'text-green-700 bg-green-100 border-green-300',
-				'Abandoned': 'text-gray-700 bg-gray-100 border-gray-300'
-			}[status] || 'text-gray-700 bg-gray-100 border-gray-300';
+			return (
+				{
+					'Not Started': 'text-gray-700 bg-gray-100 border-gray-300',
+					'In Progress': 'text-blue-700 bg-blue-100 border-blue-300',
+					Blocked: 'text-red-700 bg-red-100 border-red-300',
+					Complete: 'text-green-700 bg-green-100 border-green-300',
+					Abandoned: 'text-gray-700 bg-gray-100 border-gray-300'
+				}[status] || 'text-gray-700 bg-gray-100 border-gray-300'
+			);
 		}
 
 		if (type === 'architecture') {
-			return {
-				'Draft': 'text-red-700 bg-red-100 border-red-300',
-				'Under Review': 'text-yellow-700 bg-yellow-100 border-yellow-300',
-				'Approved': 'text-blue-700 bg-blue-100 border-blue-300',
-				'Implemented': 'text-green-700 bg-green-100 border-green-300',
-				'Deprecated': 'text-gray-700 bg-gray-100 border-gray-300'
-			}[status] || 'text-gray-700 bg-gray-100 border-gray-300';
+			return (
+				{
+					Draft: 'text-red-700 bg-red-100 border-red-300',
+					'Under Review': 'text-yellow-700 bg-yellow-100 border-yellow-300',
+					Approved: 'text-blue-700 bg-blue-100 border-blue-300',
+					Implemented: 'text-green-700 bg-green-100 border-green-300',
+					Deprecated: 'text-gray-700 bg-gray-100 border-gray-300'
+				}[status] || 'text-gray-700 bg-gray-100 border-gray-300'
+			);
 		}
 
 		return 'text-gray-700 bg-gray-100 border-gray-300';
@@ -169,7 +175,9 @@
 	<div class="space-y-6">
 		{#if loading}
 			<div class="flex items-center justify-center py-8">
-				<div class="animate-spin h-8 w-8 border border-gray-300 border-t-blue-600 rounded-full"></div>
+				<div
+					class="animate-spin h-8 w-8 border border-gray-300 border-t-blue-600 rounded-full"
+				></div>
 				<span class="ml-3 text-gray-600">Loading {entityType} details...</span>
 			</div>
 		{:else if error}
@@ -192,21 +200,29 @@
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
 					<div class="flex items-center space-x-3 mb-2">
-						<span class={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColorClasses(entity, entityType)}`}>
+						<span
+							class={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColorClasses(entity, entityType)}`}
+						>
 							{entity.status}
 						</span>
 						{#if entity.priority}
-							<span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300">
+							<span
+								class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300"
+							>
 								{entity.priority}
 							</span>
 						{/if}
 						{#if entityType === 'requirement' && (entity as Requirement).type}
-							<span class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700 border border-blue-300">
+							<span
+								class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700 border border-blue-300"
+							>
 								{(entity as Requirement).type}
 							</span>
 						{/if}
 						{#if entityType === 'task' && (entity as Task).effort}
-							<span class="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-300">
+							<span
+								class="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-300"
+							>
 								{(entity as Task).effort}
 							</span>
 						{/if}
@@ -377,7 +393,9 @@
 							<h4 class="font-medium text-gray-900 mb-2">Authors</h4>
 							<div class="flex flex-wrap gap-2">
 								{#each arch.authors as author}
-									<span class="inline-flex items-center px-2 py-1 rounded text-sm bg-gray-100 text-gray-700 border border-gray-300">
+									<span
+										class="inline-flex items-center px-2 py-1 rounded text-sm bg-gray-100 text-gray-700 border border-gray-300"
+									>
 										<User class="w-3 h-3 mr-1" />
 										{author}
 									</span>
@@ -420,7 +438,9 @@
 			<div class="flex items-center justify-center py-8">
 				<div class="text-center">
 					<p class="text-gray-600">Debug: No condition matched</p>
-					<p class="text-sm text-gray-500">Loading: {loading}, Error: {error}, Entity: {entity ? 'exists' : 'null'}</p>
+					<p class="text-sm text-gray-500">
+						Loading: {loading}, Error: {error}, Entity: {entity ? 'exists' : 'null'}
+					</p>
 				</div>
 			</div>
 		{/if}

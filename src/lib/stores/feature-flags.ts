@@ -56,7 +56,8 @@ function loadFeatureFlags(): FeatureFlags {
 			envFlags.svelteFlowTimelineLayout = process.env.VITE_SVELTE_FLOW_TIMELINE === 'true';
 			envFlags.svelteFlowRoadmapLayout = process.env.VITE_SVELTE_FLOW_ROADMAP === 'true';
 			envFlags.dragToConnectRelationships = process.env.VITE_DRAG_TO_CONNECT === 'true';
-			envFlags.enableVisualizationPerformanceMonitoring = process.env.VITE_PERF_MONITORING === 'true';
+			envFlags.enableVisualizationPerformanceMonitoring =
+				process.env.VITE_PERF_MONITORING === 'true';
 		}
 
 		return { ...defaultFlags, ...envFlags };
@@ -86,21 +87,21 @@ export const dragToConnect = derived(featureFlags, ($flags) => $flags.dragToConn
 
 // Helper functions for flag management
 export function enableFeature(feature: keyof FeatureFlags) {
-	featureFlags.update(flags => ({
+	featureFlags.update((flags) => ({
 		...flags,
 		[feature]: true
 	}));
 }
 
 export function disableFeature(feature: keyof FeatureFlags) {
-	featureFlags.update(flags => ({
+	featureFlags.update((flags) => ({
 		...flags,
 		[feature]: false
 	}));
 }
 
 export function toggleFeature(feature: keyof FeatureFlags) {
-	featureFlags.update(flags => ({
+	featureFlags.update((flags) => ({
 		...flags,
 		[feature]: !flags[feature]
 	}));
@@ -111,12 +112,16 @@ export function resetAllFlags() {
 }
 
 // A/B testing support
-export function enableForUserGroup(userId: string, feature: keyof FeatureFlags, percentage: number = 50) {
+export function enableForUserGroup(
+	userId: string,
+	feature: keyof FeatureFlags,
+	percentage: number = 50
+) {
 	// Simple hash-based A/B testing
 	const hash = simpleHash(userId + feature);
-	const shouldEnable = (hash % 100) < percentage;
+	const shouldEnable = hash % 100 < percentage;
 
-	featureFlags.update(flags => ({
+	featureFlags.update((flags) => ({
 		...flags,
 		[feature]: shouldEnable
 	}));
@@ -128,7 +133,7 @@ function simpleHash(str: string): number {
 	let hash = 0;
 	for (let i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
-		hash = ((hash << 5) - hash) + char;
+		hash = (hash << 5) - hash + char;
 		hash = hash & hash; // Convert to 32-bit integer
 	}
 	return Math.abs(hash);
@@ -145,7 +150,7 @@ export function logFeatureFlagUsage(feature: keyof FeatureFlags, context?: strin
 export function emergencyRollback() {
 	console.warn('🚨 Emergency rollback: Disabling all Svelte-Flow features');
 
-	featureFlags.update(flags => ({
+	featureFlags.update((flags) => ({
 		...flags,
 		useSvelteFlow: false,
 		svelteFlowNetworkLayout: false,

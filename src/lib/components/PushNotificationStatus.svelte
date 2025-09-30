@@ -77,7 +77,7 @@
 
 	onDestroy(() => {
 		// Clean up all subscriptions
-		unsubscribers.forEach(unsubscribe => unsubscribe());
+		unsubscribers.forEach((unsubscribe) => unsubscribe());
 	});
 
 	function formatTimestamp(date: Date): string {
@@ -86,12 +86,18 @@
 
 	function getEventTypeColor(type: string): string {
 		switch (type) {
-			case 'server_status': return 'text-blue-600';
-			case 'tools_discovered': return 'text-green-600';
-			case 'project_data': return 'text-purple-600';
-			case 'connection_lost': return 'text-red-600';
-			case 'connection_restored': return 'text-emerald-600';
-			default: return 'text-gray-600';
+			case 'server_status':
+				return 'text-blue-600';
+			case 'tools_discovered':
+				return 'text-green-600';
+			case 'project_data':
+				return 'text-purple-600';
+			case 'connection_lost':
+				return 'text-red-600';
+			case 'connection_restored':
+				return 'text-emerald-600';
+			default:
+				return 'text-gray-600';
 		}
 	}
 
@@ -128,7 +134,7 @@
 
 		<button
 			type="button"
-			onclick={() => showDetails = !showDetails}
+			onclick={() => (showDetails = !showDetails)}
 			class="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
 		>
 			{showDetails ? 'Hide Details' : 'Show Details'}
@@ -168,7 +174,9 @@
 					<div class="text-sm text-gray-500 mb-2">Subscribed Events:</div>
 					<div class="flex flex-wrap gap-2">
 						{#each pushStatus.subscribedEvents as event}
-							<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+							<span
+								class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+							>
 								{event}
 							</span>
 						{/each}

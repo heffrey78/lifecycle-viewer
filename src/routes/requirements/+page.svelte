@@ -41,14 +41,12 @@
 	let typeFilter = $state<RequirementType | ''>('');
 	let priorityFilter = $state<Priority | ''>('');
 
-
 	onMount(async () => {
 		try {
 			// Connect to MCP server if not already connected
 			if (!mcpClient.isConnected()) {
 				await mcpClient.connect();
 			}
-
 
 			const response = await mcpClient.requirements.getRequirementsJson();
 			if (response.success) {
@@ -68,23 +66,29 @@
 	});
 
 	// Filter requirements based on current filters using $derived
-	const filteredRequirements = $derived(requirements.filter((req) => {
-		const matchesSearch =
-			!searchText ||
-			req.title.toLowerCase().includes(searchText.toLowerCase()) ||
-			req.desired_state?.toLowerCase().includes(searchText.toLowerCase()) ||
-			req.id.toLowerCase().includes(searchText.toLowerCase());
+	const filteredRequirements = $derived(
+		requirements.filter((req) => {
+			const matchesSearch =
+				!searchText ||
+				req.title.toLowerCase().includes(searchText.toLowerCase()) ||
+				req.desired_state?.toLowerCase().includes(searchText.toLowerCase()) ||
+				req.id.toLowerCase().includes(searchText.toLowerCase());
 
-		const matchesStatus = !statusFilter || req.status === statusFilter;
-		const matchesType = !typeFilter || req.type === typeFilter;
-		const matchesPriority = !priorityFilter || req.priority === priorityFilter;
+			const matchesStatus = !statusFilter || req.status === statusFilter;
+			const matchesType = !typeFilter || req.type === typeFilter;
+			const matchesPriority = !priorityFilter || req.priority === priorityFilter;
 
-		return matchesSearch && matchesStatus && matchesType && matchesPriority;
-	}));
+			return matchesSearch && matchesStatus && matchesType && matchesPriority;
+		})
+	);
 
 	// Theme-aware color functions using centralized theme system
-	const getStatusColor = $derived((status: RequirementStatus) => getStatusColorClasses(status, $currentTheme));
-	const getPriorityColor = $derived((priority: Priority) => getPriorityColorClasses(priority, $currentTheme));
+	const getStatusColor = $derived((status: RequirementStatus) =>
+		getStatusColorClasses(status, $currentTheme)
+	);
+	const getPriorityColor = $derived((priority: Priority) =>
+		getPriorityColorClasses(priority, $currentTheme)
+	);
 	const getRiskColor = $derived((risk: string) => getRiskColorClasses(risk as any, $currentTheme));
 
 	function getCompletionPercentage(req: Requirement): number {
@@ -145,7 +149,7 @@
 	}
 
 	async function editRequirement(id: string): Promise<void> {
-		const requirement = requirements.find(r => r.id === id);
+		const requirement = requirements.find((r) => r.id === id);
 		if (requirement) {
 			editModal = { isOpen: true, entity: requirement };
 		}
@@ -188,7 +192,7 @@
 	}
 
 	async function deleteRequirement(id: string): Promise<void> {
-		const requirement = requirements.find(r => r.id === id);
+		const requirement = requirements.find((r) => r.id === id);
 		if (requirement) {
 			deleteModal = {
 				isOpen: true,
@@ -214,7 +218,7 @@
 	function handleEditFromView(event: CustomEvent<{ entityType: string; entityId: string }>) {
 		// Close view modal and open edit modal
 		viewModal = { isOpen: false, entityId: '' };
-		const requirement = requirements.find(r => r.id === event.detail.entityId);
+		const requirement = requirements.find((r) => r.id === event.detail.entityId);
 		if (requirement) {
 			editModal = { isOpen: true, entity: requirement };
 		}
@@ -223,7 +227,7 @@
 	function handleDeleteFromView(event: CustomEvent<{ entityType: string; entityId: string }>) {
 		// Close view modal and open delete modal
 		viewModal = { isOpen: false, entityId: '' };
-		const requirement = requirements.find(r => r.id === event.detail.entityId);
+		const requirement = requirements.find((r) => r.id === event.detail.entityId);
 		if (requirement) {
 			deleteModal = {
 				isOpen: true,
@@ -251,8 +255,8 @@
 		// Since delete operations aren't supported by MCP server, show informative message
 		alert(
 			'Delete operation is not currently supported by the lifecycle management system. ' +
-			'This feature may be added in a future version. ' +
-			'For now, you can update the requirement status to "Deprecated" instead.'
+				'This feature may be added in a future version. ' +
+				'For now, you can update the requirement status to "Deprecated" instead.'
 		);
 		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
@@ -263,7 +267,6 @@
 </svelte:head>
 
 <div class="space-y-6">
-
 	<!-- Header with Actions -->
 	<div class="flex items-center justify-between">
 		<div>

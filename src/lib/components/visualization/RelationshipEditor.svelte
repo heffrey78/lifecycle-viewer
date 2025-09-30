@@ -9,7 +9,6 @@
 	export let targetNode: DiagramNode | null = null;
 	export let existingRelationship: any = null;
 
-
 	const dispatch = createEventDispatcher<{
 		close: void;
 		create: { sourceId: string; targetId: string; type: string };

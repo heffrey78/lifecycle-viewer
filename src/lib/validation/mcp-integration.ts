@@ -103,15 +103,18 @@ export class MCPValidationService {
 			switch (entityType) {
 				case 'requirement':
 					const reqResult = await mcpClient.getRequirements();
-					existingEntities = reqResult.success && Array.isArray(reqResult.data) ? reqResult.data : [];
+					existingEntities =
+						reqResult.success && Array.isArray(reqResult.data) ? reqResult.data : [];
 					break;
 				case 'task':
 					const taskResult = await mcpClient.getTasks();
-					existingEntities = taskResult.success && Array.isArray(taskResult.data) ? taskResult.data : [];
+					existingEntities =
+						taskResult.success && Array.isArray(taskResult.data) ? taskResult.data : [];
 					break;
 				case 'architecture':
 					const archResult = await mcpClient.getArchitectureDecisions();
-					existingEntities = archResult.success && Array.isArray(archResult.data) ? archResult.data : [];
+					existingEntities =
+						archResult.success && Array.isArray(archResult.data) ? archResult.data : [];
 					break;
 			}
 

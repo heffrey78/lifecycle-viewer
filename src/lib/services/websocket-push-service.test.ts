@@ -170,7 +170,10 @@ describe('WebSocketPushService', () => {
 
 			pushService.handlePushNotification(message);
 
-			expect(consoleSpy).toHaveBeenCalledWith('Unknown push notification type:', 'notification/unknown_type');
+			expect(consoleSpy).toHaveBeenCalledWith(
+				'Unknown push notification type:',
+				'notification/unknown_type'
+			);
 
 			consoleSpy.mockRestore();
 		});

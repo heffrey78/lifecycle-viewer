@@ -185,14 +185,12 @@ describe('RequirementForm', () => {
 			const addButton = screen.getByTitle('Add acceptance criterion');
 
 			// Initial count - use more specific placeholder text pattern
-			const initialTextareas = screen
-				.getAllByPlaceholderText(/Given.*when.*then/i);
+			const initialTextareas = screen.getAllByPlaceholderText(/Given.*when.*then/i);
 
 			await userEvent.click(addButton);
 
 			// Should have more textareas
-			const afterTextareas = screen
-				.getAllByPlaceholderText(/Given.*when.*then/i);
+			const afterTextareas = screen.getAllByPlaceholderText(/Given.*when.*then/i);
 
 			expect(afterTextareas.length).toBeGreaterThan(initialTextareas.length);
 		});

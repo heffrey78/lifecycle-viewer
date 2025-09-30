@@ -23,7 +23,8 @@ describe('ADRCreationService', () => {
 	const validFormData: ADRFormData = {
 		type: 'ADR',
 		title: 'Use React for Frontend Framework',
-		context: 'We need to choose a frontend framework for our new application. The team needs to be productive quickly while maintaining code quality.',
+		context:
+			'We need to choose a frontend framework for our new application. The team needs to be productive quickly while maintaining code quality.',
 		decision_outcome: 'We will use React as our primary frontend framework.',
 		authors: ['john.doe@example.com', 'jane.smith@example.com'],
 		decision_drivers: ['Team expertise', 'Community support', 'Performance requirements'],
@@ -122,9 +123,7 @@ describe('ADRCreationService', () => {
 		});
 
 		it('attempts to connect when not connected', async () => {
-			mockMcpClient.isConnected
-				.mockResolvedValueOnce(false)
-				.mockResolvedValueOnce(true);
+			mockMcpClient.isConnected.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
 			const result = await service.checkConnection();
 
@@ -175,7 +174,11 @@ describe('ADRCreationService', () => {
 
 			expect(result.success).toBe(true);
 			expect(result.data).toHaveLength(2); // Only approved requirements
-			expect(result.data?.every(req => ['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'].includes(req.status))).toBe(true);
+			expect(
+				result.data?.every((req) =>
+					['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'].includes(req.status)
+				)
+			).toBe(true);
 		});
 
 		it('connects to MCP if not already connected', async () => {
@@ -337,7 +340,7 @@ describe('ADRCreationService', () => {
 			// TODO: Fix timeout testing in vitest environment
 			// This test works in production but has issues with Promise.race in test environment
 			mockMcpClient.architecture.createArchitectureDecision.mockImplementation(
-				() => new Promise(resolve => setTimeout(() => resolve({ success: true, data: {} }), 2000))
+				() => new Promise((resolve) => setTimeout(() => resolve({ success: true, data: {} }), 2000))
 			);
 
 			const result = await service.createADR(validFormData, { timeout: 100 });
@@ -494,7 +497,9 @@ describe('ADRCreationService', () => {
 
 		it.skip('handles network errors gracefully', async () => {
 			// TODO: Fix timeout in vitest environment
-			mockMcpClient.architecture.createArchitectureDecision.mockRejectedValue(new Error('Network error'));
+			mockMcpClient.architecture.createArchitectureDecision.mockRejectedValue(
+				new Error('Network error')
+			);
 
 			const result = await service.createADR(validFormData);
 

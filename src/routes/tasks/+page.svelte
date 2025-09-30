@@ -75,24 +75,32 @@
 	});
 
 	// Filter tasks based on current filters using $derived
-	const filteredTasks = $derived(tasks.filter((task) => {
-		const matchesSearch =
-			!searchText ||
-			task.title.toLowerCase().includes(searchText.toLowerCase()) ||
-			task.user_story?.toLowerCase().includes(searchText.toLowerCase()) ||
-			task.id.toLowerCase().includes(searchText.toLowerCase());
+	const filteredTasks = $derived(
+		tasks.filter((task) => {
+			const matchesSearch =
+				!searchText ||
+				task.title.toLowerCase().includes(searchText.toLowerCase()) ||
+				task.user_story?.toLowerCase().includes(searchText.toLowerCase()) ||
+				task.id.toLowerCase().includes(searchText.toLowerCase());
 
-		const matchesStatus = !statusFilter || task.status === statusFilter;
-		const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-		const matchesAssignee = !assigneeFilter || task.assignee?.includes(assigneeFilter);
+			const matchesStatus = !statusFilter || task.status === statusFilter;
+			const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+			const matchesAssignee = !assigneeFilter || task.assignee?.includes(assigneeFilter);
 
-		return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
-	}));
+			return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+		})
+	);
 
 	// Theme-aware color functions using centralized theme system
-	const getStatusColor = $derived((status: TaskStatus) => getTaskStatusColorClasses(status, $currentTheme));
-	const getPriorityColor = $derived((priority: Priority) => getPriorityColorClasses(priority, $currentTheme));
-	const getEffortColor = $derived((effort: EffortSize) => getEffortColorClasses(effort, $currentTheme));
+	const getStatusColor = $derived((status: TaskStatus) =>
+		getTaskStatusColorClasses(status, $currentTheme)
+	);
+	const getPriorityColor = $derived((priority: Priority) =>
+		getPriorityColorClasses(priority, $currentTheme)
+	);
+	const getEffortColor = $derived((effort: EffortSize) =>
+		getEffortColorClasses(effort, $currentTheme)
+	);
 
 	function formatAssignee(email?: string): string {
 		if (!email) return 'Unassigned';
@@ -166,14 +174,14 @@
 	}
 
 	async function editTask(id: string): Promise<void> {
-		const task = tasks.find(t => t.id === id);
+		const task = tasks.find((t) => t.id === id);
 		if (task) {
 			editModal = { isOpen: true, entity: task };
 		}
 	}
 
 	async function deleteTask(id: string): Promise<void> {
-		const task = tasks.find(t => t.id === id);
+		const task = tasks.find((t) => t.id === id);
 		if (task) {
 			deleteModal = { isOpen: true, entityId: id, entityTitle: task.title };
 		}
@@ -203,7 +211,9 @@
 		}
 	}
 
-	async function handleTaskSuccess(event: CustomEvent<{ task: Task; message: string }>): Promise<void> {
+	async function handleTaskSuccess(
+		event: CustomEvent<{ task: Task; message: string }>
+	): Promise<void> {
 		try {
 			// Refresh the task list to show the new task
 			await refreshTasks();
@@ -234,22 +244,26 @@
 	}
 
 	function handleEditModalEdit(event: CustomEvent<{ entityType: string; entityId: string }>): void {
-		const task = tasks.find(t => t.id === event.detail.entityId);
+		const task = tasks.find((t) => t.id === event.detail.entityId);
 		if (task) {
 			viewModal = { isOpen: false, entityId: '' };
 			editModal = { isOpen: true, entity: task };
 		}
 	}
 
-	function handleEditModalDelete(event: CustomEvent<{ entityType: string; entityId: string }>): void {
-		const task = tasks.find(t => t.id === event.detail.entityId);
+	function handleEditModalDelete(
+		event: CustomEvent<{ entityType: string; entityId: string }>
+	): void {
+		const task = tasks.find((t) => t.id === event.detail.entityId);
 		if (task) {
 			viewModal = { isOpen: false, entityId: '' };
 			deleteModal = { isOpen: true, entityId: task.id, entityTitle: task.title };
 		}
 	}
 
-	async function handleEditModalSuccess(event: CustomEvent<{ entity: Task; message: string }>): Promise<void> {
+	async function handleEditModalSuccess(
+		event: CustomEvent<{ entity: Task; message: string }>
+	): Promise<void> {
 		try {
 			await refreshTasks();
 			editModal = { isOpen: false, entity: null };
@@ -265,7 +279,9 @@
 	function handleDeleteModalConfirm(): void {
 		// Since delete operations are not supported by the MCP server,
 		// we show an informative message and suggest alternatives
-		alert('Delete operations are not supported by the lifecycle management system.\n\nTo remove a task from active work, consider:\n• Setting status to "Abandoned"\n• Moving to a "Deprecated" state if available\n• Archiving through external project management tools');
+		alert(
+			'Delete operations are not supported by the lifecycle management system.\n\nTo remove a task from active work, consider:\n• Setting status to "Abandoned"\n• Moving to a "Deprecated" state if available\n• Archiving through external project management tools'
+		);
 		deleteModal = { isOpen: false, entityId: '', entityTitle: '' };
 	}
 </script>

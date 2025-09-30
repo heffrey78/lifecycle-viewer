@@ -27,38 +27,44 @@ vi.mock('$lib/validation/index.js', () => ({
 vi.mock('$lib/services/task-creation.js', () => ({
 	taskCreationService: {
 		checkConnection: vi.fn(() => Promise.resolve(true)),
-		createTask: vi.fn(() => Promise.resolve({
-			success: true,
-			data: {
-				id: 'TASK-001-00-00',
-				title: 'Test Task',
-				status: 'Not Started',
-				priority: 'P1'
-			}
-		})),
-		getApprovedRequirements: vi.fn(() => Promise.resolve({
-			success: true,
-			data: [
-				{
-					id: 'REQ-001-FUNC-00',
-					title: 'Test Requirement',
-					status: 'Approved',
-					priority: 'P1',
-					type: 'FUNC'
-				}
-			]
-		})),
-		getAllTasks: vi.fn(() => Promise.resolve({
-			success: true,
-			data: [
-				{
+		createTask: vi.fn(() =>
+			Promise.resolve({
+				success: true,
+				data: {
 					id: 'TASK-001-00-00',
-					title: 'Parent Task',
-					status: 'In Progress',
+					title: 'Test Task',
+					status: 'Not Started',
 					priority: 'P1'
 				}
-			]
-		})),
+			})
+		),
+		getApprovedRequirements: vi.fn(() =>
+			Promise.resolve({
+				success: true,
+				data: [
+					{
+						id: 'REQ-001-FUNC-00',
+						title: 'Test Requirement',
+						status: 'Approved',
+						priority: 'P1',
+						type: 'FUNC'
+					}
+				]
+			})
+		),
+		getAllTasks: vi.fn(() =>
+			Promise.resolve({
+				success: true,
+				data: [
+					{
+						id: 'TASK-001-00-00',
+						title: 'Parent Task',
+						status: 'In Progress',
+						priority: 'P1'
+					}
+				]
+			})
+		),
 		validateFormData: vi.fn(() => Promise.resolve({ isValid: true, errors: [] }))
 	}
 }));
@@ -78,7 +84,7 @@ vi.mock('$lib/theme', () => ({
 
 // Mock HTML sanitizer
 vi.mock('$lib/utils/html-sanitizer.js', () => ({
-	stripHtmlForValidation: vi.fn(str => str)
+	stripHtmlForValidation: vi.fn((str) => str)
 }));
 
 describe('TaskForm Component', () => {
@@ -170,11 +176,13 @@ describe('TaskForm Component', () => {
 	describe('Form Validation', () => {
 		it('should show validation error for empty title', async () => {
 			const mockValidator = {
-				validateField: vi.fn(() => Promise.resolve({
-					isValid: false,
-					errors: ['Title is required'],
-					warnings: []
-				})),
+				validateField: vi.fn(() =>
+					Promise.resolve({
+						isValid: false,
+						errors: ['Title is required'],
+						warnings: []
+					})
+				),
 				validateForm: vi.fn(() => Promise.resolve({ isValid: false, errors: {}, warnings: {} }))
 			};
 
@@ -195,11 +203,13 @@ describe('TaskForm Component', () => {
 
 		it('should validate email format for assignee', async () => {
 			const mockValidator = {
-				validateField: vi.fn(() => Promise.resolve({
-					isValid: false,
-					errors: ['Invalid email format'],
-					warnings: []
-				})),
+				validateField: vi.fn(() =>
+					Promise.resolve({
+						isValid: false,
+						errors: ['Invalid email format'],
+						warnings: []
+					})
+				),
 				validateForm: vi.fn(() => Promise.resolve({ isValid: false, errors: {}, warnings: {} }))
 			};
 
@@ -470,7 +480,7 @@ describe('TaskForm Component', () => {
 
 			// Create a promise that we can control
 			let resolveCreate: (value: any) => void;
-			const createPromise = new Promise(resolve => {
+			const createPromise = new Promise((resolve) => {
 				resolveCreate = resolve;
 			});
 

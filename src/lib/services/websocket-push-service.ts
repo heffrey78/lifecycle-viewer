@@ -274,7 +274,7 @@ export class WebSocketPushService {
 	): void {
 		const listeners = this.pushListeners.get(event);
 		if (listeners) {
-			listeners.forEach(callback => {
+			listeners.forEach((callback) => {
 				try {
 					callback(data);
 				} catch (error) {
@@ -312,8 +312,10 @@ export class WebSocketPushService {
 		return {
 			initialized: this.initialized,
 			timeSinceLastHeartbeat: this.getTimeSinceLastHeartbeat(),
-			activeListeners: Array.from(this.pushListeners.values())
-				.reduce((total, listeners) => total + listeners.size, 0),
+			activeListeners: Array.from(this.pushListeners.values()).reduce(
+				(total, listeners) => total + listeners.size,
+				0
+			),
 			subscribedEvents: Array.from(this.pushListeners.keys())
 		};
 	}

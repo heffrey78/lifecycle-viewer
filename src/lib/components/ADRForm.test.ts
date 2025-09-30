@@ -304,7 +304,6 @@ describe('ADRForm', () => {
 		});
 
 		it('calls ADR creation service when MCP integration is enabled', async () => {
-
 			render(ADRForm, {
 				props: {
 					initialData: defaultFormData,
@@ -435,7 +434,7 @@ describe('ADRForm', () => {
 
 		it('shows loading state while fetching requirements', async () => {
 			mockAdrCreationService.getApprovedRequirements.mockReturnValueOnce(
-				new Promise(resolve => setTimeout(() => resolve({ success: true, data: [] }), 100))
+				new Promise((resolve) => setTimeout(() => resolve({ success: true, data: [] }), 100))
 			);
 
 			render(ADRForm, {

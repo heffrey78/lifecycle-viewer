@@ -65,8 +65,13 @@ export function calculateNodePosition(
 			// Vertical hierarchy with entity type separation
 			let baseY = 0;
 			if (entityType === 'requirement') baseY = 0;
-			else if (entityType === 'task') baseY = Math.ceil(totalEntities.requirements / 4) * SPACING_Y + 100;
-			else baseY = Math.ceil(totalEntities.requirements / 4) * SPACING_Y + Math.ceil(totalEntities.tasks / 4) * SPACING_Y + 200;
+			else if (entityType === 'task')
+				baseY = Math.ceil(totalEntities.requirements / 4) * SPACING_Y + 100;
+			else
+				baseY =
+					Math.ceil(totalEntities.requirements / 4) * SPACING_Y +
+					Math.ceil(totalEntities.tasks / 4) * SPACING_Y +
+					200;
 
 			return {
 				x: (index % 4) * SPACING_X,
@@ -81,15 +86,23 @@ export function calculateNodePosition(
 				// Handle invalid dates
 				if (isNaN(entityDate)) {
 					console.warn('Invalid created_at date for entity:', entity.id, entity.created_at);
-					return { x: index * SPACING_X, y: entityType === 'requirement' ? 0 : entityType === 'task' ? SPACING_Y + 50 : (SPACING_Y + 50) * 2 };
+					return {
+						x: index * SPACING_X,
+						y:
+							entityType === 'requirement'
+								? 0
+								: entityType === 'task'
+									? SPACING_Y + 50
+									: (SPACING_Y + 50) * 2
+					};
 				}
 
 				// Calculate dynamic baseline from earliest entity if available
 				let baselineDate = new Date('2025-01-01').getTime();
 				if (allEntities && allEntities.length > 0) {
 					const validDates = allEntities
-						.map(e => new Date(e.created_at).getTime())
-						.filter(date => !isNaN(date));
+						.map((e) => new Date(e.created_at).getTime())
+						.filter((date) => !isNaN(date));
 
 					if (validDates.length > 0) {
 						baselineDate = Math.min(...validDates);
@@ -101,11 +114,24 @@ export function calculateNodePosition(
 
 				return {
 					x: timelineX + 50, // Add 50px left margin
-					y: entityType === 'requirement' ? 0 : entityType === 'task' ? SPACING_Y + 50 : (SPACING_Y + 50) * 2
+					y:
+						entityType === 'requirement'
+							? 0
+							: entityType === 'task'
+								? SPACING_Y + 50
+								: (SPACING_Y + 50) * 2
 				};
 			} catch (error) {
 				console.warn('Timeline layout error for entity:', entity.id, error);
-				return { x: index * SPACING_X, y: entityType === 'requirement' ? 0 : entityType === 'task' ? SPACING_Y + 50 : (SPACING_Y + 50) * 2 };
+				return {
+					x: index * SPACING_X,
+					y:
+						entityType === 'requirement'
+							? 0
+							: entityType === 'task'
+								? SPACING_Y + 50
+								: (SPACING_Y + 50) * 2
+				};
 			}
 
 		case 'roadmap':
@@ -118,11 +144,25 @@ export function calculateNodePosition(
 				// X-axis based on status progression (timeline within priority)
 				const statusOrder: Record<string, number> = {
 					// Requirements
-					'Draft': 0, 'Under Review': 1, 'Approved': 2, 'Architecture': 3, 'Ready': 4, 'Implemented': 5, 'Validated': 6, 'Deprecated': 7,
+					Draft: 0,
+					'Under Review': 1,
+					Approved: 2,
+					Architecture: 3,
+					Ready: 4,
+					Implemented: 5,
+					Validated: 6,
+					Deprecated: 7,
 					// Tasks
-					'Not Started': 0, 'In Progress': 2, 'Blocked': 1, 'Complete': 5, 'Abandoned': 7,
+					'Not Started': 0,
+					'In Progress': 2,
+					Blocked: 1,
+					Complete: 5,
+					Abandoned: 7,
 					// Architecture
-					'Proposed': 0, 'Accepted': 2, 'Rejected': 7, 'Superseded': 7
+					Proposed: 0,
+					Accepted: 2,
+					Rejected: 7,
+					Superseded: 7
 				};
 
 				const statusX = (statusOrder[entity.status] || 0) * SPACING_X;
@@ -146,11 +186,22 @@ export function transformToSvelteFlowNode(
 	entity: Requirement | Task | ArchitectureDecision,
 	index: number,
 	layoutMode: 'network' | 'hierarchy' | 'timeline' | 'roadmap' = 'network',
-	totalEntities: { requirements: number; tasks: number; architecture: number } = { requirements: 0, tasks: 0, architecture: 0 },
+	totalEntities: { requirements: number; tasks: number; architecture: number } = {
+		requirements: 0,
+		tasks: 0,
+		architecture: 0
+	},
 	allEntities?: (Requirement | Task | ArchitectureDecision)[]
 ): Node<NodeData> {
 	const entityType = getEntityType(entity);
-	const position = calculateNodePosition(entity, index, entityType, layoutMode, totalEntities, allEntities);
+	const position = calculateNodePosition(
+		entity,
+		index,
+		entityType,
+		layoutMode,
+		totalEntities,
+		allEntities
+	);
 
 	// Determine node color based on entity type and status
 	const getNodeStyle = () => {
@@ -225,7 +276,11 @@ export function buildSvelteFlowGraph(
 		relationships?: any[];
 	},
 	layoutMode: 'network' | 'hierarchy' | 'timeline' | 'roadmap' = 'network',
-	visibleEntityTypes: Set<'requirements' | 'tasks' | 'architecture'> = new Set(['requirements', 'tasks', 'architecture'])
+	visibleEntityTypes: Set<'requirements' | 'tasks' | 'architecture'> = new Set([
+		'requirements',
+		'tasks',
+		'architecture'
+	])
 ) {
 	const startTime = performance.now();
 
@@ -250,21 +305,27 @@ export function buildSvelteFlowGraph(
 	// Create nodes for requirements
 	if (visibleEntityTypes.has('requirements')) {
 		data.requirements.forEach((req) => {
-			nodes.push(transformToSvelteFlowNode(req, globalIndex++, layoutMode, totalEntities, allEntities));
+			nodes.push(
+				transformToSvelteFlowNode(req, globalIndex++, layoutMode, totalEntities, allEntities)
+			);
 		});
 	}
 
 	// Create nodes for tasks
 	if (visibleEntityTypes.has('tasks')) {
 		data.tasks.forEach((task) => {
-			nodes.push(transformToSvelteFlowNode(task, globalIndex++, layoutMode, totalEntities, allEntities));
+			nodes.push(
+				transformToSvelteFlowNode(task, globalIndex++, layoutMode, totalEntities, allEntities)
+			);
 		});
 	}
 
 	// Create nodes for architecture decisions
 	if (visibleEntityTypes.has('architecture')) {
 		data.architectureDecisions.forEach((arch) => {
-			nodes.push(transformToSvelteFlowNode(arch, globalIndex++, layoutMode, totalEntities, allEntities));
+			nodes.push(
+				transformToSvelteFlowNode(arch, globalIndex++, layoutMode, totalEntities, allEntities)
+			);
 		});
 	}
 
@@ -279,13 +340,15 @@ export function buildSvelteFlowGraph(
 			const sourceEntityType = getEntityTypeFromId(sourceId);
 			const targetEntityType = getEntityTypeFromId(targetId);
 
-			const sourceVisible = (sourceEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
-								 (sourceEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
-								 (sourceEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
+			const sourceVisible =
+				(sourceEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
+				(sourceEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
+				(sourceEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
 
-			const targetVisible = (targetEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
-								 (targetEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
-								 (targetEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
+			const targetVisible =
+				(targetEntityType === 'requirement' && visibleEntityTypes.has('requirements')) ||
+				(targetEntityType === 'task' && visibleEntityTypes.has('tasks')) ||
+				(targetEntityType === 'architecture' && visibleEntityTypes.has('architecture'));
 
 			if (sourceVisible && targetVisible && sourceId && targetId && relType) {
 				edges.push(transformToSvelteFlowEdge(sourceId, targetId, relType));

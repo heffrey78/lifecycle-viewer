@@ -26,6 +26,117 @@ beforeAll(() => {
 	// Mock global objects that may be referenced in server tests
 	global.console = console;
 
+	// Mock FileReader for file processing tests
+	global.FileReader = class MockFileReader {
+		readyState: number = 0;
+		result: string | ArrayBuffer | null = null;
+		error: any = null;
+		onload: ((event: any) => void) | null = null;
+		onerror: ((event: any) => void) | null = null;
+		onabort: ((event: any) => void) | null = null;
+
+		static EMPTY = 0;
+		static LOADING = 1;
+		static DONE = 2;
+
+		readAsText(file: any, encoding?: string) {
+			this.readyState = 1; // LOADING
+
+			// Simulate async file reading
+			setTimeout(() => {
+				try {
+					// For test files, use the file contents directly
+					if (file && file.stream) {
+						// Handle File objects with stream method
+						const reader = file.stream().getReader();
+						reader.read().then((result: any) => {
+							if (result.value) {
+								this.result = new TextDecoder().decode(result.value);
+							} else {
+								this.result = '';
+							}
+							this.readyState = 2; // DONE
+							if (this.onload) {
+								this.onload({ target: this });
+							}
+						});
+					} else if (file && file.constructor && file.constructor.name === 'File') {
+						// Handle mock File objects created in tests
+						this.result = file.content || file.text || '';
+						this.readyState = 2; // DONE
+						if (this.onload) {
+							this.onload({ target: this });
+						}
+					} else {
+						// Fallback for other file-like objects
+						this.result = file?.toString() || '';
+						this.readyState = 2; // DONE
+						if (this.onload) {
+							this.onload({ target: this });
+						}
+					}
+				} catch (error) {
+					this.error = error;
+					this.readyState = 2; // DONE
+					if (this.onerror) {
+						this.onerror({ target: this });
+					}
+				}
+			}, 0);
+		}
+
+		abort() {
+			this.readyState = 2; // DONE
+			if (this.onabort) {
+				this.onabort({ target: this });
+			}
+		}
+	} as any;
+
+	// Mock File constructor for tests
+	global.File = class MockFile {
+		name: string;
+		size: number;
+		type: string;
+		lastModified: number;
+		content: string;
+
+		constructor(
+			parts: (string | Blob | ArrayBuffer | ArrayBufferView)[],
+			filename: string,
+			options: any = {}
+		) {
+			this.name = filename;
+			this.type = options.type || '';
+			this.lastModified = options.lastModified || Date.now();
+			this.content = Array.isArray(parts) ? parts.join('') : String(parts);
+			this.size = this.content.length;
+		}
+
+		text() {
+			return Promise.resolve(this.content);
+		}
+
+		stream() {
+			const encoder = new TextEncoder();
+			const data = encoder.encode(this.content);
+			return {
+				getReader() {
+					let sent = false;
+					return {
+						read() {
+							if (sent) {
+								return Promise.resolve({ done: true, value: undefined });
+							}
+							sent = true;
+							return Promise.resolve({ done: false, value: data });
+						}
+					};
+				}
+			};
+		}
+	} as any;
+
 	// Mock browser APIs for WebSocket tests
 	global.CloseEvent = class CloseEvent extends Event {
 		code: number;

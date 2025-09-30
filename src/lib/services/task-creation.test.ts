@@ -309,9 +309,8 @@ describe('TaskCreationService', () => {
 
 		it('should handle network timeouts', async () => {
 			mockMcpClient.createTask.mockImplementation(
-				() => new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Request timeout')), 100)
-				)
+				() =>
+					new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 100))
 			);
 
 			const result = await service.createTask(mockFormData, { timeout: 50 });
@@ -332,12 +331,10 @@ describe('TaskCreationService', () => {
 		});
 
 		it('should retry on transient errors', async () => {
-			mockMcpClient.createTask
-				.mockRejectedValueOnce(new Error('Network error'))
-				.mockResolvedValue({
-					success: true,
-					data: mockTask
-				});
+			mockMcpClient.createTask.mockRejectedValueOnce(new Error('Network error')).mockResolvedValue({
+				success: true,
+				data: mockTask
+			});
 
 			const result = await service.createTask(mockFormData, { retries: 1 });
 
@@ -474,13 +471,11 @@ describe('TaskCreationService', () => {
 
 	describe('Performance and Memory', () => {
 		it('should handle concurrent task creation requests', async () => {
-			const promises = Array.from({ length: 5 }, () =>
-				service.createTask(mockFormData)
-			);
+			const promises = Array.from({ length: 5 }, () => service.createTask(mockFormData));
 
 			const results = await Promise.all(promises);
 
-			results.forEach(result => {
+			results.forEach((result) => {
 				expect(result.success).toBe(true);
 			});
 

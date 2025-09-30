@@ -28,9 +28,9 @@ class ToolRegistryIntegrationService {
 		// Fallback to polling if push notifications are not available
 		if (!webSocketPushService.isAvailable()) {
 			console.log('Push notifications not available, falling back to polling');
-			// Start auto-discovery of tools with polling
-			mcpToolDiscovery.startAutoDiscovery(30000); // Check every 30 seconds
-			// Start periodic connection status checks
+			// Start auto-discovery of tools with longer polling interval to reduce load
+			mcpToolDiscovery.startAutoDiscovery(120000); // Check every 2 minutes instead of 30 seconds
+			// Start periodic connection status checks with longer interval
 			this.startConnectionChecks();
 		}
 
@@ -49,7 +49,7 @@ class ToolRegistryIntegrationService {
 		if (!this.initialized) return;
 
 		// Unsubscribe from push notifications
-		this.pushNotificationUnsubscribers.forEach(unsubscribe => unsubscribe());
+		this.pushNotificationUnsubscribers.forEach((unsubscribe) => unsubscribe());
 		this.pushNotificationUnsubscribers = [];
 
 		// Shutdown push notification service
@@ -113,9 +113,12 @@ class ToolRegistryIntegrationService {
 			});
 			this.pushNotificationUnsubscribers.push(unsubscribeConnectionLost);
 
-			const unsubscribeConnectionRestored = webSocketPushService.on('connectionRestored', (data) => {
-				console.log(`Connection restored:`, data);
-			});
+			const unsubscribeConnectionRestored = webSocketPushService.on(
+				'connectionRestored',
+				(data) => {
+					console.log(`Connection restored:`, data);
+				}
+			);
 			this.pushNotificationUnsubscribers.push(unsubscribeConnectionRestored);
 
 			// Request push notifications from the server
@@ -157,7 +160,7 @@ class ToolRegistryIntegrationService {
 			} catch (error) {
 				console.error('Connection status check failed:', error);
 			}
-		}, 10000); // Check every 10 seconds
+		}, 60000); // Check every 60 seconds instead of 10 seconds
 	}
 
 	private stopConnectionChecks(): void {

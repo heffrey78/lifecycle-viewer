@@ -1,7 +1,8 @@
 // MCP Tool Discovery Service
 // Integrates with existing MCP clients to discover and register tools automatically
 
-import type { MCPTool, MCPServerInfo, ToolCategory } from '$lib/types/mcp-tools.js';
+import type { MCPTool, MCPServerInfo } from '$lib/types/mcp-tools.js';
+import { ToolCategory } from '$lib/types/mcp-tools.js';
 import { toolRegistry } from './tool-registry.js';
 import { mcpClient as lifecycleMcpClient } from './mcp-client.js';
 
@@ -24,7 +25,93 @@ class LifecycleMCPToolDiscovery implements MCPToolDiscovery {
 	constructor(private client = lifecycleMcpClient) {}
 
 	async discoverTools(): Promise<MCPTool[]> {
-		// Define the known tools from the lifecycle MCP server
+		try {
+			// Ensure client is connected
+			if (!this.client.isConnected()) {
+				await this.client.connect();
+				// Wait for initialization
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			}
+
+			// Use MCP tools/list method to discover available tools
+			const toolsResponse = await this.client.sendMethodRequest('tools/list', {});
+
+			// Extract tools from MCP response
+			let serverTools: any[] = [];
+			if (toolsResponse && typeof toolsResponse === 'object') {
+				if ('tools' in toolsResponse) {
+					serverTools = toolsResponse.tools;
+				} else if (Array.isArray(toolsResponse)) {
+					serverTools = toolsResponse;
+				} else if ('content' in toolsResponse && Array.isArray(toolsResponse.content)) {
+					// Handle MCP response format
+					const content = toolsResponse.content[0];
+					if (content && content.text) {
+						try {
+							const parsed = JSON.parse(content.text);
+							serverTools = parsed.tools || parsed;
+						} catch {
+							console.warn('Could not parse tools response as JSON');
+							serverTools = [];
+						}
+					}
+				}
+			}
+
+			// Convert MCP tools to our format and enhance descriptions
+			const discoveredTools: MCPTool[] = serverTools.map((tool: any) => ({
+				name: tool.name,
+				description: this.enhanceToolDescription(
+					tool.name,
+					tool.description || `MCP tool: ${tool.name}`,
+					tool.inputSchema || tool.input_schema
+				),
+				inputSchema: tool.inputSchema ||
+					tool.input_schema || {
+						type: 'object',
+						properties: {},
+						required: []
+					},
+				serverId: this.serverId,
+				serverName: this.serverName,
+				category: ToolCategory.LIFECYCLE,
+				tags: ['mcp', 'lifecycle']
+			}));
+
+			if (discoveredTools.length > 0) {
+				console.log(`Discovered ${discoveredTools.length} tools from ${this.serverName}`);
+			}
+			return discoveredTools;
+		} catch (error) {
+			console.error('Failed to discover tools from MCP server:', error);
+			console.log('Falling back to hardcoded tool definitions...');
+
+			// Fallback to hardcoded definitions if discovery fails
+			return this.getHardcodedTools();
+		}
+	}
+
+	private enhanceToolDescription(
+		toolName: string,
+		originalDescription: string,
+		inputSchema: any
+	): string {
+		// Add parameter examples to tool descriptions to help Claude understand usage
+		const examples: Record<string, string> = {
+			query_tasks: `${originalDescription}. Examples: {"status": "Not Started"}, {"priority": "P0"}, {"status": "Complete", "priority": "P1"}`,
+			query_requirements: `${originalDescription}. Examples: {"status": "Draft"}, {"priority": "P0"}, {"type": "FUNC"}`,
+			get_task_details: `${originalDescription}. Example: {"task_id": "TASK-0047-00-00"}`,
+			get_requirement_details: `${originalDescription}. Example: {"requirement_id": "REQ-0001-FUNC-00"}`,
+			update_task_status: `${originalDescription}. Example: {"task_id": "TASK-0047-00-00", "new_status": "In Progress"}`,
+			create_task: `${originalDescription}. Example: {"requirement_ids": ["REQ-0001-FUNC-00"], "title": "Implement feature", "priority": "P1"}`,
+			query_architecture_decisions: `${originalDescription}. Examples: {"status": "Proposed"}, {"requirement_id": "REQ-0001-FUNC-00"}`
+		};
+
+		return examples[toolName] || originalDescription;
+	}
+
+	private getHardcodedTools(): MCPTool[] {
+		// Fallback hardcoded tools (keeping existing definitions as backup)
 		const tools: MCPTool[] = [
 			{
 				name: 'query_requirements',
@@ -302,6 +389,8 @@ export class MCPToolDiscoveryService {
 	private discoverers = new Map<string, MCPToolDiscovery>();
 	private discoveryInterval: NodeJS.Timeout | null = null;
 	private isAutoDiscovering = false;
+	private lastDiscoveryTime = new Map<string, number>();
+	private minDiscoveryInterval = 30000; // Minimum 30 seconds between discoveries per server
 
 	constructor() {
 		// Register the default lifecycle MCP server
@@ -347,9 +436,22 @@ export class MCPToolDiscoveryService {
 			throw new Error(`No discoverer registered for server ${serverId}`);
 		}
 
+		// Check if we've discovered tools recently to avoid excessive polling
+		const lastDiscovery = this.lastDiscoveryTime.get(serverId) || 0;
+		const timeSinceLastDiscovery = Date.now() - lastDiscovery;
+
+		if (timeSinceLastDiscovery < this.minDiscoveryInterval) {
+			// Return cached tools if discovery was recent
+			const server = toolRegistry.getServer(serverId);
+			if (server && server.tools && server.tools.length > 0) {
+				return server.tools;
+			}
+		}
+
 		try {
 			const tools = await discoverer.discoverTools();
 			toolRegistry.updateServerTools(serverId, tools);
+			this.lastDiscoveryTime.set(serverId, Date.now());
 			return tools;
 		} catch (error) {
 			console.error(`Failed to discover tools for server ${serverId}:`, error);
@@ -381,22 +483,37 @@ export class MCPToolDiscoveryService {
 	/**
 	 * Start automatic tool discovery at regular intervals
 	 */
-	startAutoDiscovery(intervalMs: number = 30000): void {
+	startAutoDiscovery(intervalMs: number = 120000): void {
 		if (this.isAutoDiscovering) {
 			this.stopAutoDiscovery();
 		}
 
 		this.isAutoDiscovering = true;
+		console.log(`Starting auto-discovery with ${intervalMs / 1000}s interval`);
+
 		this.discoveryInterval = setInterval(async () => {
 			try {
-				await this.discoverAllTools();
+				// Only discover if we have connected servers
+				const connectedServers = Array.from(this.discoverers.values()).filter((discoverer) =>
+					discoverer.isConnected()
+				);
+
+				if (connectedServers.length > 0) {
+					await this.discoverAllTools();
+				}
 			} catch (error) {
-				console.error('Auto discovery failed:', error);
+				console.warn('Auto discovery failed:', error);
 			}
 		}, intervalMs);
 
-		// Run initial discovery
-		this.discoverAllTools();
+		// Run initial discovery only if we have connected servers
+		const connectedServers = Array.from(this.discoverers.values()).filter((discoverer) =>
+			discoverer.isConnected()
+		);
+
+		if (connectedServers.length > 0) {
+			this.discoverAllTools();
+		}
 	}
 
 	/**

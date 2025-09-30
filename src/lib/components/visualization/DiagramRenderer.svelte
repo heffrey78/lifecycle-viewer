@@ -19,7 +19,6 @@
 
 <script lang="ts">
 	import { onMount, afterUpdate, createEventDispatcher } from 'svelte';
-	import type { Requirement, Task, ArchitectureDecision } from '$lib/types/lifecycle';
 	import { currentTheme } from '$lib/theme';
 	import EntityNode from './EntityNode.svelte';
 	import RelationshipEdge from './RelationshipEdge.svelte';

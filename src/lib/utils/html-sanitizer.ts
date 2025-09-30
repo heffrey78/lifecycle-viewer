@@ -23,7 +23,7 @@ const getPurify = () => {
 				const window = new JSDOM('').window;
 				serverPurify = DOMPurify(window as any);
 			} catch (error) {
-				throw new Error('Server-side sanitization requires jsdom: ' + error.message);
+				throw new Error('Server-side sanitization requires jsdom: ' + (error as Error).message);
 			}
 		}
 		return serverPurify;

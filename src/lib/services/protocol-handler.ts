@@ -183,6 +183,12 @@ export class ProtocolHandler {
 		try {
 			const result = await this.sendRequest(method, params);
 			const data = this.extractMCPToolData(result);
+
+			// Check if the MCP server returned an error response
+			if (typeof data === 'string' && data.startsWith('[ERROR]')) {
+				return { success: false, error: data.replace('[ERROR]', '').trim() };
+			}
+
 			return { success: true, data: data as T };
 		} catch (error) {
 			return { success: false, error: this.extractErrorMessage(error) };

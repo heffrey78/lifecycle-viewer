@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { featureFlags, toggleFeature, resetAllFlags, emergencyRollback } from '$lib/stores/feature-flags';
+	import {
+		featureFlags,
+		toggleFeature,
+		resetAllFlags,
+		emergencyRollback
+	} from '$lib/stores/feature-flags';
 	import { currentTheme } from '$lib/theme';
 	import type { FeatureFlags } from '$lib/stores/feature-flags';
 
@@ -12,13 +17,20 @@
 	}
 
 	function handleEmergencyRollback() {
-		if (confirm('🚨 Emergency rollback will disable all Svelte-Flow features and reload the page. Continue?')) {
+		if (
+			confirm(
+				'🚨 Emergency rollback will disable all Svelte-Flow features and reload the page. Continue?'
+			)
+		) {
 			emergencyRollback();
 		}
 	}
 
 	// Feature flag metadata for better UX
-	const flagMetadata: Record<keyof FeatureFlags, { label: string; description: string; risk: 'low' | 'medium' | 'high' }> = {
+	const flagMetadata: Record<
+		keyof FeatureFlags,
+		{ label: string; description: string; risk: 'low' | 'medium' | 'high' }
+	> = {
 		useSvelteFlow: {
 			label: 'Use Svelte-Flow',
 			description: 'Enable Svelte-Flow visualization system (master toggle)',
@@ -58,31 +70,34 @@
 
 	function getRiskColor(risk: 'low' | 'medium' | 'high') {
 		switch (risk) {
-			case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-			case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-			case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+			case 'low':
+				return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+			case 'medium':
+				return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+			case 'high':
+				return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
 		}
 	}
 </script>
 
 {#if showAdmin}
 	<div class="fixed top-4 right-4 z-50 max-w-md">
-		<div class="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg">
+		<div
+			class="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg"
+		>
 			<!-- Header -->
 			<div class="p-3 border-b border-gray-200 dark:border-gray-700">
 				<div class="flex items-center justify-between">
-					<h3 class="font-semibold text-gray-900 dark:text-white text-sm">
-						🚩 Feature Flags
-					</h3>
+					<h3 class="font-semibold text-gray-900 dark:text-white text-sm">🚩 Feature Flags</h3>
 					<div class="flex items-center gap-2">
 						<button
-							on:click={() => isExpanded = !isExpanded}
+							on:click={() => (isExpanded = !isExpanded)}
 							class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
 						>
 							{isExpanded ? 'Collapse' : 'Expand'}
 						</button>
 						<button
-							on:click={() => showAdmin = false}
+							on:click={() => (showAdmin = false)}
 							class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 						>
 							×
@@ -116,10 +131,22 @@
 									checked={$featureFlags[flagKey]}
 									on:change={() => handleToggle(flagKey)}
 									class="sr-only"
-								>
+								/>
 								<div class="relative">
-									<div class="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full shadow-inner transition-colors duration-200 ease-in-out {$featureFlags[flagKey] ? 'bg-blue-500' : ''}"></div>
-									<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ease-in-out {$featureFlags[flagKey] ? 'translate-x-4' : ''}"></div>
+									<div
+										class="w-10 h-6 bg-gray-200 dark:bg-gray-700 rounded-full shadow-inner transition-colors duration-200 ease-in-out {$featureFlags[
+											flagKey
+										]
+											? 'bg-blue-500'
+											: ''}"
+									></div>
+									<div
+										class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ease-in-out {$featureFlags[
+											flagKey
+										]
+											? 'translate-x-4'
+											: ''}"
+									></div>
 								</div>
 							</label>
 						</div>

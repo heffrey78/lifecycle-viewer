@@ -61,7 +61,8 @@ describe('ProtocolHandler', () => {
 		// Ensure message handler is always registered
 		const protocolHandlerAny = protocolHandler as any;
 		if (protocolHandlerAny.handleMessage) {
-			mockConnectionManager['messageHandler'] = (message: any) => protocolHandlerAny.handleMessage(message);
+			mockConnectionManager['messageHandler'] = (message: any) =>
+				protocolHandlerAny.handleMessage(message);
 		}
 	});
 
@@ -102,7 +103,7 @@ describe('ProtocolHandler', () => {
 			const initPromise1 = protocolHandler.initialize();
 
 			// Wait for init request then respond immediately
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 			mockConnectionManager.simulateMessage({
 				jsonrpc: '2.0',
 				id: 1,
@@ -126,7 +127,7 @@ describe('ProtocolHandler', () => {
 			const initPromise = protocolHandler.initialize();
 
 			// Wait for connection and initialization to start
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 
 			// Check that initialization request was sent
 			expect(mockConnectionManager.send).toHaveBeenCalledWith({
@@ -168,7 +169,7 @@ describe('ProtocolHandler', () => {
 			const initPromise = protocolHandler.initialize();
 
 			// Wait for the initialization request to be sent
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 
 			// Don't send a response - let it timeout
 			// The real timeout is 10 seconds, but we'll simulate it by rejecting
@@ -191,7 +192,7 @@ describe('ProtocolHandler', () => {
 			const initPromise = protocolHandler.initialize();
 
 			// Wait for initialization to start
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 
 			// Simulate error response
 			mockConnectionManager.simulateMessage({
@@ -211,7 +212,7 @@ describe('ProtocolHandler', () => {
 
 			// First initialization
 			const initPromise1 = protocolHandler.initialize();
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 			mockConnectionManager.simulateMessage({
 				jsonrpc: '2.0',
 				id: 1,
@@ -233,7 +234,7 @@ describe('ProtocolHandler', () => {
 			// Initialize protocol handler
 			const initPromise = protocolHandler.initialize();
 			// Use setImmediate for consistent async behavior
-			await new Promise(resolve => setImmediate(resolve));
+			await new Promise((resolve) => setImmediate(resolve));
 			mockConnectionManager.simulateMessage({
 				jsonrpc: '2.0',
 				id: 1,
@@ -454,10 +455,14 @@ describe('ProtocolHandler', () => {
 
 			// Add promise rejection handlers to prevent unhandled rejections
 			if (pendingRequest1) {
-				pendingRequest1.catch(() => { /* Ignore expected rejections */ });
+				pendingRequest1.catch(() => {
+					/* Ignore expected rejections */
+				});
 			}
 			if (pendingRequest2) {
-				pendingRequest2.catch(() => { /* Ignore expected rejections */ });
+				pendingRequest2.catch(() => {
+					/* Ignore expected rejections */
+				});
 			}
 
 			// Clear the references

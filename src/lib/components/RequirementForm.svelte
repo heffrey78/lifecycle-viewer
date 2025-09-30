@@ -2,6 +2,8 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { currentTheme } from '$lib/theme';
 	import RichTextEditor from './RichTextEditor.svelte';
+	import FormField from './form/FormField.svelte';
+	import FormSummaryErrors from './form/FormSummaryErrors.svelte';
 	import { stripHtmlForValidation } from '$lib/utils/html-sanitizer.js';
 	import { requirementCreationService } from '$lib/services/requirement-creation.js';
 	import {
@@ -564,7 +566,9 @@
 			<div class="flex items-center space-x-2 text-sm">
 				<div class="flex items-center space-x-1">
 					{#if connectionStatus === 'checking'}
-						<div class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"></div>
+						<div
+							class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"
+						></div>
 						<span class="text-gray-600">Checking connection...</span>
 					{:else if connectionStatus === 'connected'}
 						<div class="h-3 w-3 bg-green-500 rounded-full"></div>

@@ -242,10 +242,7 @@ export class LifecycleMCPClient {
 		});
 	}
 
-	private async sendRequest(
-		method: string,
-		params: Record<string, unknown> = {}
-	): Promise<unknown> {
+	async sendRequest(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
 		if (!this.connected || !this.ws) {
 			throw new Error('Not connected to MCP server');
 		}
@@ -265,14 +262,38 @@ export class LifecycleMCPClient {
 			}
 		};
 
+		return this.sendRawRequest(message);
+	}
+
+	async sendMethodRequest(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
+		if (!this.connected || !this.ws) {
+			throw new Error('Not connected to MCP server');
+		}
+
+		if (!this.initialized) {
+			throw new Error('MCP server not initialized');
+		}
+
+		const id = ++this.messageId;
+		const message = {
+			jsonrpc: '2.0',
+			id,
+			method,
+			params
+		};
+
+		return this.sendRawRequest(message);
+	}
+
+	private sendRawRequest(message: any): Promise<unknown> {
 		return new Promise((resolve, reject) => {
-			this.pendingRequests.set(id, { resolve, reject });
+			this.pendingRequests.set(message.id, { resolve, reject });
 			this.ws!.send(JSON.stringify(message));
 
 			// Set timeout for requests
 			setTimeout(() => {
-				if (this.pendingRequests.has(id)) {
-					this.pendingRequests.delete(id);
+				if (this.pendingRequests.has(message.id)) {
+					this.pendingRequests.delete(message.id);
 					reject(new Error('Request timeout'));
 				}
 			}, 30000);
@@ -707,7 +728,10 @@ export class LifecycleMCPClient {
 					if (responseText.startsWith('[') || responseText.startsWith('{')) {
 						try {
 							const relationships = JSON.parse(responseText);
-							return { success: true, data: Array.isArray(relationships) ? relationships : [relationships] };
+							return {
+								success: true,
+								data: Array.isArray(relationships) ? relationships : [relationships]
+							};
 						} catch (parseError) {
 							console.warn('Failed to parse relationships JSON:', parseError);
 						}
@@ -723,7 +747,11 @@ export class LifecycleMCPClient {
 		}
 	}
 
-	async deleteRelationship(sourceId: string, targetId: string, type?: string): Promise<MCPResponse<boolean>> {
+	async deleteRelationship(
+		sourceId: string,
+		targetId: string,
+		type?: string
+	): Promise<MCPResponse<boolean>> {
 		try {
 			const result = await this.sendRequest('delete_relationship', {
 				source_id: sourceId,
@@ -788,7 +816,6 @@ export class LifecycleMCPClient {
 			return { success: false, error: this.extractErrorMessage(error) };
 		}
 	}
-
 
 	// Get relationships from existing entity data structure
 	async getEntityRelationships(): Promise<

@@ -2,12 +2,7 @@
 // Handles data transformation, error handling, and retry logic
 
 import { mcpClient } from './mcp-client.js';
-import type {
-	TaskFormData,
-	Task,
-	Requirement,
-	MCPResponse
-} from '$lib/types/lifecycle.js';
+import type { TaskFormData, Task, Requirement, MCPResponse } from '$lib/types/lifecycle.js';
 
 export interface TaskCreationResult {
 	success: boolean;
@@ -58,7 +53,7 @@ export class TaskCreationService {
 	 */
 	private sanitizeArray(arr: string[]): string[] {
 		if (!Array.isArray(arr)) return [];
-		return arr.map(item => this.sanitizeInput(item)).filter(item => item.length > 0);
+		return arr.map((item) => this.sanitizeInput(item)).filter((item) => item.length > 0);
 	}
 
 	/**
@@ -101,7 +96,7 @@ export class TaskCreationService {
 		};
 
 		// Remove undefined values
-		Object.keys(params).forEach(key => {
+		Object.keys(params).forEach((key) => {
 			if (params[key] === undefined) {
 				delete params[key];
 			}
@@ -116,7 +111,7 @@ export class TaskCreationService {
 	async checkConnection(): Promise<boolean> {
 		try {
 			// If not connected, try to connect first
-			if (!await mcpClient.isConnected()) {
+			if (!(await mcpClient.isConnected())) {
 				await mcpClient.connect();
 			}
 			return await mcpClient.isConnected();
@@ -132,7 +127,7 @@ export class TaskCreationService {
 	async getApprovedRequirements(): Promise<MCPResponse<Requirement[]>> {
 		try {
 			// Connect if not already connected
-			if (!await mcpClient.isConnected()) {
+			if (!(await mcpClient.isConnected())) {
 				await mcpClient.connect();
 			}
 
@@ -143,7 +138,7 @@ export class TaskCreationService {
 			if (response.success && response.data) {
 				// Filter for approved statuses client-side
 				const approvedStatuses = ['Approved', 'Architecture', 'Ready', 'Implemented', 'Validated'];
-				const filteredRequirements = response.data.filter(req =>
+				const filteredRequirements = response.data.filter((req) =>
 					approvedStatuses.includes(req.status)
 				);
 
@@ -169,7 +164,7 @@ export class TaskCreationService {
 	async getAllTasks(): Promise<MCPResponse<Task[]>> {
 		try {
 			// Connect if not already connected
-			if (!await mcpClient.isConnected()) {
+			if (!(await mcpClient.isConnected())) {
 				await mcpClient.connect();
 			}
 
@@ -198,7 +193,7 @@ export class TaskCreationService {
 			const now = Date.now();
 			if (now - this.lastSubmission < this.minInterval) {
 				const waitTime = this.minInterval - (now - this.lastSubmission);
-				await new Promise(resolve => setTimeout(resolve, waitTime));
+				await new Promise((resolve) => setTimeout(resolve, waitTime));
 			}
 			this.lastSubmission = Date.now();
 		}
@@ -212,7 +207,7 @@ export class TaskCreationService {
 				const params = this.transformFormData(formData);
 
 				// Connect if not already connected
-				if (!await mcpClient.isConnected()) {
+				if (!(await mcpClient.isConnected())) {
 					await mcpClient.connect();
 				}
 
@@ -248,13 +243,14 @@ export class TaskCreationService {
 				// Wait before retry (exponential backoff)
 				if (attempt < maxAttempts) {
 					const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-					await new Promise(resolve => setTimeout(resolve, delay));
+					await new Promise((resolve) => setTimeout(resolve, delay));
 				}
 			}
 		}
 
 		// Determine if error is retryable
-		const isRetryable = lastError &&
+		const isRetryable =
+			lastError &&
 			!lastError.message.includes('validation') &&
 			!lastError.message.includes('required') &&
 			!lastError.message.includes('invalid') &&

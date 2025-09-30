@@ -41,7 +41,6 @@
 			dispatch('layoutChange', mode);
 		}
 	}
-
 </script>
 
 <div class="flex items-center justify-between">
@@ -65,5 +64,4 @@
 			</button>
 		{/each}
 	</div>
-
 </div>

@@ -69,9 +69,7 @@
 		context: initialData.context || '',
 		decision_outcome: initialData.decision_outcome || '',
 		authors: initialData.authors?.length ? initialData.authors : [''],
-		decision_drivers: initialData.decision_drivers?.length
-			? initialData.decision_drivers
-			: [''],
+		decision_drivers: initialData.decision_drivers?.length ? initialData.decision_drivers : [''],
 		considered_options: initialData.considered_options?.length
 			? initialData.considered_options
 			: ['', ''],
@@ -85,9 +83,21 @@
 
 	// Architecture types
 	const typeOptions: { value: ArchitectureType; label: string; description: string }[] = [
-		{ value: 'ADR', label: 'ADR - Architecture Decision Record', description: 'Architectural decisions and their context' },
-		{ value: 'TDD', label: 'TDD - Technical Design Document', description: 'Detailed technical implementations' },
-		{ value: 'INTG', label: 'INTG - Integration Guide', description: 'System integration specifications' }
+		{
+			value: 'ADR',
+			label: 'ADR - Architecture Decision Record',
+			description: 'Architectural decisions and their context'
+		},
+		{
+			value: 'TDD',
+			label: 'TDD - Technical Design Document',
+			description: 'Detailed technical implementations'
+		},
+		{
+			value: 'INTG',
+			label: 'INTG - Integration Guide',
+			description: 'System integration specifications'
+		}
 	];
 
 	// Form validation
@@ -323,7 +333,9 @@
 			<div class="flex items-center space-x-2 text-sm">
 				<div class="flex items-center space-x-1">
 					{#if connectionStatus === 'checking'}
-						<div class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"></div>
+						<div
+							class="animate-spin h-3 w-3 border border-gray-300 border-t-blue-600 rounded-full"
+						></div>
 						<span class="text-gray-600">Checking connection...</span>
 					{:else if connectionStatus === 'connected'}
 						<div class="h-3 w-3 bg-green-500 rounded-full"></div>
@@ -353,7 +365,11 @@
 
 	<!-- ADR Type Selection -->
 	<div class="space-y-2">
-		<label for="type" class="block text-sm font-medium" style="color: {$currentTheme.base.foreground};">
+		<label
+			for="type"
+			class="block text-sm font-medium"
+			style="color: {$currentTheme.base.foreground};"
+		>
 			ADR Type
 		</label>
 		<select
@@ -361,7 +377,8 @@
 			bind:value={formData.type}
 			onchange={() => validateFieldRealTime('type', formData.type)}
 			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-			style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+			style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+				.foreground}; border-color: {$currentTheme.base.border};"
 			disabled={isSubmitting}
 		>
 			{#each typeOptions as option}
@@ -375,7 +392,11 @@
 
 	<!-- Title -->
 	<div class="space-y-2">
-		<label for="title" class="block text-sm font-medium" style="color: {$currentTheme.base.foreground};">
+		<label
+			for="title"
+			class="block text-sm font-medium"
+			style="color: {$currentTheme.base.foreground};"
+		>
 			Title *
 		</label>
 		<input
@@ -385,8 +406,15 @@
 			oninput={() => validateFieldRealTime('title', formData.title)}
 			placeholder="Enter ADR title (e.g., 'Use React for frontend framework')"
 			maxlength="200"
-			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError('title') ? 'border-red-500' : ''}"
-			style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {getFieldError('title') ? '#ef4444' : $currentTheme.base.border};"
+			class="w-full px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {getFieldError(
+				'title'
+			)
+				? 'border-red-500'
+				: ''}"
+			style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+				.foreground}; border-color: {getFieldError('title')
+				? '#ef4444'
+				: $currentTheme.base.border};"
 			disabled={isSubmitting}
 		/>
 		<div class="flex justify-between items-center">
@@ -404,8 +432,19 @@
 				{#if isFieldValidating('title')}
 					<div class="w-4 h-4">
 						<svg class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
 						</svg>
 					</div>
 				{/if}
@@ -451,7 +490,8 @@
 					bind:value={formData.decision_drivers[index]}
 					placeholder="What drove this decision? (e.g., 'Performance requirements', 'Team expertise')"
 					class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+						.foreground}; border-color: {$currentTheme.base.border};"
 					disabled={isSubmitting}
 				/>
 				{#if (formData.decision_drivers?.length || 0) > 1}
@@ -488,7 +528,8 @@
 					bind:value={formData.considered_options[index]}
 					placeholder="Option {index + 1}: Describe the alternative considered"
 					class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+						.foreground}; border-color: {$currentTheme.base.border};"
 					disabled={isSubmitting}
 				/>
 				{#if (formData.considered_options?.length || 0) > 2}
@@ -552,7 +593,8 @@
 						bind:value={formData.consequences.good[index]}
 						placeholder="Positive outcome from this decision"
 						class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-green-500 focus:border-green-500"
-						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+							.foreground}; border-color: {$currentTheme.base.border};"
 						disabled={isSubmitting}
 					/>
 					{#if (formData.consequences?.good?.length || 0) > 1}
@@ -587,7 +629,8 @@
 						bind:value={formData.consequences.bad[index]}
 						placeholder="Negative outcome or trade-off from this decision"
 						class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-red-500 focus:border-red-500"
-						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+							.foreground}; border-color: {$currentTheme.base.border};"
 						disabled={isSubmitting}
 					/>
 					{#if (formData.consequences?.bad?.length || 0) > 1}
@@ -622,7 +665,8 @@
 						bind:value={formData.consequences.neutral[index]}
 						placeholder="Neutral outcome or side effect from this decision"
 						class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
-						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+						style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+							.foreground}; border-color: {$currentTheme.base.border};"
 						disabled={isSubmitting}
 					/>
 					{#if (formData.consequences?.neutral?.length || 0) > 1}
@@ -660,7 +704,8 @@
 					bind:value={formData.authors[index]}
 					placeholder="Author email address"
 					class="flex-1 px-3 py-2 rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base.foreground}; border-color: {$currentTheme.base.border};"
+					style="background-color: {$currentTheme.base.background}; color: {$currentTheme.base
+						.foreground}; border-color: {$currentTheme.base.border};"
 					disabled={isSubmitting}
 					required
 				/>
@@ -695,11 +740,16 @@
 
 		{#if loadingRequirements}
 			<div class="flex items-center space-x-2 text-sm text-gray-600">
-				<div class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"></div>
+				<div
+					class="animate-spin h-4 w-4 border border-gray-300 border-t-blue-600 rounded-full"
+				></div>
 				<span>Loading requirements...</span>
 			</div>
 		{:else if availableRequirements.length === 0}
-			<p class="text-sm text-gray-500">No approved requirements available. Requirements must be in 'Approved' status or later for architectural decisions.</p>
+			<p class="text-sm text-gray-500">
+				No approved requirements available. Requirements must be in 'Approved' status or later for
+				architectural decisions.
+			</p>
 		{:else}
 			<div class="max-h-48 overflow-y-auto border rounded-md p-3 space-y-2">
 				{#each availableRequirements as requirement}
@@ -713,7 +763,9 @@
 						/>
 						<div class="flex-1">
 							<div class="text-sm font-medium">{requirement.title}</div>
-							<div class="text-xs text-gray-500">{requirement.id} | {requirement.type} | {requirement.status}</div>
+							<div class="text-xs text-gray-500">
+								{requirement.id} | {requirement.type} | {requirement.status}
+							</div>
 						</div>
 					</label>
 				{/each}
@@ -726,7 +778,9 @@
 
 		{#if formData.requirement_ids.length > 0}
 			<p class="text-sm text-gray-600">
-				{formData.requirement_ids.length} requirement{formData.requirement_ids.length === 1 ? '' : 's'} selected
+				{formData.requirement_ids.length} requirement{formData.requirement_ids.length === 1
+					? ''
+					: 's'} selected
 			</p>
 		{/if}
 	</fieldset>
@@ -738,8 +792,16 @@
 			{#if successMessage}
 				<div class="p-3 bg-green-50 border border-green-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+						<svg
+							class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div>
 							<h4 class="text-sm font-medium text-green-800">Success!</h4>
@@ -753,8 +815,16 @@
 			{#if submitError}
 				<div class="p-3 bg-red-50 border border-red-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+						<svg
+							class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div class="flex-1">
 							<h4 class="text-sm font-medium text-red-800">Error</h4>
@@ -777,13 +847,22 @@
 			{#if connectionStatus === 'disconnected'}
 				<div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
 					<div class="flex items-start gap-2">
-						<svg class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-							<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+						<svg
+							class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+								clip-rule="evenodd"
+							/>
 						</svg>
 						<div>
 							<h4 class="text-sm font-medium text-yellow-800">Connection Issue</h4>
 							<p class="text-sm text-yellow-700">
-								Unable to connect to the server. Your ADR will be saved locally and can be submitted when the connection is restored.
+								Unable to connect to the server. Your ADR will be saved locally and can be submitted
+								when the connection is restored.
 							</p>
 						</div>
 					</div>
@@ -793,7 +872,10 @@
 	{/if}
 
 	<!-- Form Actions -->
-	<div class="flex justify-end space-x-3 pt-4 border-t" style="border-color: {$currentTheme.base.border};">
+	<div
+		class="flex justify-end space-x-3 pt-4 border-t"
+		style="border-color: {$currentTheme.base.border};"
+	>
 		<button
 			type="button"
 			onclick={handleCancel}
@@ -806,7 +888,9 @@
 		<button
 			type="submit"
 			disabled={isSubmitting}
-			class="px-4 py-2 rounded-lg transition-colors disabled:opacity-50 {isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white"
+			class="px-4 py-2 rounded-lg transition-colors disabled:opacity-50 {isSubmitting
+				? 'bg-gray-400 cursor-not-allowed'
+				: 'bg-blue-600 hover:bg-blue-700'} text-white"
 		>
 			{isSubmitting ? 'Creating...' : 'Create ADR'}
 		</button>

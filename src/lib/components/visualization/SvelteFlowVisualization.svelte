@@ -8,6 +8,15 @@
 	import { currentTheme } from '$lib/theme';
 	import { featureFlags } from '$lib/stores/feature-flags';
 
+	// Define NodeData interface for SvelteFlow nodes
+	interface NodeData {
+		[key: string]: unknown;
+		label?: string;
+		type?: string;
+		status?: string;
+		priority?: string;
+	}
+
 	export let data: {
 		requirements: Requirement[];
 		tasks: Task[];
@@ -29,21 +38,24 @@
 			type: 'default',
 			position: { x: 0, y: 0 },
 			data: { label: 'AT ORIGIN' },
-			style: 'background: red; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
+			style:
+				'background: red; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
 		},
 		{
 			id: 'debug-2',
 			type: 'default',
 			position: { x: 200, y: 0 },
 			data: { label: 'RIGHT OF ORIGIN' },
-			style: 'background: blue; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
+			style:
+				'background: blue; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
 		},
 		{
 			id: 'debug-3',
 			type: 'default',
 			position: { x: 0, y: 200 },
 			data: { label: 'BELOW ORIGIN' },
-			style: 'background: green; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
+			style:
+				'background: green; color: white; padding: 20px; border: 3px solid yellow; border-radius: 4px; width: 150px; height: 50px;'
 		}
 	];
 	let svelteFlowComponent: any;
@@ -51,7 +63,14 @@
 	let selectedNode: Node<NodeData> | null = null;
 
 	// Build graph when data OR layout changes (with stable dependencies)
-	$: if (data && $featureFlags.useSvelteFlow && data.requirements && data.tasks && data.architectureDecisions && layoutMode) {
+	$: if (
+		data &&
+		$featureFlags.useSvelteFlow &&
+		data.requirements &&
+		data.tasks &&
+		data.architectureDecisions &&
+		layoutMode
+	) {
 		rebuildGraph();
 
 		// Trigger fitView after layout change
@@ -67,17 +86,15 @@
 	}
 
 	function rebuildGraph() {
-
 		const result = buildSvelteFlowGraph(data, layoutMode, visibleEntityTypes);
 
-		nodes = result.nodes as Node[];
+		nodes = result.nodes as Node<NodeData>[];
 		edges = result.edges as Edge[];
 		performanceMetrics = {
 			buildTime: result.buildTime,
 			nodeCount: result.nodeCount,
 			edgeCount: result.edgeCount
 		};
-
 
 		// fitView will be handled automatically by Svelte-Flow
 
@@ -88,7 +105,7 @@
 	}
 
 	// Node click handler
-	function handleNodeClick({ node, event }: { node: any, event: any }) {
+	function handleNodeClick({ node, event }: { node: any; event: any }) {
 		if (node?.data?.entity) {
 			// Set selected node for detail viewing
 			selectedNode = node;
@@ -102,7 +119,7 @@
 	}
 
 	// Edge click handler
-	function handleEdgeClick({ edge, event }: { edge: any, event: any }) {
+	function handleEdgeClick({ edge, event }: { edge: any; event: any }) {
 		if (edge?.data) {
 			dispatch('edgeClick', {
 				relationshipType: edge.data.relationshipType,
@@ -141,11 +158,10 @@
 		}
 	}
 
-
 	// Public method to remove temporary edges (called from parent when relationship creation is cancelled)
 	export function removeTemporaryEdge(sourceId: string, targetId: string) {
 		const edgeId = `${sourceId}-${targetId}`;
-		edges = edges.filter(edge => edge.id !== edgeId);
+		edges = edges.filter((edge) => edge.id !== edgeId);
 	}
 
 	onMount(() => {
@@ -168,8 +184,6 @@
 
 <div style="width: 100%; height: 100%;" class="relative">
 	{#if $featureFlags.useSvelteFlow}
-
-
 		<!-- Svelte-Flow Container -->
 		<SvelteFlow
 			bind:this={svelteFlowComponent}
@@ -195,17 +209,10 @@
 			onconnect={handleConnect}
 		>
 			<!-- Controls -->
-			<Controls
-				style="background: rgba(255, 255, 255, 0.9);"
-				class="svelte-flow-controls"
-			/>
+			<Controls style="background: rgba(255, 255, 255, 0.9);" class="svelte-flow-controls" />
 
 			<!-- Background Pattern -->
-			<Background
-				gap={20}
-				color={$currentTheme.base.border}
-				style="opacity: 0.3;"
-			/>
+			<Background gap={20} style="opacity: 0.3;" />
 
 			<!-- Minimap -->
 			<MiniMap
@@ -216,37 +223,41 @@
 					if (type === 'architecture') return '#8b5cf6';
 					return '#6b7280';
 				}}
-				style="background: {$currentTheme.base.background}; border: 1px solid {$currentTheme.base.border};"
+				style="background: {$currentTheme.base.background}; border: 1px solid {$currentTheme.base
+					.border};"
 				class="minimap-custom"
 			/>
 
 			<!-- Entity Detail Toolbar -->
 			{#if selectedNode}
-				<NodeToolbar
-					nodeId={selectedNode.id}
-					position="top"
-					align="center"
-					offset={10}
-					isVisible={true}
-				>
+				<NodeToolbar nodeId={selectedNode.id} position="top" offset={10} isVisible={true}>
 					<div
 						class="entity-detail-toolbar bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 min-w-80 max-w-96"
-						style="background-color: {$currentTheme.base.background}; border-color: {$currentTheme.base.border}; color: {$currentTheme.base.foreground};"
+						style="background-color: {$currentTheme.base.background}; border-color: {$currentTheme
+							.base.border}; color: {$currentTheme.base.foreground};"
 					>
 						<!-- Entity Header -->
 						<div class="flex items-center justify-between mb-3">
 							<div class="flex items-center space-x-2">
 								<div
 									class="w-3 h-3 rounded-full"
-									style="background-color: {selectedNode.data.entityType === 'requirement' ? '#3b82f6' : selectedNode.data.entityType === 'task' ? '#10b981' : '#8b5cf6'}"
+									style="background-color: {selectedNode.data.entityType === 'requirement'
+										? '#3b82f6'
+										: selectedNode.data.entityType === 'task'
+											? '#10b981'
+											: '#8b5cf6'}"
 								></div>
 								<h3 class="font-semibold text-sm">
-									{selectedNode.data.entityType === 'requirement' ? 'Requirement' : selectedNode.data.entityType === 'task' ? 'Task' : 'Architecture Decision'}
+									{selectedNode.data.entityType === 'requirement'
+										? 'Requirement'
+										: selectedNode.data.entityType === 'task'
+											? 'Task'
+											: 'Architecture Decision'}
 								</h3>
 							</div>
 							<button
 								class="text-gray-400 hover:text-gray-600 p-1"
-								on:click={() => selectedNode = null}
+								on:click={() => (selectedNode = null)}
 								title="Close details"
 							>
 								×
@@ -256,7 +267,9 @@
 						<!-- Entity Details -->
 						<div class="space-y-2">
 							<div>
-								<div class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+								<div
+									class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1"
+								>
 									Title
 								</div>
 								<div class="text-sm font-medium break-words">
@@ -266,7 +279,9 @@
 
 							<div class="grid grid-cols-2 gap-3">
 								<div>
-									<div class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+									<div
+										class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1"
+									>
 										Status
 									</div>
 									<div class="text-sm">
@@ -276,7 +291,9 @@
 
 								{#if selectedNode.data.entity.priority}
 									<div>
-										<div class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+										<div
+											class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1"
+										>
 											Priority
 										</div>
 										<div class="text-sm font-medium">
@@ -288,7 +305,9 @@
 
 							{#if selectedNode.data.entity.created_at}
 								<div>
-									<div class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+									<div
+										class="font-medium text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1"
+									>
 										Created
 									</div>
 									<div class="text-sm">
@@ -301,14 +320,6 @@
 				</NodeToolbar>
 			{/if}
 		</SvelteFlow>
-
-		<!-- Layout info -->
-		<div class="absolute bottom-4 left-4 z-10 bg-white/90 dark:bg-gray-900/90 p-2 rounded shadow text-xs">
-			🚩 Svelte-Flow • {layoutMode} layout
-			{#if $featureFlags.dragToConnectRelationships}
-				• Drag-to-connect enabled
-			{/if}
-		</div>
 	{:else}
 		<!-- Fallback message when Svelte-Flow is disabled -->
 		<div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
@@ -351,7 +362,9 @@
 	/* Node styling enhancements */
 	:global(.svelte-flow .svelte-flow__node) {
 		cursor: pointer;
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	:global(.svelte-flow .svelte-flow__node:hover) {
