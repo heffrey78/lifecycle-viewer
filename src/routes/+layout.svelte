@@ -7,7 +7,8 @@
 		GitBranch,
 		Network,
 		Settings,
-		Palette
+		Palette,
+		MessageCircle
 	} from 'lucide-svelte';
 	import ProjectName from '$lib/components/ProjectName.svelte';
 	import { currentTheme, setTheme, defaultThemes } from '$lib/theme';
@@ -19,6 +20,7 @@
 		{ href: '/tasks', icon: CheckSquare, label: 'Tasks' },
 		{ href: '/architecture', icon: GitBranch, label: 'Architecture' },
 		{ href: '/relationships', icon: Network, label: 'Relationships' },
+		{ href: '/chat', icon: MessageCircle, label: 'Chat' },
 		{ href: '/settings', icon: Settings, label: 'Settings' }
 	];
 
@@ -28,7 +30,6 @@
 		setTheme(themeId);
 		showThemeDropdown = false;
 	}
-
 </script>
 
 <div
@@ -101,6 +102,8 @@
 							Architecture
 						{:else if $page.url.pathname === '/relationships'}
 							Relationships
+						{:else if $page.url.pathname === '/chat'}
+							Chat
 						{:else if $page.url.pathname === '/settings'}
 							Settings
 						{:else}
@@ -170,4 +173,3 @@
 		</main>
 	</div>
 </div>
-
