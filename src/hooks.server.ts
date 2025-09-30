@@ -22,13 +22,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		// Font sources - allow self and data URLs
 		"font-src 'self' data:",
 
-		// Connect sources - allow self and WebSocket connections
+		// Connect sources - allow self, WebSocket connections, and Anthropic API
 		// In dev mode, also allow Vite dev server WebSocket
-		`connect-src 'self' ws://localhost:3000 wss://localhost:3000${dev ? ' ws://localhost:5173 ws://127.0.0.1:5173' : ''}`,
+		dev
+			? "connect-src 'self' ws://localhost:3000 wss://localhost:3000 https://api.anthropic.com ws://localhost:5173 ws://127.0.0.1:5173"
+			: "connect-src 'self' ws://localhost:3000 wss://localhost:3000 https://api.anthropic.com",
 
-		// Object and embed sources - disallow for security
+		// Object sources - disallow for security
 		"object-src 'none'",
-		"embed-src 'none'",
 
 		// Frame sources - disallow for security
 		"frame-src 'none'",
